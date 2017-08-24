@@ -1,0 +1,33 @@
+<div class="form-group row">
+  <label for="prop-targets" class="col-sm-2 col-form-label">Target databases</label>
+  <div class="col-sm-10">
+    <ul id="prop-targets" class="listbox half"></ul>
+  </div>
+</div>
+<div class="form-group row">
+  <label for="prop-key" class="col-sm-2 col-form-label">Column</label>
+  <div class="col-sm-10">
+    <select id="prop-key" class="form-control" name="key"></select>
+    <input id="prop-request" type="hidden" name="request"/>
+  </div>
+</div>
+<div class="form-group row">
+  <label for="prop-operator" class="col-sm-2 col-form-label">Condition</label>
+  <div class="col-sm-10">
+    <select id="prop-operator" class="form-control" name="operator">
+      <option value="eq">=</option>
+      <option value="gt">&gt;</option>
+      <option value="lt">&lt;</option>
+      <option value="ge">&gt;=</option>
+      <option value="le">&lt;=</option>
+      <option value="in">IN</option>
+      <option value="lk">LIKE</option>
+    </select>
+  </div>
+</div>
+<div class="form-group row">
+  <label for="prop-queryarea" class="col-sm-2 col-form-label">Query</label>
+  <div class="col-sm-10">
+    <textarea id="prop-queryarea" class="form-control" name="query_area"></textarea>
+  </div>
+</div>

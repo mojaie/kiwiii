@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<title>Datatable</title>
+<% include partial/header %>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.5/pako.min.js"></script>
+<body style="overflow-y: hidden"><!-- disable scroll for DataGrid -->
+<div class="container-fluid">
+  <img id="loading-circle" src="../assets/loading.gif"/>
+  <div class="btn-toolbar">
+    <div id="new-data" class="btn-group">
+      <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">+ Fetch compounds</button>
+      <div class="dropdown-menu">
+        <a class="dropdown-item online-command" data-toggle="modal" data-target="#pick-dialog">Search by compound ID</a>
+        <a class="dropdown-item online-command" data-toggle="modal" data-target="#struct-dialog">Search by structure</a>
+        <a class="dropdown-item online-command" data-toggle="modal" data-target="#prop-dialog">Search by properties</a>
+        <a class="dropdown-item online-command" data-toggle="modal" data-target="#sdf-dialog">Import SDFile</a>
+        <form action="open" method="post" enctype="multipart/form-data" style="display: none">
+          <input id="select-file" type="file" name="file" accept=".json,.gz"/>
+        </form>
+        <a id="import-json" class="dropdown-item">Import JSON table</a>
+      </div>
+    </div>
+    <div id="data-control" class="btn-group">
+      <button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-toggle="dropdown">Table control</button>
+      <div class="dropdown-menu">
+        <a class="dropdown-item" data-toggle="modal" data-target="#column-dialog">Select columns to show</a>
+        <a class="dropdown-item online-command" data-toggle="modal" data-target="#join-dialog">Join data columns</a>
+        <a class="dropdown-item" data-toggle="modal" data-target="#importcol-dialog">Import data columns</a>
+        <a class="dropdown-item online-command" data-toggle="modal" data-target="#graph-dialog">Add common substructure map</a>
+        <a id="rename" class="dropdown-item" data-toggle="modal" data-target="#prompt-dialog">Rename table</a>
+        <a id="export" class="dropdown-item">Export to JSON</a>
+        <a id="excel" href="#" class="dropdown-item online-command">Export to Excel worksheet</a>
+        <a id="sdfile" href="#" class="dropdown-item online-command">Export to SDFile</a>
+      </div>
+    </div>
+    <a role="button" class="btn btn-secondary btn-sm" href="control.html" target="_blank">Open control panel</a>
+    <a role="button" id="refresh" class="btn btn-secondary btn-sm">Refresh</a>
+    <a role="button" id="abort" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#confirm-dialog">Abort server job</a>
+  </div>
+  <span class="status">
+    <span id="title"></span>
+    <span id="progress"></span>
+  </span>
+  <div id="datatable">
+  </div>
+</div>
+<div id="dialogs">
+  <%- include('dialog/dialogBase', {id: 'pick', title: 'Search by compound ID'}); %>
+  <%- include('dialog/dialogBase', {id: 'struct', title: 'Search by structure'}); %>
+  <%- include('dialog/dialogBase', {id: 'prop', title: 'Search by properties'}); %>
+  <%- include('dialog/dialogBase', {id: 'column', title: 'Select columns to show'}); %>
+  <%- include('dialog/dialogBase', {id: 'join', title: 'Join data columns'}); %>
+  <%- include('dialog/dialogBase', {id: 'importcol', title: 'Join data column'}); %>
+  <%- include('dialog/dialogBase', {id: 'sdf', title: 'Import SDF file'}); %>
+  <%- include('dialog/dialogBase', {id: 'graph', title: 'Show common structure map'}); %>
+  <%- include('dialog/dialogBase', {id: 'prompt', title: ''}); %>
+  <%- include('dialog/confirmDialog'); %>
+</div>
+<script src="datatable.js"></script>
+</body>

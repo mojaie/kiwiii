@@ -1,0 +1,35 @@
+{
+  "name": "kiwiii-client",
+  "version": "0.7.0",
+  "author": "Seiji Matsuoka",
+  "homepage": "https://github.com/mojaie/kiwiii-client",
+  "repository": {
+    "type": "git",
+    "url": "git+https://bitbucket.org/mojaie/kiwiii-client.git"
+  },
+  "description": "Kinetic interactive web interface for intuitive informatics",
+  "license": "MIT",
+  "main": "main.js",
+  "devDependencies": {
+    "argv": "0.0.2",
+    "d3": "^4.10.0",
+    "ejs": "^2.5.6",
+    "jsdoc": "^3.5.3",
+    "jsdom": "^11.1.0",
+    "less": "^2.7.2",
+    "rollup": "^0.45.2",
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-uglify": "^2.0.1",
+    "sw-precache": "^5.2.0",
+    "sw-toolbox": "^3.6.0",
+    "tape": "^4.7.0",
+    "uglify-es": "^3.0.28"
+  },
+  "scripts": {
+    "pretest": "npm run build",
+    "test": "tape 'test/**/*-test.js'",
+    "docs": "mkdir -p 'docs/docs' && jsdoc -r src -d 'docs/docs'",
+    "build": "node rollup.js '_build' --debug=true",
+    "deploy": "npm run docs && node rollup.js 'docs' --debug=false"
+  }
+}

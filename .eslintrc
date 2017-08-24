@@ -1,0 +1,11 @@
+extends: "eslint:recommended"
+env:
+  browser: true
+  node: true
+  es6: true
+rules:
+  no-undef: 2
+  semi: 1
+  no-console: ["error", {"allow": ["warn", "error", "info"]}]
+parserOptions:
+  sourceType: "module"
