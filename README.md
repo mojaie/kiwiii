@@ -19,11 +19,11 @@ Demo
 
 A 1046 approved drug data extracted from [DrugBank](https://www.drugbank.ca/) dataset (permitted to use under [Creative Common’s by-nc 4.0 License](https://creativecommons.org/licenses/by-nc/4.0/legalcode))
 
-- <a href="https://mojaie.github.io/kiwiii-client/datatable.html?location=resources/ApprovedFiltered.json.gz" target="_blank">Table view (DrugBank Approved drugs)</a>
+- [Table view (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii-client/datatable.html?location=resources/ApprovedFiltered.json.gz)
   - Sortable chemical structure table with fast scrolling.
 
 
-- <a href="https://mojaie.github.io/kiwiii-client/graph.html?location=resources/ApprovedFiltered_GLS10.json.gz" target="_blank">Network view (DrugBank Approved drugs)</a>
+- [Network view (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii-client/graph.html?location=resources/ApprovedFiltered_GLS10.json.gz)
   - Network of chemical structure nodes connected with structure similarity relationship (known as Chemical Space Network).
   - Force-directed layout implemented with d3-force.
 
