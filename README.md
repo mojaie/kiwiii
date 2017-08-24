@@ -8,9 +8,9 @@ Kiwiii is a chemical data analysis and visualization platform based on HTTP serv
 Screen shots
 --------------
 
-[<img src="img/table-view.png" width="240" height="135" alt="Table view" style="margin: 5px"/>](img/table-view.png)
-[<img src="img/network-view.png" width="240" height="135" alt="Network view" style="margin: 5px"/>](img/network-view.png)
-[<img src="img/control-panel.png" width="240" height="135" alt="Control panel" style="margin: 5px"/>](img/control-panel.png)
+[<img src="img/table-view.png" width="260" height="160" alt="Table view" style="margin: 5px"/>](img/table-view.png)
+[<img src="img/network-view.png" width="260" height="160" alt="Network view" style="margin: 5px"/>](img/network-view.png)
+[<img src="img/control-panel.png" width="260" height="160" alt="Control panel" style="margin: 5px"/>](img/control-panel.png)
 
 
 
@@ -19,12 +19,11 @@ Demo
 
 A 1046 approved drug data extracted from [DrugBank](https://www.drugbank.ca/) dataset (permitted to use under [Creative Common’s by-nc 4.0 License](https://creativecommons.org/licenses/by-nc/4.0/legalcode))
 
-
-- [Table view (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii-client/datatable.html?location=resources/ApprovedFiltered.json.gz)
+- <a href="https://mojaie.github.io/kiwiii-client/datatable.html?location=resources/ApprovedFiltered.json.gz" target="_blank">Table view (DrugBank Approved drugs)</a>
   - Sortable chemical structure table with fast scrolling.
 
 
-- [Network view (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii-client/graph.html?location=resources/ApprovedFiltered_GLS10.json.gz)
+- <a href="https://mojaie.github.io/kiwiii-client/graph.html?location=resources/ApprovedFiltered_GLS10.json.gz" target="_blank">Network view (DrugBank Approved drugs)</a>
   - Network of chemical structure nodes connected with structure similarity relationship (known as Chemical Space Network).
   - Force-directed layout implemented with d3-force.
 
