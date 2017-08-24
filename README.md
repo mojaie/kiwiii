@@ -10,7 +10,7 @@ Screen shots
 
 [<img src="img/table-view.png" width="240" height="135" alt="Table view" style="margin: 5px"/>](img/table-view.png)
 [<img src="img/network-view.png" width="240" height="135" alt="Network view" style="margin: 5px"/>](img/network-view.png)
-[<img src="img/control-panel.png" width="240" height="135"　alt="Control panel" style="margin: 5px"/>](img/control-panel.png)
+[<img src="img/control-panel.png" width="240" height="135" alt="Control panel" style="margin: 5px"/>](img/control-panel.png)
 
 
 
