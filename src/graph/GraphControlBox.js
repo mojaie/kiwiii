@@ -15,7 +15,7 @@ import {selectOptions} from '../component/Component.js';
 function colorControlInput(id) {
   const data = {
     id: id,
-    column: formValue(`#${id}-col`)
+    column: selectedOptionData(`#${id}-col`)
   };
   const preset = selectedOptionData(`#${id}-preset`);
   if (preset.scale.scale === 'ordinal') {
@@ -70,7 +70,7 @@ function sizeControlInput(id) {
 
 function nodeSizeControlInput() {
   const data = sizeControlInput('size');
-  data.column = formValue('#size-col');
+  data.column = selectedOptionData('#size-col');
   return data;
 }
 
@@ -99,13 +99,13 @@ function edgeControlInput() {
 
 function updateNodeColor(data) {
   d3.selectAll('.node').select('.node-symbol')
-    .style('fill', d => scaleFunction(data.scale)(d[data.column]));
+    .style('fill', d => scaleFunction(data.scale)(d[data.column.key]));
 }
 
 
 function updateNodeSize(data) {
   d3.selectAll('.node').select('.node-symbol')
-    .attr('r', d => scaleFunction(data.scale)(d[data.column]));
+    .attr('r', d => scaleFunction(data.scale)(d[data.column.key]));
 }
 
 
@@ -116,16 +116,15 @@ function updateNodeLabelVisibility(visible) {
 
 
 function updateNodeLabel(data) {
-  const col = selectedOptionData('#label-col');
   d3.selectAll('.node').select('.node-label')
     .text(d => {
       if (!d.hasOwnProperty(data.text)) return '';
-      if (!col.hasOwnProperty('digit') || col.digit === 'raw') return d[data.text];
-      return formatNum(d[data.text], col.digit);
+      if (!data.column.hasOwnProperty('digit') || data.column.digit === 'raw') return d[data.text];
+      return formatNum(d[data.text], data.column.digit);
     })
     .attr('font-size', data.size)
     .attr('visibility', data.visible ? 'inherit' : 'hidden')
-    .style('fill', d => scaleFunction(data.scale)(d[data.column]));
+    .style('fill', d => scaleFunction(data.scale)(d[data.column.key]));
 }
 
 
@@ -207,7 +206,9 @@ export function updateControl(data) {
   d3.select(`#${id}-visible`).attr('checked', data.visible ? 'checked' : null);
   d3.select(`#${id}-text`).property('value', data.text);
   d3.select(`#${id}-size`).property('value', data.size);
-  d3.select(`#${id}-col`).property('value', data.column);
+  if (data.hasOwnProperty('column')) {
+    d3.select(`#${id}-col`).property('value', data.column.key);
+  }
   if (data.hasOwnProperty('label')) {
     d3.select(`#${id}-label-visible`)
       .attr('checked', data.label.visible ? 'checked' : null);

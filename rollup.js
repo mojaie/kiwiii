@@ -25,7 +25,7 @@ const buildDir = args.targets[0];
 const isDebugMode = args.options.debug;
 
 const apps = ['control', 'datatable', 'profile', 'graph', 'report'];
-const bundles = apps.concat('customMethods');
+const bundles = apps.concat(['graphview', 'customMethods']);
 
 if (isDebugMode) {
 	apps.push('testAPI');
