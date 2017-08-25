@@ -1,5 +1,7 @@
 
-export function getSDFPropList(str) {
+/** @module parser */
+
+function getSDFPropList(str) {
   const re = />.*?<(\S+)>/g;
   const uniqCols = new Set();
   let arr;
@@ -8,3 +10,8 @@ export function getSDFPropList(str) {
   }
   return Array.from(uniqCols);
 }
+
+
+export default {
+  getSDFPropList
+};

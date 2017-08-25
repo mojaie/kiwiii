@@ -1,4 +1,6 @@
 
+/** @module formatValue */
+
 import d3 from 'd3';
 
 
@@ -7,7 +9,7 @@ import d3 from 'd3';
  * @param {object} value - value
  * @param {string} type - si | scientific | rounded | raw
  */
-export function formatNum(value, type) {
+function formatNum(value, type) {
   const conv = {
     scientific: ".3e",
     si: ".3s",
@@ -18,13 +20,13 @@ export function formatNum(value, type) {
   return value == parseFloat(value) ? d3.format(conv[type])(value) : value;
 }
 
-export function partialMatch(query, target) {
+function partialMatch(query, target) {
   if (target === undefined || target === null || target === '') return false;
   return target.toString().toUpperCase()
     .indexOf(query.toString().toUpperCase()) !== -1;
 }
 
-export function numericAsc(a, b) {
+function numericAsc(a, b) {
   const fa = parseFloat(a);
   const fb = parseFloat(b);
   if (isNaN(fa) || isNaN(fb)) {
@@ -34,16 +36,22 @@ export function numericAsc(a, b) {
 }
 
 
-export function numericDesc(a, b) {
+function numericDesc(a, b) {
   return numericAsc(b, a);
 }
 
 
-export function textAsc(a, b) {
+function textAsc(a, b) {
   return String(b).localeCompare(String(a));
 }
 
 
-export function textDesc(a, b) {
+function textDesc(a, b) {
   return textAsc(b, a);
 }
+
+
+export default {
+  formatNum, partialMatch,
+  numericAsc, numericDesc, textAsc, textDesc
+};

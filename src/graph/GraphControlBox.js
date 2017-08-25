@@ -1,12 +1,9 @@
 
 import d3 from 'd3';
-import {
-  colorPresets, sizePresets, edgeWidthPresets,
-  colorPalette, scaleTypes, sizeScaleTypes, scaleFunction
-} from '../helper/d3Scale.js';
-import {formValue, formChecked, selectedOptionData} from '../helper/d3Selection.js';
-import {formatNum} from '../helper/formatValue.js';
-import {selectOptions} from '../component/Component.js';
+import {default as d3scale} from '../helper/d3Scale.js';
+import {default as d3form} from '../helper/d3Form.js';
+import {default as fmt} from '../helper/formatValue.js';
+import {default as cmp} from '../component/Component.js';
 
 
 
@@ -15,26 +12,26 @@ import {selectOptions} from '../component/Component.js';
 function colorControlInput(id) {
   const data = {
     id: id,
-    column: selectedOptionData(`#${id}-col`)
+    column: d3form.optionData(`#${id}-col`)
   };
-  const preset = selectedOptionData(`#${id}-preset`);
+  const preset = d3form.optionData(`#${id}-preset`);
   if (preset.scale.scale === 'ordinal') {
     data.scale = preset.scale;
     return data;
   }
   data.scale = {
-    scale: formValue(`#${id}-scaletype`),
+    scale: d3form.value(`#${id}-scaletype`),
     domain: [
-      formValue(`#${id}-domain-from`),
-      formValue(`#${id}-domain-to`)
+      d3form.value(`#${id}-domain-from`),
+      d3form.value(`#${id}-domain-to`)
     ],
     unknown: '#696969'
   };
-  const range = [formValue(`#${id}-range-from`)];
-  if (formChecked(`#${id}-range-enable-mid`)) {
-    range.push(formValue(`#${id}-range-mid`));
+  const range = [d3form.value(`#${id}-range-from`)];
+  if (d3form.checked(`#${id}-range-enable-mid`)) {
+    range.push(d3form.value(`#${id}-range-mid`));
   }
-  range.push(formValue(`#${id}-range-to`));
+  range.push(d3form.value(`#${id}-range-to`));
   data.scale.range = range;
   return data;
 }
@@ -42,9 +39,9 @@ function colorControlInput(id) {
 
 function labelControlInput() {
   const data = colorControlInput('label');
-  data.text = formValue('#label-text');
-  data.size = formValue('#label-size');
-  data.visible = formChecked('#label-visible');
+  data.text = d3form.value('#label-text');
+  data.size = d3form.value('#label-size');
+  data.visible = d3form.checked('#label-visible');
   return data;
 }
 
@@ -53,14 +50,14 @@ function sizeControlInput(id) {
   return {
     id: id,
     scale: {
-      scale: formValue(`#${id}-scaletype`),
+      scale: d3form.value(`#${id}-scaletype`),
       domain: [
-        formValue(`#${id}-domain-from`),
-        formValue(`#${id}-domain-to`)
+        d3form.value(`#${id}-domain-from`),
+        d3form.value(`#${id}-domain-to`)
       ],
       range: [
-        formValue(`#${id}-range-from`),
-        formValue(`#${id}-range-to`)
+        d3form.value(`#${id}-range-from`),
+        d3form.value(`#${id}-range-to`)
       ],
       unknown: 10
     }
@@ -70,7 +67,7 @@ function sizeControlInput(id) {
 
 function nodeSizeControlInput() {
   const data = sizeControlInput('size');
-  data.column = selectedOptionData('#size-col');
+  data.column = d3form.optionData('#size-col');
   return data;
 }
 
@@ -78,7 +75,7 @@ function nodeSizeControlInput() {
 function nodeContentInput() {
   return {
     structure: {
-      visible: formChecked('#show-struct')
+      visible: d3form.checked('#show-struct')
     }
   };
 }
@@ -86,10 +83,10 @@ function nodeContentInput() {
 
 function edgeControlInput() {
   const data = sizeControlInput('edge');
-  data.visible = formChecked('#edge-visible');
+  data.visible = d3form.checked('#edge-visible');
   data.label = {
-    size: formValue('#edge-label-size'),
-    visible: formChecked('#edge-label-visible')
+    size: d3form.value('#edge-label-size'),
+    visible: d3form.checked('#edge-label-visible')
   };
   return data;
 }
@@ -99,13 +96,13 @@ function edgeControlInput() {
 
 function updateNodeColor(data) {
   d3.selectAll('.node').select('.node-symbol')
-    .style('fill', d => scaleFunction(data.scale)(d[data.column.key]));
+    .style('fill', d => d3scale.scaleFunction(data.scale)(d[data.column.key]));
 }
 
 
 function updateNodeSize(data) {
   d3.selectAll('.node').select('.node-symbol')
-    .attr('r', d => scaleFunction(data.scale)(d[data.column.key]));
+    .attr('r', d => d3scale.scaleFunction(data.scale)(d[data.column.key]));
 }
 
 
@@ -120,11 +117,11 @@ function updateNodeLabel(data) {
     .text(d => {
       if (!d.hasOwnProperty(data.text)) return '';
       if (!data.column.hasOwnProperty('digit') || data.column.digit === 'raw') return d[data.text];
-      return formatNum(d[data.text], data.column.digit);
+      return fmt.formatNum(d[data.text], data.column.digit);
     })
     .attr('font-size', data.size)
     .attr('visibility', data.visible ? 'inherit' : 'hidden')
-    .style('fill', d => scaleFunction(data.scale)(d[data.column.key]));
+    .style('fill', d => d3scale.scaleFunction(data.scale)(d[data.column.key]));
 }
 
 
@@ -161,7 +158,7 @@ function updateEdgeLabelVisibility(visible) {
 
 function updateEdge(data) {
   d3.selectAll('.link').select('.edge-line')
-    .style('stroke-width', d => scaleFunction(data.scale)(d.weight));
+    .style('stroke-width', d => d3scale.scaleFunction(data.scale)(d.weight));
   d3.selectAll('.link').select('.edge-label')
     .attr('font-size', data.label.size);
   updateEdgeVisibility(data.visible);
@@ -234,21 +231,21 @@ function mainControlBox() {
 
 function colorControlBox(columns, id) {
   d3.select(`#${id}-col`)
-    .call(selectOptions, columns, d => d.key, d => d.name);
+    .call(cmp.selectOptions, columns, d => d.key, d => d.name);
   d3.select(`#${id}-preset`)
-    .call(selectOptions, colorPresets, d => d.name, d => d.name)
+    .call(cmp.selectOptions, d3scale.colorPresets, d => d.name, d => d.name)
     .on('change', function() {
-      updateScale(selectedOptionData(this).scale, id);
+      updateScale(d3form.optionData(this).scale, id);
       d3.select(`.${id}-update`).dispatch('change');
     });
   d3.select(`#${id}-palette`)
-    .call(selectOptions, colorPalette, d => d.name, d => d.name)
+    .call(cmp.selectOptions, d3scale.colorPalette, d => d.name, d => d.name)
     .on('change', function() {
-      updateRange(selectedOptionData(this).range, id);
+      updateRange(d3form.optionData(this).range, id);
       d3.select(`.${id}-update`).dispatch('change');
     });
   d3.select(`#${id}-scaletype`)
-    .call(selectOptions, scaleTypes, d => d.name, d => d.name);
+    .call(cmp.selectOptions, d3scale.scaleTypes, d => d.name, d => d.name);
 }
 
 
@@ -269,11 +266,11 @@ function nodeColorControlBox(columns) {
 function nodeLabelControlBox(columns) {
   const textCols = columns.filter(e => e.sort !== 'none');
   d3.select('#label-text')
-    .call(selectOptions, textCols, d => d.key, d => d.name);
+    .call(cmp.selectOptions, textCols, d => d.key, d => d.name);
   colorControlBox(textCols, 'label');
   d3.select('#label-visible')
     .on('change', function() {
-      updateNodeLabelVisibility(formChecked(this), 'label');
+      updateNodeLabelVisibility(d3form.checked(this), 'label');
       d3.select(`.label-update`).dispatch('change');
     });
   d3.selectAll('.label-update')
@@ -289,21 +286,21 @@ function nodeLabelControlBox(columns) {
 
 function sizeControlBox(presets, id) {
   d3.select(`#${id}-preset`)
-    .call(selectOptions, presets, d => d.name, d => d.name)
+    .call(cmp.selectOptions, presets, d => d.name, d => d.name)
     .on('change', function() {
-      updateScale(selectedOptionData(this).scale, id);
+      updateScale(d3form.optionData(this).scale, id);
       d3.select(`.${id}-update`).dispatch('change');
     });
   d3.select(`#${id}-scaletype`)
-    .call(selectOptions, sizeScaleTypes, d => d.name, d => d.name);
+    .call(cmp.selectOptions, d3scale.sizeScaleTypes, d => d.name, d => d.name);
 }
 
 
 function nodeSizeControlBox(columns) {
   const numCols = columns.filter(e => e.sort === 'numeric');
   d3.select(`#size-col`)
-    .call(selectOptions, numCols, d => d.key, d => d.name);
-  sizeControlBox(sizePresets, 'size');
+    .call(cmp.selectOptions, numCols, d => d.key, d => d.name);
+  sizeControlBox(d3scale.sizePresets, 'size');
   d3.selectAll('.size-update')
     .on('change', () => {
       const data = nodeSizeControlInput('size');
@@ -316,16 +313,16 @@ function nodeSizeControlBox(columns) {
 
 
 function edgeControlBox() {
-  sizeControlBox(edgeWidthPresets, 'edge');
+  sizeControlBox(d3scale.edgeWidthPresets, 'edge');
   d3.select('#edge-visible')
     .on('change', function() {
-      updateEdgeVisibility(formChecked(this));
-      updateEdgeLabelVisibility(formChecked(this));
+      updateEdgeVisibility(d3form.checked(this));
+      updateEdgeLabelVisibility(d3form.checked(this));
       d3.select(`.edge-update`).dispatch('change');
     });
   d3.select('#edge-label-visible')
     .on('change', function() {
-      updateEdgeLabelVisibility(formChecked(this));
+      updateEdgeLabelVisibility(d3form.checked(this));
       d3.select(`.edge-update`).dispatch('change');
     });
   d3.selectAll('.edge-update')

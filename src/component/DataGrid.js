@@ -1,9 +1,9 @@
 
+/** @module dataGrid */
+
 import d3 from 'd3';
-import {
-  formatNum, numericAsc, textAsc, numericDesc, textDesc
-} from '../helper/formatValue.js';
-import {showPlot} from '../helper/image.js';
+import {default as fmt} from '../helper/formatValue.js';
+import {default as img} from '../helper/image.js';
 
 
 const defaultColumnWidth = {
@@ -19,7 +19,7 @@ const defaultColumnHeight = {
 };
 
 
-export function createDataGrid(selection, tbl) {
+function createDataGrid(selection, tbl) {
   // Header
   if (!selection.select('div.dg-header').size()) {
     selection.append('div').classed('dg-header', true);
@@ -93,7 +93,7 @@ function updateRows(selection, rcds, keyFunc, position, visibleRows) {
             return `<img src="${value}" width="180" height="180"/>`;
           }
           if (cData[i].hasOwnProperty('digit') && cData[i].digit !== 'raw') {
-            return formatNum(value, cData[i].digit);
+            return fmt.formatNum(value, cData[i].digit);
           }
           return value;
         })
@@ -101,13 +101,13 @@ function updateRows(selection, rcds, keyFunc, position, visibleRows) {
           if (cData[i].valueType !== 'plot') return;
           if (!d.hasOwnProperty(cData[i].key)) return;
           const value = d[cData[i].key];
-          showPlot(value, `#c${ri}-${i}`);
+          img.showPlot(value, `#c${ri}-${i}`);
         });
     });
 }
 
 
-export function dataGridRecords(selection, rcds, keyFunc) {
+function dataGridRecords(selection, rcds, keyFunc) {
   const rSize = selection.select('.dg-header').datum();
   const bodyHeight = rcds.length * rSize.height;
   let position;
@@ -141,7 +141,7 @@ export function dataGridRecords(selection, rcds, keyFunc) {
 }
 
 
-export function addSort(selection, rcds, keyFunc) {
+function addSort(selection, rcds, keyFunc) {
   selection.select('.dg-header').selectAll('.dg-hcell')
     .filter(d => d.sort !== 'none')
     .append('span').append('a')
@@ -155,9 +155,14 @@ export function addSort(selection, rcds, keyFunc) {
       d3.select(`#sort-${d.key}`).text(isAsc ? '^' : 'v');
       const isNum = !d.hasOwnProperty('sort') || d.sort === 'numeric';
       const cmp = isAsc
-        ? (isNum ? numericAsc : textAsc)
-        : (isNum ? numericDesc : textDesc);
+        ? (isNum ? fmt.numericAsc : fmt.textAsc)
+        : (isNum ? fmt.numericDesc : fmt.textDesc);
       const sorted = rcds.sort((a, b) => cmp(a[d.key], b[d.key]));
       dataGridRecords(selection, sorted, keyFunc);
     });
 }
+
+
+export default {
+  createDataGrid, dataGridRecords, addSort
+};

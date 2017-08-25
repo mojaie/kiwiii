@@ -1,11 +1,11 @@
 
+/** @module component */
+
 import d3 from 'd3';
-import {
-  formatNum, numericAsc, textAsc, numericDesc, textDesc
-} from '../helper/formatValue.js';
+import {default as fmt} from '../helper/formatValue.js';
 
 
-export function selectOptions(selection, data, key, text) {
+function selectOptions(selection, data, key, text) {
   const options = selection.selectAll('option')
     .data(data, key);
   options.exit().remove();
@@ -16,7 +16,7 @@ export function selectOptions(selection, data, key, text) {
 }
 
 
-export function checkboxList(selection, data, name, key, text) {
+function checkboxList(selection, data, name, key, text) {
   const items = selection.selectAll('li').data(data, key);
   items.exit().remove();
   const entered = items.enter().append('li')
@@ -36,7 +36,7 @@ export function checkboxList(selection, data, name, key, text) {
 }
 
 
-export function createTable(selection, tbl) {
+function createTable(selection, tbl) {
   // Header
   if (!selection.select('thead').size()) {
     selection.append('thead').append('tr');
@@ -57,7 +57,7 @@ export function createTable(selection, tbl) {
 }
 
 
-export function updateTableRecords(selection, rcds, keyFunc) {
+function updateTableRecords(selection, rcds, keyFunc) {
   const header = selection.select('thead tr').selectAll('th')
     .data();
   const rowSelection = selection.select('tbody').selectAll('tr')
@@ -75,21 +75,21 @@ export function updateTableRecords(selection, rcds, keyFunc) {
       if (header[i].valueType === 'plot') return '[plot]';
       if (header[i].valueType === 'image') return '[image]';
       if (header[i].hasOwnProperty('digit') && header[i].digit !== 'raw') {
-        return formatNum(d, header[i].digit);
+        return fmt.formatNum(d, header[i].digit);
       }
       return d;
     });
 }
 
 
-export function appendTableRows(selection, rcds, keyFunc) {
+function appendTableRows(selection, rcds, keyFunc) {
   const newRcds = selection.select('tbody').selectAll('tr').data();
   Array.prototype.push.apply(newRcds, rcds);
   updateTableRecords(selection, newRcds, keyFunc);
 }
 
 
-export function addSort(selection) {
+function addSort(selection) {
   selection.select('thead tr').selectAll('th')
     .filter(d => d.sort !== 'none')
     .append('span').append('a')
@@ -102,8 +102,8 @@ export function addSort(selection) {
       const isAsc = d3.select(`#sort-${d.key}`).text() === 'v';
       const isNum = !d.hasOwnProperty('sort') || d.sort === 'numeric';
       const cmp = isAsc
-        ? (isNum ? numericAsc : textAsc)
-        : (isNum ? numericDesc : textDesc);
+        ? (isNum ? fmt.numericAsc : fmt.textAsc)
+        : (isNum ? fmt.numericDesc : fmt.textDesc);
       selection.select('tbody').selectAll('tr')
         .sort((a, b) => cmp(a[d.key], b[d.key]));
       d3.select(`#sort-${d.key}`)
@@ -112,7 +112,7 @@ export function addSort(selection) {
 }
 
 
-export function formatNumbers(selection) {
+function formatNumbers(selection) {
   // DEPRECATED: no longer used
   selection.select('thead tr').selectAll('th')
     .each((col, colIdx) => {
@@ -120,6 +120,13 @@ export function formatNumbers(selection) {
       selection.select('tbody').selectAll('tr')
         .selectAll('td')
           .filter((d, i) => i === colIdx)
-          .text(d => formatNum(d, col.digit));
+          .text(d => fmt.formatNum(d, col.digit));
     });
 }
+
+
+export default {
+  selectOptions, checkboxList,
+  createTable, updateTableRecords,
+  appendTableRows, addSort, formatNumbers
+};

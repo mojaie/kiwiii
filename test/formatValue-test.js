@@ -1,6 +1,6 @@
 const tape = require("tape");
 const jsdom = require("jsdom");
-const f = require("../_build/main.js");
+const f = require("../_build/main.js").fmt;
 
 tape("formatNum", function(t) {
   t.equal(f.formatNum(420, 'si'), '420');

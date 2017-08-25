@@ -1,26 +1,25 @@
 
 import d3 from 'd3';
-import {fetchable} from './helper/definition.js';
-import {loader} from './Loader.js';
-import {createTable, updateTableRecords} from './component/Component.js';
-import {
-  getGlobalConfig, deleteTable, localChemInstance, getTablesByFormat,
-  getAllTables, updateTable, reset
-} from './store/StoreConnection.js';
-const localServer = localChemInstance();
+
+import {default as def} from './helper/definition.js';
+import {default as loader} from './Loader.js';
+import {default as cmp} from './component/Component.js';
+import {default as store} from './store/StoreConnection.js';
+
+const localServer = store.localChemInstance();
 
 
 function actionTable(selection, tbl) {
   tbl.records.forEach(rcd => {
     rcd.action = `<a role="button" class="btn btn-secondary btn-sm" href="${tbl.app}?id=${rcd.id}" target="_blank">Open</a>`;
-    if (fetchable(tbl)) {
+    if (def.fetchable(tbl)) {
       rcd.action += `<button type="button" class="btn btn-warning btn-sm" disabled>Running</button>`;
     } else {
       rcd.action += `<button type="button" class="btn btn-warning btn-sm delete-item" data-toggle="modal" data-target="#confirm-dialog" data-tblid="${rcd.id}" data-tblname="${rcd.name}">Delete</button>`;
     }
   });
-  d3.select(selection).call(createTable, tbl)
-    .call(updateTableRecords, tbl.records, d => d.id);
+  d3.select(selection).call(cmp.createTable, tbl)
+    .call(cmp.updateTableRecords, tbl.records, d => d.id);
   d3.selectAll('tr button.delete-item')
     .on('click', function() {
       const id = d3.select(this).attr('data-tblid');
@@ -28,7 +27,7 @@ function actionTable(selection, tbl) {
       d3.select('#confirm-message')
         .text(`Are you sure you want to delete ${name} ?`);
       d3.select('#confirm-submit')
-        .on('click', () => deleteTable(id).then(render));
+        .on('click', () => store.deleteTable(id).then(render));
     });
 }
 
@@ -84,37 +83,37 @@ function renderGraphStatus(grfs) {
 
 
 function renderServerStatus(data) {
-  d3.select('#server-calc').call(createTable, data.calc)
-    .call(updateTableRecords, data.calc.records, d => d._index);
+  d3.select('#server-calc').call(cmp.createTable, data.calc)
+    .call(cmp.updateTableRecords, data.calc.records, d => d._index);
   const server = {
     columns: [{key: 'key'}, {key: 'value'}],
     records: []
   };
   Object.entries(data).filter(e => e[0] !== 'calc')
     .forEach(e => server.records.push({key: e[0], value: e[1]}));
-  d3.select('#server-status').call(createTable, server)
-    .call(updateTableRecords, server.records, d => d._index);
+  d3.select('#server-status').call(cmp.createTable, server)
+    .call(cmp.updateTableRecords, server.records, d => d._index);
 }
 
 
 function render() {
-  if (getGlobalConfig('onLine')) {
-    renderServerStatus(getGlobalConfig('server'));
+  if (store.getGlobalConfig('onLine')) {
+    renderServerStatus(store.getGlobalConfig('server'));
   }
   return Promise.all([
-    getTablesByFormat('datatable').then(renderTableStatus),
-    getTablesByFormat('connection').then(renderGraphStatus)
+    store.getTablesByFormat('datatable').then(renderTableStatus),
+    store.getTablesByFormat('connection').then(renderGraphStatus)
   ]);
 }
 
 
 d3.select('#refresh-all')
   .on('click', () => {
-    return getAllTables().then(tbls => {
+    return store.getAllTables().then(tbls => {
       const tasks = tbls.map(tbl => {
-        if (!fetchable(tbl)) return Promise.resolve();
+        if (!def.fetchable(tbl)) return Promise.resolve();
         const query = {id: tbl.id, command: 'fetch'};
-        return localServer.getRecords(query).then(updateTable);
+        return localServer.getRecords(query).then(store.updateTable);
       });
       return Promise.all(tasks);
     }).then(render);
@@ -126,12 +125,12 @@ d3.select('#reset-local')
     d3.select('#confirm-message')
       .text('Are you sure you want to delete all local tables and reset the datastore ?');
     d3.select('#confirm-submit')
-      .on('click', () => reset().then(render));
+      .on('click', () => store.reset().then(render));
   });
 
 
 
 function run() {
-  return loader().then(render);
+  return loader.loader().then(render);
 }
 run();

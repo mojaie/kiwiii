@@ -9,9 +9,11 @@ const uglify = require('rollup-plugin-uglify');
 const minify = require('uglify-es').minify;
 const precache = require('sw-precache');
 
+
 // Preamble
 const json = JSON.parse(fs.readFileSync("package.json", "utf8"));
 const preamble = `// ${json.homepage} Version ${json.version}. Copyright ${(new Date).getFullYear()} ${json.author}.`;
+
 
 // Commandline option
 argv.option({
@@ -24,84 +26,98 @@ const args = argv.run();
 const buildDir = args.targets[0];
 const isDebugMode = args.options.debug;
 
-const apps = ['control', 'datatable', 'profile', 'graph', 'report'];
-const bundles = apps.concat('customMethods');
 
-if (isDebugMode) {
-	apps.push('testAPI');
-  bundles.push('main');
-}
+// Bundle setting
+const bundles = [
+  {name: 'control', module: 'kwcontrol'},
+  {name: 'datatable', module: 'kwdatatable'},
+  {name: 'profile', module: 'kwprofile', deploy: false},
+  {name: 'graph', module: 'kwgraph'},
+  {name: 'report', module: 'kwreport', deploy: false},
+  {
+    name: 'main',
+    source: 'main.js',
+    ejs: false,
+    cache: false,
+    deploy: false
+  },
+  {
+    name: 'customMethods',
+    ejs: false
+  },
+  {
+    name: 'testAPI',
+    cache: false,
+    deploy: false
+  }
+];
+
+
+// External JS libraries
+const external = {
+  d3: 'd3',
+  Dexie: 'Dexie',
+  jLouvain: 'jLouvain',
+  pako: 'pako',
+  vega: 'vega'
+};
 
 
 // JS build
-
-const jsBundled = bundles.map(e => {
-  let path;
-  if (e === 'main') {
-    path = 'main.js';
-  } else {
-    path = `src/${e}.js`;
-  }
-  const pgs = [
-    resolve({jsnext: true})
-  ];
+const jsBundled = bundles.map(bundle => {
+  const plugins = [resolve({jsnext: true})];
   if (!isDebugMode) {
-    pgs.push(uglify({
-      output: {
-        beautify: false,
-        preamble: preamble
-      }
-    }, minify));
+    if (bundle.hasOwnProperty('deploy') && !bundle.deploy) {
+      return Promise.resolve();
+    }
+    plugins.push(uglify({output: {beautify: false, preamble: preamble}}, minify));
   }
+  const module = bundle.hasOwnProperty('module') ? bundle.module : bundle.name;
   return rollup.rollup({
-    entry: path,
-    plugins: pgs,
-    external: ['d3', 'Dexie', 'jLouvain', 'pako', 'vega']
+    entry: bundle.hasOwnProperty('source') ? bundle.source : `src/${bundle.name}.js`,
+    plugins: plugins,
+    external: Object.values(external)
   }).then(b => {
     b.write({
-      dest: `${buildDir}/kw${e}.js`,
+      dest: `${buildDir}/${module}.js`,
       format: 'umd',
       sourceMap: true,
-      moduleName: `kw${e}`,
+      moduleName: module,
       banner: preamble,
       intro: `const debug = ${isDebugMode};`,
-      globals: {
-        d3: 'd3',
-        Dexie: 'Dexie',
-        jLouvain: 'jLouvain',
-        pako: 'pako',
-        vega: 'vega'
-      }
+      globals: external
     });
   });
 });
 
 
 // EJS build
-
-const htmlRendered = apps.forEach(e => {
-  return new Promise(resolve => {
-    ejs.renderFile(
-      `./ejs/${e}.ejs`, {}, {}, (err, str) => {
-        if (err) {
-          console.error(err);
-          return;
+const htmlRendered = bundles
+  .filter(bundle => !bundle.hasOwnProperty('deploy') || bundle.deploy)
+  .filter(bundle => !bundle.hasOwnProperty('ejs') || bundle.ejs)
+  .map(bundle => {
+    return new Promise((resolve, reject) => {
+      ejs.renderFile(
+        `./ejs/${bundle.name}.ejs`, {}, {},
+        (err, str) => {
+          if (err) {
+            console.error(err);
+            reject();
+          }
+          fs.writeFile(`${buildDir}/${bundle.name}.html`, str, () => {
+            resolve();
+          });
         }
-        fs.writeFile(`./${buildDir}/${e}.html`, str, () => {
-          resolve();
-        });
-      }
-    );
+      );
+    });
   });
-});
 
 
 // LESS build
-
 const cssRendered = new Promise(resolve => {
-  fs.readFile('./less/default.less', 'utf8', (err, input) => {
+  fs.readFile('less/default.less', 'utf8', (err, input) => {
     less.render(input).then(output => {
-      fs.writeFile(`./${buildDir}/default.css`, output.css, () => {
+      fs.writeFile(`${buildDir}/default.css`, output.css, () => {
         resolve();
       });
     });
@@ -110,9 +126,8 @@ const cssRendered = new Promise(resolve => {
 
 
 // Generate service worker file
-
 Promise.all(
-  jsBundled.concat([htmlRendered, cssRendered])
+  jsBundled.concat(htmlRendered, cssRendered)
 ).then(() => {
   precache.write(`${buildDir}/sw.js`, {
       staticFileGlobs: [

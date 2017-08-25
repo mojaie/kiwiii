@@ -1,31 +1,27 @@
 
 import d3 from 'd3';
-import {
-  formValue, checkboxValues, textareaLines
-} from './helper/d3Selection.js';
-import {downloadDataFile} from './helper/file.js';
-import {loader} from './Loader.js';
-import {getGlobalConfig, getFetcher} from './store/StoreConnection.js';
-import {
-  selectOptions, createTable, updateTableRecords
-} from './component/Component.js';
+import {default as d3form} from './helper/d3Form.js';
+import {default as hfile} from './helper/file.js';
+import {default as loader} from './Loader.js';
+import {default as store} from './store/StoreConnection.js';
+import {default as cmp} from './component/Component.js';
 
 
 function updateTemplates() {
-  const tmpls = getGlobalConfig('templates');
+  const tmpls = store.getGlobalConfig('templates');
   d3.select('#templates')
-    .call(selectOptions, [{ name: '<No template>' }].concat(tmpls),
+    .call(cmp.selectOptions, [{ name: '<No template>' }].concat(tmpls),
           d => d.sourceFile, d => d.name);
 }
 
 
 d3.select('#refids-submit').on('click', () => {
-  const qcsIds = textareaLines('#refids');
+  const qcsIds = d3form.textareaLines('#refids');
   let fetcher;
-  if (getFetcher('screenerfitting').available === true) {
-    fetcher = getFetcher('screenerfitting');
+  if (store.getFetcher('screenerfitting').available === true) {
+    fetcher = store.getFetcher('screenerfitting');
   } else {
-    fetcher = getFetcher('screenerfittingstub');
+    fetcher = store.getFetcher('screenerfittingstub');
   }
   fetcher.getQcsInfo(qcsIds).then(qcsInfo => {
     const qcsData = {
@@ -58,12 +54,12 @@ d3.select('#refids-submit').on('click', () => {
     qcsData.records.push(statSelector);
     return qcsData;
   }).then(qcsData => {
-    d3.select('#qcs-table').call(createTable, qcsData)
-      .call(updateTableRecords, qcsData.records, d => d.QCSRefId);
+    d3.select('#qcs-table').call(cmp.createTable, qcsData)
+      .call(cmp.updateTableRecords, qcsData.records, d => d.QCSRefId);
     d3.select('#qcs-table').selectAll('input')
       .on('click', () => {
-        const vsel = checkboxValues(".vidx");
-        const ssel = checkboxValues(".sidx");
+        const vsel = d3form.checkboxValues(".vidx");
+        const ssel = d3form.checkboxValues(".sidx");
         const anyChecked = vsel.length + ssel.length > 0 ? null : 'disabled';
         d3.select('#preview-submit').attr('disabled', anyChecked);
         d3.select('#report-submit').attr('disabled', anyChecked);
@@ -76,13 +72,13 @@ d3.select('#preview-submit')
   .on('click', () => {
     const query = {
       qcsid: d3.select('#qcs-table tbody').selectAll('tr').data()[0].QCSRefId,
-      template: formValue('#templates'),
-      vsel: checkboxValues(".vidx")
+      template: d3form.value('#templates'),
+      vsel: d3form.checkboxValues(".vidx")
     };
-    return getFetcher('chemical').reportPreview(query).then(res => {
+    return store.getFetcher('chemical').reportPreview(query).then(res => {
       d3.select('#preview-desc').style('display', 'block');
-      d3.select('#preview-table').call(createTable, res)
-        .call(updateTableRecords, res.records, d => d.compoundId);
+      d3.select('#preview-table').call(cmp.createTable, res)
+        .call(cmp.updateTableRecords, res.records, d => d.compoundId);
     });
   });
 
@@ -91,12 +87,12 @@ d3.select('#report-submit')
   .on('click', () => {
     const query = {
       qcsid: d3.select('#qcs-table tbody').selectAll('tr').data()[0].QCSRefId,
-      template: formValue('#templates'),
-      vsel: checkboxValues(".vidx"),
-      ssel: checkboxValues(".sidx")
+      template: d3form.value('#templates'),
+      vsel: d3form.checkboxValues(".vidx"),
+      ssel: d3form.checkboxValues(".sidx")
     };
-    return getFetcher('chemical').report(query).then(xhr => {
-      downloadDataFile(xhr, `${query.qcsid}.xlsx`);
+    return store.getFetcher('chemical').report(query).then(xhr => {
+      hfile.downloadDataFile(xhr, `${query.qcsid}.xlsx`);
     });
   });
 
@@ -104,15 +100,15 @@ d3.select('#report-submit')
 d3.select('#refids')
   .on('input', () => {
     d3.select('#refids-submit').attr('disabled',
-      formValue('#refids').length === 0 ? 'disabled' : null
+      d3form.value('#refids').length === 0 ? 'disabled' : null
     );
   });
 d3.select('#refids-submit').attr('disabled',
-  formValue('#refids').length === 0 ? 'disabled' : null
+  d3form.value('#refids').length === 0 ? 'disabled' : null
 );
 
 
 function run() {
-  return loader().then(updateTemplates);
+  return loader.loader().then(updateTemplates);
 }
 run();

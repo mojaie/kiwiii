@@ -1,18 +1,16 @@
 
+/** @module graph */
+
 import d3 from 'd3';
 
-import {formChecked, formValue} from './helper/d3Selection.js';
-import {colorPresets} from './helper/d3Scale.js';
-import {fetchable} from './helper/definition.js';
-import {loadJSON, fetchJSON, downloadJSON} from './helper/file.js';
-import {loader} from './Loader.js';
-import {
-  getGlobalConfig, localChemInstance, getTable, insertTable, updateTable,
-  joinColumn, getCurrentTable, updateTableAttribute
-} from './store/StoreConnection.js';
-import {renderStatus, initialize, initializeWithData} from './component/Header.js';
-import {graphConfigDialog, communityDialog} from './component/Dialog.js';
-
+import {default as d3form} from './helper/d3Form.js';
+import {default as d3scale} from './helper/d3Scale.js';
+import {default as def} from './helper/definition.js';
+import {default as hfile} from './helper/file.js';
+import {default as loader} from './Loader.js';
+import {default as store} from './store/StoreConnection.js';
+import {default as header} from './component/Header.js';
+import {default as dialog} from './component/Dialog.js';
 import {default as force} from './graph/GraphForce.js';
 import {default as control} from './graph/GraphControlBox.js';
 import {default as component} from './graph/GraphComponent.js';
@@ -20,7 +18,7 @@ import {default as interaction} from './graph/GraphInteraction.js';
 import {default as community} from './graph/communityDetection.js';
 
 
-const localServer = localChemInstance();
+const localServer = store.localChemInstance();
 
 
 function takeSnapshot() {
@@ -37,8 +35,8 @@ function takeSnapshot() {
 
 
 function saveSnapshot() {
-  const currentId = getGlobalConfig('urlQuery').id;
-  return updateTableAttribute(currentId, 'snapshot', takeSnapshot())
+  const currentId = store.getGlobalConfig('urlQuery').id;
+  return store.updateTableAttribute(currentId, 'snapshot', takeSnapshot())
     .then(() => console.info('Snapshot saved'));
 }
 
@@ -83,8 +81,8 @@ function resume(snapshot) {
 
 
 function getCurrentGraph() {
-  return getCurrentTable().then(edges => {
-    return getTable(edges.nodeTableId).then(nodes => {
+  return store.getCurrentTable().then(edges => {
+    return store.getTable(edges.nodeTableId).then(nodes => {
       return {edges: edges, nodes: nodes};
     });
   });
@@ -93,7 +91,7 @@ function getCurrentGraph() {
 
 function start() {
   return getCurrentGraph().then(g => {
-    renderStatus(g.edges, refresh, abort);
+    header.renderStatus(g.edges, refresh, abort);
     const edgesToDraw = g.edges.records
       .filter(e => e.weight >= g.edges.networkThreshold);
     const edgeDensity = d3.format('.3e')(edgesToDraw.length / g.edges.searchCount);
@@ -125,11 +123,11 @@ function start() {
 function render() {
   return getCurrentGraph().then(g => {
     g.nodes.records.forEach(e => { delete e._mol; });
-    graphConfigDialog(g.edges, thld => {
-      return updateTableAttribute(g.edges.id, 'networkThreshold', thld)
+    dialog.graphConfigDialog(g.edges, thld => {
+      return store.updateTableAttribute(g.edges.id, 'networkThreshold', thld)
         .then(saveSnapshot).then(start);
     });
-    communityDialog(query => {
+    dialog.communityDialog(query => {
       const nodeIds = g.nodes.records.map(e => e._index);
       const visibleEdges = g.edges.records
         .filter(e => e.weight >= g.edges.networkThreshold);
@@ -143,14 +141,14 @@ function render() {
         },
         mapping: comm
       };
-      joinColumn(mapping, g.nodes.id)
+      store.joinColumn(mapping, g.nodes.id)
         .then(() => {
           const snapshot = takeSnapshot();
           snapshot.nodeColor.column = query.name;
-          snapshot.nodeColor.scale = colorPresets
+          snapshot.nodeColor.scale = d3scale.colorPresets
             .find(e => e.name === 'Categories').scale;
-          const currentId = getGlobalConfig('urlQuery').id;
-          return updateTableAttribute(currentId, 'snapshot', snapshot)
+          const currentId = store.getGlobalConfig('urlQuery').id;
+          return store.updateTableAttribute(currentId, 'snapshot', snapshot)
             .then(() => console.info('snapshot saved'));
         }).then(render);
     });
@@ -161,7 +159,7 @@ function render() {
     control.edgeControlBox();
     d3.select('#stick-nodes')
       .on('change', function() {
-        formChecked(this) === true ? interaction.stickNodes() : interaction.relax();
+        d3form.checked(this) === true ? interaction.stickNodes() : interaction.relax();
       });
     d3.select('#nodetable').attr('href', `datatable.html?id=${g.edges.nodeTableId}`);
     d3.select('#rename')
@@ -171,10 +169,10 @@ function render() {
         d3.select('#prompt-input').attr('value', g.edges.name);
         d3.select('#prompt-submit')
           .on('click', () => {
-            const name = formValue('#prompt-input');
-            return updateTableAttribute(g.edges.id, 'name', name)
-              .then(getCurrentTable)
-              .then(t => renderStatus(t, refresh, abort));
+            const name = d3form.value('#prompt-input');
+            return store.updateTableAttribute(g.edges.id, 'name', name)
+              .then(store.getCurrentTable)
+              .then(t => header.renderStatus(t, refresh, abort));
           });
       });
     return start();
@@ -183,10 +181,10 @@ function render() {
 
 
 function fetch_(command) {
-  return getCurrentTable().then(edges => {
-    if (!fetchable(edges)) return;
-    const query = { id: edges.id, command: command };
-    return localServer.getRecords(query).then(updateTable);
+  return store.getCurrentTable().then(edges => {
+    if (!def.fetchable(edges)) return;
+    const query = {id: edges.id, command: command};
+    return localServer.getRecords(query).then(store.updateTable);
   });
 }
 
@@ -207,8 +205,8 @@ function abort() {
 
 function loadNewGraph(grf) {
   return Promise.all([
-    insertTable(grf.nodes),
-    insertTable(grf.edges)
+    store.insertTable(grf.nodes),
+    store.insertTable(grf.edges)
   ]).then(() => {
     window.location = `graph.html?id=${grf.edges.id}`;
   });
@@ -220,7 +218,7 @@ function run() {
     .on('click', () => {
       // Working copy of edges and nodes are modified by d3.force.
       // Load original data from store.
-      return getCurrentGraph().then(g => downloadJSON(g, g.edges.name));
+      return getCurrentGraph().then(g => hfile.downloadJSON(g, g.edges.name));
     });
   d3.select('#graph-field')
     .attr('viewBox', `0 0 ${force.fieldWidth} ${force.fieldHeight}`)
@@ -234,27 +232,27 @@ function run() {
   d3.select('#select-file')
     .on('change', () => {
       const file = document.getElementById('select-file').files[0];
-      loadJSON(file).then(loadNewGraph);
+      hfile.loadJSON(file).then(loadNewGraph);
     });
-  if (getGlobalConfig('urlQuery').hasOwnProperty('location')) {
-    const url = getGlobalConfig('urlQuery').location;
-    return fetchJSON(url)
+  if (store.getGlobalConfig('urlQuery').hasOwnProperty('location')) {
+    const url = store.getGlobalConfig('urlQuery').location;
+    return hfile.fetchJSON(url)
       .then(tbls => {
         return Promise.all([
-          insertTable(tbls.nodes),
-          insertTable(tbls.edges)
+          store.insertTable(tbls.nodes),
+          store.insertTable(tbls.edges)
         ]).then(() => tbls.edges.id);
       })
       .then(id => {
         window.location = `graph.html?id=${id}`;
       });
   }
-  return loader().then(() => {
-    if (getGlobalConfig('urlQuery').hasOwnProperty('id')) {
-      initializeWithData();
+  return loader.loader().then(() => {
+    if (store.getGlobalConfig('urlQuery').hasOwnProperty('id')) {
+      header.initializeWithData();
       return fetch_('update').then(render);
     } else {
-      initialize();
+      header.initialize();
       return Promise.resolve();
     }
   });

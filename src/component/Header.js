@@ -1,18 +1,20 @@
 
+/** @module header */
+
 import d3 from 'd3';
-import {fetchable, abortRequestable} from '../helper/definition.js';
+import {default as def} from '../helper/definition.js';
 
 
-export function renderStatus(tbl, refresh_callback, abort_callback) {
+function renderStatus(tbl, refresh_callback, abort_callback) {
   d3.select('#loading-circle').style('display', 'none');
   if (!tbl.hasOwnProperty('status')) tbl.status = 'Completed';
   d3.select('title').text(tbl.name);
   d3.select('#title').text(tbl.name);
   d3.select('#refresh')
     .text(tbl.status === 'Aborting' ? 'Abort requested' : 'Refresh')
-    .style('display', fetchable(tbl) ? 'inline-block' : 'none');
+    .style('display', def.fetchable(tbl) ? 'inline-block' : 'none');
   d3.select('#abort')
-    .style('display', abortRequestable(tbl) ? 'inline-block' : 'none');
+    .style('display', def.abortRequestable(tbl) ? 'inline-block' : 'none');
   const doneText = {
     'datatable': 'entries found',
     'connection': 'connections created'
@@ -43,13 +45,13 @@ export function renderStatus(tbl, refresh_callback, abort_callback) {
 }
 
 
-export function initializeWithData() {
+function initializeWithData() {
   d3.select('#new-data').style('display', 'none');
   d3.select('#loading-circle').style('display', 'none');
 }
 
 
-export function initialize() {
+function initialize() {
   d3.select('#data-control').style('display', 'none');
   d3.select('#nodedata').style('display', 'none');
   d3.select('#refresh').style('display', 'none');
@@ -57,3 +59,8 @@ export function initialize() {
   d3.select('#loading-circle').style('display', 'none');
   d3.select('#status').selectAll('li').style('display', 'none');
 }
+
+
+export default {
+  renderStatus, initializeWithData, initialize
+};

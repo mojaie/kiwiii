@@ -1,11 +1,13 @@
 
+/** @module d3Scale */
+
 import d3 from 'd3';
 
 const categoryMany = d3.schemeSet1
   .concat(d3.schemeSet3, d3.schemePastel2, d3.schemeSet2);
 const defaultSizeRange = [20, 80];
 
-export const colorPresets = [
+const colorPresets = [
   {
     name: 'Activity',
     scale: {
@@ -60,7 +62,7 @@ export const colorPresets = [
   }
 ];
 
-export const sizePresets = [
+const sizePresets = [
   {
     name: 'Activity',
     scale: {
@@ -99,7 +101,7 @@ export const sizePresets = [
   }
 ];
 
-export const edgeWidthPresets = [
+const edgeWidthPresets = [
   {
     name: 'Universal',
     scale: {
@@ -129,7 +131,7 @@ export const edgeWidthPresets = [
   }
 ];
 
-export const colorPalette = [
+const colorPalette = [
   {name: 'Aquamarine', range: ['#778899', '#7fffd4'], unknown: '#696969'},
   {name: 'Chartreuse', range: ['#778899', '#7fff00'], unknown: '#696969'},
   {name: 'Salmon', range: ['#778899', '#fa8072'], unknown: '#696969'},
@@ -138,20 +140,20 @@ export const colorPalette = [
   {name: 'Spectrum', range: ['#6495ed', '#ccff66', '#ffa500'], unknown: '#696969'}
 ];
 
-export const scaleTypes = [
+const scaleTypes = [
   {name: 'linear', func: d3.scaleLinear()},
   {name: 'log', func: d3.scaleLog()},
   {name: 'quantize', func: d3.scaleQuantize()},
   {name: 'ordinal', func: d3.scaleOrdinal()}
 ];
 
-export const sizeScaleTypes = [
+const sizeScaleTypes = [
   {name: 'linear', func: d3.scaleLinear()},
   {name: 'log', func: d3.scaleLog()},
   {name: 'quantize', func: d3.scaleQuantize()}
 ];
 
-export function scaleFunction(scale) {
+function scaleFunction(scale) {
   let sf = scaleTypes.find(e => e.name === scale.scale).func;
   let domain = scale.domain;
   if (scale.range.length === 3) {
@@ -182,3 +184,10 @@ export function scaleFunction(scale) {
     return result;
   };
 }
+
+
+export default {
+  colorPresets, sizePresets, edgeWidthPresets,
+  colorPalette, scaleTypes, sizeScaleTypes,
+  scaleFunction
+};

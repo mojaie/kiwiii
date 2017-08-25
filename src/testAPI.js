@@ -1,6 +1,6 @@
 
 import d3 from 'd3';
-import {createTable, appendTableRows} from './component/Component.js';
+import {default as cmp} from './component/Component.js';
 import {LocalServerActivity, LocalServerChemical} from './fetcher/LocalServer.js';
 import {ScreenerFitting, ScreenerRawValue} from './fetcher/Screener.js';
 import {ScreenerFittingStub, ScreenerRawValueStub} from './fetcher/ScreenerTestStub.js';
@@ -132,17 +132,17 @@ function run() {
       ],
       records: []
   };
-  d3.select('#test').call(createTable, tbl);
+  d3.select('#test').call(cmp.createTable, tbl);
   testCases.forEach(p => {
     p.testCase().then(res => {
       console.info(p.name);
       console.log(res);
       const row = [{'test': p.name, 'result': 'OK'}];
-      appendTableRows(d3.select('#test'), row, d => d.key);
+      cmp.appendTableRows(d3.select('#test'), row, d => d.key);
     }).catch(err => {
       console.error(err);
       const row = [{'test': p.name, 'result': '<span class="text-danger">NG<span>'}];
-      appendTableRows(d3.select('#test'), row, d => d.key);
+      cmp.appendTableRows(d3.select('#test'), row, d => d.key);
     });
   });
 }

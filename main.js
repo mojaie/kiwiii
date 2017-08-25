@@ -1,5 +1,3 @@
-export {
-  formatNum, partialMatch, numericAsc, numericDesc, textAsc, textDesc
-} from "./src/helper/formatValue.js";
+export {default as fmt} from "./src/helper/formatValue.js";
 
 export {} from './src/customMethods.js';

@@ -1,8 +1,10 @@
 
+/** @module file */
+
 import pako from 'pako';
 
 
-export function readFile(file, sizeLimit, blob) {
+function readFile(file, sizeLimit, blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     const truncated = sizeLimit ? file.slice(0, sizeLimit) : file;
@@ -17,20 +19,20 @@ export function readFile(file, sizeLimit, blob) {
 }
 
 
-export function parseJSON(data, compressed) {
+function parseJSON(data, compressed) {
   const text = compressed ? pako.inflate(data, {to: 'string'}) : data;
   return JSON.parse(text);
 }
 
 
-export function loadJSON(file) {
+function loadJSON(file) {
   const compressed = file.name.endsWith('.gz');
   return readFile(file, false, compressed)
     .then(data => parseJSON(data, compressed));
 }
 
 
-export function fetchJSON(url) {
+function fetchJSON(url) {
   const decoded = decodeURIComponent(url);
   const compressed = decoded.endsWith('.gz');
   return fetch(decoded)
@@ -39,7 +41,7 @@ export function fetchJSON(url) {
 }
 
 
-export function downloadDataFile(data, name) {
+function downloadDataFile(data, name) {
   try {
     // cannot hundle large file with dataURI scheme
     // url = "data:application/json," + encodeURIComponent(JSON.stringify(json))
@@ -60,9 +62,15 @@ export function downloadDataFile(data, name) {
 }
 
 
-export function downloadJSON(json, name, compress=true) {
+function downloadJSON(json, name, compress=true) {
   const str = JSON.stringify(json);
   const data = compress ? pako.gzip(str) : str;
   const ext = compress ? '.gz' : '';
   downloadDataFile(data, `${name}.json${ext}`);
 }
+
+
+export default {
+  readFile, parseJSON, loadJSON, fetchJSON,
+  downloadDataFile, downloadJSON
+};

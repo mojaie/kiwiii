@@ -1,8 +1,7 @@
 
 /** @module dataStructure */
 
-
-export function columnMappingToTable(mapping) {
+function columnMappingToTable(mapping) {
   const keyCol = {
     key: mapping.key,
     name: mapping.key,
@@ -30,7 +29,7 @@ export function columnMappingToTable(mapping) {
 }
 
 
-export function csvToMapping(csvString) {
+function csvToMapping(csvString) {
   const lines = csvString.split(/\n|\r|\r\n/);
   const header = lines.shift().split(',');
   const key = header.shift();
@@ -58,7 +57,7 @@ export function csvToMapping(csvString) {
   return mapping;
 }
 
-export function singleToMultiMapping(mapping) {
+function singleToMultiMapping(mapping) {
   const newMapping = {};
   Object.entries(mapping.mapping).forEach(m => {
     newMapping[m[0]] = [m[1]];
@@ -70,3 +69,8 @@ export function singleToMultiMapping(mapping) {
     mapping: newMapping
   };
 }
+
+
+export default {
+  columnMappingToTable, csvToMapping, singleToMultiMapping
+};

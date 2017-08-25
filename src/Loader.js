@@ -1,9 +1,7 @@
 
-import {
-  setGlobalConfig, localChemInstance, fetcherInstances, setResources
-} from './store/StoreConnection.js';
+import {default as store} from './store/StoreConnection.js';
 
-const localServer = localChemInstance();
+const localServer = store.localChemInstance();
 
 
 function initialize() {
@@ -24,48 +22,53 @@ function initialize() {
     console.info('Off-line mode is not supported');
   }
   const serverTmpl = localServer.templates().then(res => {
-    setGlobalConfig('templates', res.templates);
+    store.setGlobalConfig('templates', res.templates);
   });
   const serverConfig = localServer.status().then(res => {
-    setGlobalConfig('server', res);
+    store.setGlobalConfig('server', res);
   });
   // TODO: skip loader if there is already resources in the store
   // 1. collate resource version
   // 2. if no local resource or server resource is newer, fetch
-  const rsrcFetched = fetcherInstances()
+  const rsrcFetched = store.fetcherInstances()
     .map(api => api.getResources())
     .extendAsync().then(res => {
       const indexed = res.map((e, i) => {
         e.idx = i;
         return e;
       });
-      return setResources(indexed);
+      return store.setResources(indexed);
     });
   return Promise.all([serverTmpl, serverConfig, rsrcFetched]);
 }
 
 
-export function loader() {
+function loader() {
   if (document.location.protocol === "file:") {
     console.info('Off-line mode (local file)');
-    setGlobalConfig('onLine', false);
+    store.setGlobalConfig('onLine', false);
     return Promise.resolve();
   }
   if ('onLine' in navigator) {
     if (!navigator.onLine) {
       console.info('Off-line mode (no internet connection)');
-      setGlobalConfig('onLine', false);
+      store.setGlobalConfig('onLine', false);
       return Promise.resolve();
     }
   }
   return fetch(`${localServer.baseURL}favicon.ico`)
     .then(() => {
       // HTTP 404
-      setGlobalConfig('onLine', true);
+      store.setGlobalConfig('onLine', true);
       return initialize();
     }).catch(() => {
       console.info('Off-line mode (server not responding)');
-      setGlobalConfig('onLine', false);
+      store.setGlobalConfig('onLine', false);
       return Promise.resolve();
     });
 }
+
+
+export default {
+  loader
+};

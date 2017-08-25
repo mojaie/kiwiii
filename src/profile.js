@@ -1,21 +1,16 @@
 
 import d3 from 'd3';
-import {dataSourceId} from './helper/definition.js';
-import {formValue} from './helper/d3Selection.js';
-import {partialMatch} from './helper/formatValue.js';
-import {loader} from './Loader.js';
-import {
-  getGlobalConfig, getFetcher, dataFetcherInstances, dataFetcherDomains,
-  getResources, getResourceColumns, getDataSourceColumns, localChemInstance
-} from './store/StoreConnection.js';
-import {
-  createTable, updateTableRecords, appendTableRows, addSort
-} from './component/Component.js';
+import {default as def} from './helper/definition.js';
+import {default as d3form} from './helper/d3Form.js';
+import {default as fmt} from './helper/formatValue.js';
+import {default as loader} from './Loader.js';
+import {default as store} from './store/StoreConnection.js';
+import {default as cmp} from './component/Component.js';
 
 
 function updateChemicals(chemicals) {
-  const compound = getGlobalConfig('urlQuery').compound;
-  const localServer = localChemInstance();
+  const compound = store.getGlobalConfig('urlQuery').compound;
+  const localServer = store.localChemInstance();
   const query = {
     method: 'chemsql',
     targets: chemicals.map(e => e.entity),
@@ -36,14 +31,14 @@ function updateChemicals(chemicals) {
         ]
     };
     // Convert the record into key-value table
-    getDataSourceColumns(res.domain, [rcd.source])
-      .then(cols => getFetcher(res.domain).formatResult(cols, res))
+    store.getDataSourceColumns(res.domain, [rcd.source])
+      .then(cols => store.getFetcher(res.domain).formatResult(cols, res))
       .then(data => {
         const rcds = data.columns
           .filter(e => !['_structure', '_index', 'ID'].includes(e.key))
           .map(e => ({ key: e.name, value: rcd[e.key] }));
-        d3.select('#properties').call(createTable, props)
-          .call(updateTableRecords, rcds, d => d.key);
+        d3.select('#properties').call(cmp.createTable, props)
+          .call(cmp.updateTableRecords, rcds, d => d.key);
       });
     return rcd;
   });
@@ -73,8 +68,8 @@ function updateChemicals(chemicals) {
           database: chemicals.find(e => e.id === rcd.source).name
         };
       });
-      d3.select('#aliases').call(createTable, aliases)
-        .call(updateTableRecords, rcds, d => d.ID);
+      d3.select('#aliases').call(cmp.createTable, aliases)
+        .call(cmp.updateTableRecords, rcds, d => d.ID);
       return;
     });
   });
@@ -90,7 +85,7 @@ function updateActivities(activities) {
       {key: 'remarks', sort: 'none', visible: true}
     ]
   };
-  const compound = getGlobalConfig('urlQuery').compound;
+  const compound = store.getGlobalConfig('urlQuery').compound;
   // Prevent implicit submission
   document.getElementById('search')
     .addEventListener('keypress', event => {
@@ -98,14 +93,14 @@ function updateActivities(activities) {
     });
   d3.select('#search').on('keyup', function () {
     const match = obj => Object.values(obj)
-      .some(e => partialMatch(formValue(this), e));
+      .some(e => fmt.partialMatch(d3form.value(this), e));
     d3.select('#results tbody').selectAll('tr')
       .style('visibility', d => match(d) ? null : 'hidden')
       .style('position', d => match(d) ? null : 'absolute');
   });
-  d3.select('#results').call(createTable, tbl)
-    .call(addSort);
-  const tasks = dataFetcherInstances()
+  d3.select('#results').call(cmp.createTable, tbl)
+    .call(cmp.addSort);
+  const tasks = store.dataFetcherInstances()
     .filter(fetcher => fetcher.available === true)
     .map(fetcher => {
       return fetcher.getRecordsByCompound(compound).then(res => {
@@ -113,7 +108,7 @@ function updateActivities(activities) {
           return Object.entries(rcd).map(r => {
             const rcdKey = r[0];
             const rcdValue = r[1];
-            const sourceKey = dataSourceId(fetcher.domain, rcd.source, rcdKey);
+            const sourceKey = def.dataSourceId(fetcher.domain, rcd.source, rcdKey);
             const sourceCol = activities.find(e => e.key === sourceKey);
             if (sourceCol === undefined) return;  // found in database but not annotated
             if (sourceCol.valueType === 'flag' && rcdValue === 0) return;  // empty flag
@@ -126,7 +121,7 @@ function updateActivities(activities) {
             };
           }).filter(e => e !== undefined);
         }).extend();
-        appendTableRows(d3.select('#results'), rcds, undefined);
+        cmp.appendTableRows(d3.select('#results'), rcds, undefined);
       });
     });
   return Promise.all(tasks);
@@ -134,11 +129,11 @@ function updateActivities(activities) {
 
 
 function run() {
-  const domains = dataFetcherDomains();
-  return loader().then(() => {
+  const domains = store.dataFetcherDomains();
+  return loader.loader().then(() => {
     return Promise.all([
-      getResources('chemical').then(updateChemicals),
-      getResourceColumns(domains).then(updateActivities)
+      store.getResources('chemical').then(updateChemicals),
+      store.getResourceColumns(domains).then(updateActivities)
     ]);
   });
 }

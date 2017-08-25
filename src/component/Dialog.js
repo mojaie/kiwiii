@@ -1,39 +1,30 @@
 
-import d3 from 'd3';
-import {
-  formValue, formInt, formFloat, formChecked,
-  checkboxValues, selectedOptionValues, textareaLines,
-  firstFile, selectedCheckboxesData, selectedOptionData
-} from '../helper/d3Selection.js';
-import {
-  csvToMapping, columnMappingToTable, singleToMultiMapping
-} from '../helper/dataStructure.js';
-import {partialMatch} from '../helper/formatValue.js';
-import {readFile} from '../helper/file.js';
-import {getSDFPropList} from '../helper/parser.js';
-import {plotThumbnail} from '../helper/image.js';
-import {
-  localChemInstance, getFetcher, dataFetcherDomains, getGlobalConfig,
-  getResourceColumns, getDataSourceColumns, setColumnsToShow
-} from '../store/StoreConnection.js';
-import {
-  checkboxList, selectOptions, createTable, updateTableRecords
-} from './Component.js';
+/** @module dialog */
 
-const localServer = localChemInstance();
+import d3 from 'd3';
+import {default as d3form} from '../helper/d3Form.js';
+import {default as dstr} from '../helper/dataStructure.js';
+import {default as fmt} from '../helper/formatValue.js';
+import {default as hfile} from '../helper/file.js';
+import {default as parser} from '../helper/parser.js';
+import {default as himg} from '../helper/image.js';
+import {default as store} from '../store/StoreConnection.js';
+import {default as cmp} from './Component.js';
+
+const localServer = store.localChemInstance();
 
 
 function mergeDataSourceColumns(data) {
-  return getDataSourceColumns(data.domain, data.dataSource)
-  .then(cols => getFetcher(data.domain).formatResult(cols, data));
+  return store.getDataSourceColumns(data.domain, data.dataSource)
+  .then(cols => store.getFetcher(data.domain).formatResult(cols, data));
 }
 
 
-export function pickDialog(rsrc, callback) {
+function pickDialog(rsrc, callback) {
   d3.select('#pick-target')
-    .call(selectOptions, rsrc, d => d.entity, d => d.name)
+    .call(cmp.selectOptions, rsrc, d => d.entity, d => d.name)
     .on('change', function () {
-      const rsrctbl = selectedOptionData(this);
+      const rsrctbl = d3form.optionData(this);
       d3.select('#pick-queryarea').text(rsrctbl.placeholders.ID);
     });
   d3.select('#pick-queryarea').text(rsrc[0].placeholders.ID);  // initial value
@@ -42,9 +33,9 @@ export function pickDialog(rsrc, callback) {
       d3.select('#loading-circle').style('display', 'inline');
       const query = {
         method: 'chemsql',
-        targets: [formValue('#pick-target')],
+        targets: [d3form.value('#pick-target')],
         key: 'ID',
-        values: textareaLines('#pick-queryarea'),
+        values: d3form.textareaLines('#pick-queryarea'),
         operator: 'fm'
       };
       return localServer.getRecords(query)
@@ -54,26 +45,26 @@ export function pickDialog(rsrc, callback) {
 }
 
 
-export function propDialog(rsrc, callback) {
+function propDialog(rsrc, callback) {
   d3.select('#prop-targets')
-    .call(checkboxList, rsrc, 'targets', d => d.entity, d => d.name)
+    .call(cmp.checkboxList, rsrc, 'targets', d => d.entity, d => d.name)
     .on('change', function () {
-      const cols = selectedCheckboxesData('#prop-targets')
+      const cols = d3form.checkboxData('#prop-targets')
         .map(d => d.columns)
         .extend().unique('key');
       d3.select('#prop-key')
-        .call(selectOptions, cols, d => d.key, d => d.name);
+        .call(cmp.selectOptions, cols, d => d.key, d => d.name);
     });
   d3.select('#prop-submit')
     .on('click', () => {
       d3.select('#loading-circle').style('display', 'inline');
-      const selectedColumn = selectedOptionData('#prop-key');
+      const selectedColumn = d3form.optionData('#prop-key');
       const query = {
         method: selectedColumn.method,
-        targets: checkboxValues('#prop-targets'),
+        targets: d3form.checkboxValues('#prop-targets'),
         key: selectedColumn.key,
-        values: textareaLines('#prop-queryarea'),
-        operator: formValue('#prop-operator')
+        values: d3form.textareaLines('#prop-queryarea'),
+        operator: d3form.value('#prop-operator')
       };
       return localServer.getRecords(query)
       .then(mergeDataSourceColumns)
@@ -82,13 +73,13 @@ export function propDialog(rsrc, callback) {
 }
 
 
-export function structDialog(rsrc, callback) {
+function structDialog(rsrc, callback) {
   d3.select('#struct-qsrc')
-    .call(selectOptions, rsrc, d => d.entity, d => d.name);
+    .call(cmp.selectOptions, rsrc, d => d.entity, d => d.name);
   d3.select('#struct-targets')
-    .call(checkboxList, rsrc, 'targets', d => d.entity, d => d.name);
+    .call(cmp.checkboxList, rsrc, 'targets', d => d.entity, d => d.name);
   d3.select('#struct-method').selectAll('option.rd')
-    .attr('disabled', getGlobalConfig('rdk') === true ? null : 'disabled');
+    .attr('disabled', store.getGlobalConfig('rdk') === true ? null : 'disabled');
   d3.select('#struct-method')
     .on('change', function () {
       const op = d3.select(this.selectedOptions[0]);
@@ -106,10 +97,10 @@ export function structDialog(rsrc, callback) {
       d3.select('#struct-options').selectAll('.fmcs')
         .attr('disabled', this.value === 'rdfmcs' ? null : 'disabled');
       d3.select('#struct-thld')
-        .attr('value', formValue('#struct-thldtype') === 'edge' ? 15 : 0.7)
-        .attr('min', formValue('#struct-thldtype') === 'edge' ? 5 : 0)
-        .attr('max', formValue('#struct-thldtype') === 'edge' ? 999 : 1.0)
-        .attr('step', formValue('#struct-thldtype') === 'edge' ? 1 : 0.01);
+        .attr('value', d3form.value('#struct-thldtype') === 'edge' ? 15 : 0.7)
+        .attr('min', d3form.value('#struct-thldtype') === 'edge' ? 5 : 0)
+        .attr('max', d3form.value('#struct-thldtype') === 'edge' ? 999 : 1.0)
+        .attr('step', d3form.value('#struct-thldtype') === 'edge' ? 1 : 0.01);
     });
   d3.select('#struct-thldtype')
     .on('change', function () {
@@ -126,12 +117,12 @@ export function structDialog(rsrc, callback) {
     });
   d3.select('#struct-preview')
     .on('click', () => {
-      const fmt = formValue('#struct-format');
+      const fmt = d3form.value('#struct-format');
       const query = {
         format: fmt,
-        querySource: fmt === 'dbid' ? formValue('#struct-qsrc') : null,
+        querySource: fmt === 'dbid' ? d3form.value('#struct-qsrc') : null,
         value: fmt === 'molfile'
-          ? formValue('#struct-queryarea') : textareaLines('#struct-queryarea')[0],
+          ? d3form.value('#struct-queryarea') : d3form.textareaLines('#struct-queryarea')[0],
       };
       return localServer.strprev(query)
         .then(res => d3.select('#struct-image').html(res));
@@ -140,21 +131,21 @@ export function structDialog(rsrc, callback) {
     .on('click', () => {
       d3.select('#loading-circle').style('display', 'inline');
       const mthdop = d3.select(d3.select('#struct-method').node().selectedOptions[0]);
-      const fmt = formValue('#struct-format');
+      const fmt = d3form.value('#struct-format');
       const query = {
-        method: formValue('#struct-method'),
-        targets: checkboxValues('#struct-targets'),
+        method: d3form.value('#struct-method'),
+        targets: d3form.checkboxValues('#struct-targets'),
         format: fmt,
-        querySource: fmt === 'dbid' ? formValue('#struct-qsrc') : null,
+        querySource: fmt === 'dbid' ? d3form.value('#struct-qsrc') : null,
         value: fmt === 'molfile'
-          ? formValue('#struct-queryarea') : textareaLines('#struct-queryarea')[0],
-        thresholdType: formValue('#struct-thldtype'),
-        threshold: formFloat('#struct-thld'),
-        ignoreHs: formChecked('#struct-ignoreh'),
-        diameter: mthdop.classed('gls') ? formInt('#struct-diam') : null,
-        maxTreeSize: mthdop.classed('gls') ? formInt('#struct-tree') : null,
-        molSizeCutoff: mthdop.classed('gls') ? formInt('#struct-skip') : null,
-        timeout: mthdop.classed('rd') ? formInt('#struct-timeout') : null
+          ? d3form.value('#struct-queryarea') : d3form.textareaLines('#struct-queryarea')[0],
+        thresholdType: d3form.value('#struct-thldtype'),
+        threshold: d3form.valueFloat('#struct-thld'),
+        ignoreHs: d3form.checked('#struct-ignoreh'),
+        diameter: mthdop.classed('gls') ? d3form.valueInt('#struct-diam') : null,
+        maxTreeSize: mthdop.classed('gls') ? d3form.valueInt('#struct-tree') : null,
+        molSizeCutoff: mthdop.classed('gls') ? d3form.valueInt('#struct-skip') : null,
+        timeout: mthdop.classed('rd') ? d3form.valueInt('#struct-timeout') : null
       };
       return localServer.getRecords(query)
         .then(mergeDataSourceColumns)
@@ -163,14 +154,14 @@ export function structDialog(rsrc, callback) {
 }
 
 
-export function sdfDialog(callback) {
+function sdfDialog(callback) {
   d3.select('#sdf-file')
     .on('change', () => {
       const reader = new FileReader();
       const file = document.getElementById('sdf-file').files[0];
       reader.onload = (e) => {
         d3.select('#sdf-cols')
-          .call(checkboxList, getSDFPropList(e.target.result),
+          .call(cmp.checkboxList, parser.getSDFPropList(e.target.result),
                 'columns', d => d, d => d
           );
       };
@@ -180,24 +171,25 @@ export function sdfDialog(callback) {
   d3.select('#sdf-selectall')
     .on('change', () => {
       d3.select('#sdf-cols').selectAll('input')
-        .property('checked', formChecked('#sdf-selectall'));
+        .property('checked', d3form.checked('#sdf-selectall'));
     });
   d3.select('#sdf-submit')
     .on('click', () => {
       d3.select('#loading-circle').style('display', 'inline');
       const query = {
-        contents: firstFile('#sdf-file'),
+        contents: d3form.firstFile('#sdf-file'),
         query: JSON.stringify({
-          columns: checkboxValues('#sdf-cols'),
-          implh: formChecked('#sdf-implh'),
-          recalc: formChecked('#sdf-recalc')
+          columns: d3form.checkboxValues('#sdf-cols'),
+          implh: d3form.checked('#sdf-implh'),
+          recalc: d3form.checked('#sdf-recalc')
         })
       };
       return localServer.importSDF(query).then(callback);
     });
 }
 
-export function columnDialog(tbl, callback) {
+
+function columnDialog(tbl, callback) {
   // TODO: need refactoring
   const coltbl = {
     columns: [
@@ -209,7 +201,7 @@ export function columnDialog(tbl, callback) {
   };
   d3.select('#column-table thead').remove();
   d3.select('#column-table tbody').remove();
-  d3.select('#column-table').call(createTable, coltbl)
+  d3.select('#column-table').call(cmp.createTable, coltbl)
     .select('tbody').selectAll('tr')
     .data(tbl.columns).enter().append('tr')
     .each(function (row) {
@@ -227,7 +219,7 @@ export function columnDialog(tbl, callback) {
           } else if (i === 2) {
             d3.select(this).classed('column-sort-select', true)
               .append('select')
-              .call(selectOptions,
+              .call(cmp.selectOptions,
                     cell === 'none' ? ['none'] : ['numeric', 'text'], null, d => d)
               .each(function (value) {
                 d3.select(this).selectAll('option')
@@ -236,7 +228,7 @@ export function columnDialog(tbl, callback) {
           } else if (i === 3) {
             d3.select(this).classed('column-digit-select', true)
               .append('select')
-              .call(selectOptions, ['raw', 'rounded', 'scientific', 'si'], null, d => d)
+              .call(cmp.selectOptions, ['raw', 'rounded', 'scientific', 'si'], null, d => d)
               .each(function (value) {
                 d3.select(this).selectAll('option')
                   .property('selected', d => d === value);
@@ -256,26 +248,26 @@ export function columnDialog(tbl, callback) {
   d3.select('#column-submit')
     .on('click', () => {
       const query = {
-        visibles: checkboxValues('.column-vis-select'),
-        sorts: selectedOptionValues('.column-sort-select'),
-        digits: selectedOptionValues('.column-digit-select')
+        visibles: d3form.checkboxValues('.column-vis-select'),
+        sorts: d3form.optionValues('.column-sort-select'),
+        digits: d3form.optionValues('.column-digit-select')
       };
-      return setColumnsToShow(query).then(callback);
+      return store.setColumnsToShow(query).then(callback);
     });
 }
 
 
-export function joinDialog(tbl, rcds, callback) {
-  const domains = dataFetcherDomains();
+function joinDialog(tbl, rcds, callback) {
+  const domains = store.dataFetcherDomains();
   // Prevent implicit submission
   document.getElementById('join-search')
     .addEventListener('keypress', event => {
       if (event.keyCode === 13) event.preventDefault();
     });
-  return getResourceColumns(domains).then(rsrcs => {
+  return store.getResourceColumns(domains).then(rsrcs => {
     const shownCols = tbl.columns.map(e => e.key);
     d3.select('#join-keys')
-      .call(checkboxList, rsrcs.unique('key'), 'keys',
+      .call(cmp.checkboxList, rsrcs.unique('key'), 'keys',
             d => d.key, d => d.name)
       .selectAll('li')
       .each(function(d) { // disable already shown columns
@@ -285,20 +277,20 @@ export function joinDialog(tbl, rcds, callback) {
           .attr('disabled', ex ? 'disabled' : null);
       });
     d3.select('#join-search').on('keyup', function () {
-      const match = d => partialMatch(formValue(this), d.name);
+      const match = d => fmt.partialMatch(d3form.value(this), d.name);
       d3.select('#join-keys').selectAll('li')
         .style('visibility', d => match(d) ? null : 'hidden')
         .style('position', d => match(d) ? null : 'absolute');
     });
     d3.select('#join-submit').on('click', () => {
       d3.select('#loading-circle').style('display', 'inline');
-      const selectedCols = checkboxValues('#join-keys');
+      const selectedCols = d3form.checkboxValues('#join-keys');
       const mpgs = rsrcs
         .filter(col => !shownCols.includes(col.key))
         .filter(col => selectedCols.includes(col.key))
         .map(col => {
           const ids = rcds.map(row => row.ID);
-          const api = getFetcher(col.domain);
+          const api = store.getFetcher(col.domain);
           return api.getMapping(ids, col);
         });
       return Promise.all(mpgs).then(res => {
@@ -310,16 +302,16 @@ export function joinDialog(tbl, rcds, callback) {
 }
 
 
-export function importColDialog(tbl, callback) {
+function importColDialog(tbl, callback) {
   d3.select('#importcol-file')
     .on('change', () => {
       const file = document.getElementById('importcol-file').files[0];
       const isCsv = file.name.split('.').pop() === 'csv';
-      readFile(file).then(res => {
-        const mapping = isCsv ? csvToMapping(res) : JSON.parse(res);
-        const tbl = columnMappingToTable(mapping);
-        d3.select('#importcol-preview').call(createTable, tbl)
-          .call(updateTableRecords,
+      hfile.readFile(file).then(res => {
+        const mapping = isCsv ? dstr.csvToMapping(res) : JSON.parse(res);
+        const tbl = dstr.columnMappingToTable(mapping);
+        d3.select('#importcol-preview').call(cmp.createTable, tbl)
+          .call(cmp.updateTableRecords,
                 tbl.records.slice(0, 5), d => d[tbl.columns[0].key]);
         // bind mapping
         d3.select('#importcol-preview').datum(mapping);
@@ -332,7 +324,7 @@ export function importColDialog(tbl, callback) {
       // Generate thumbnails
       const plotCols = [];
       if (mapping.hasOwnProperty('column')) {
-        mapping = singleToMultiMapping(mapping);
+        mapping = dstr.singleToMultiMapping(mapping);
       }
       mapping.columns.forEach((e, i) => {
         if (e.valueType === 'plot') {
@@ -344,7 +336,7 @@ export function importColDialog(tbl, callback) {
         const ps = [];
         Object.entries(mapping.mapping).forEach(m => {
           plotCols.forEach(e => {
-            const p = plotThumbnail(m[1][e])
+            const p = himg.plotThumbnail(m[1][e])
               .then(img => {
                 mapping.mapping[m[0]][e] = img;
               });
@@ -359,9 +351,9 @@ export function importColDialog(tbl, callback) {
 }
 
 
-export function graphDialog(tbl, rcds, callback) {
+function graphDialog(tbl, rcds, callback) {
   d3.select('#graph-measure').selectAll('option.rd')
-    .attr('disabled', getGlobalConfig('rdk') === true ? null : 'disabled');
+    .attr('disabled', store.getGlobalConfig('rdk') === true ? null : 'disabled');
   d3.select('#graph-measure')
     .on('change', function () {
       d3.select('#graph-options').selectAll('.gls')
@@ -374,16 +366,16 @@ export function graphDialog(tbl, rcds, callback) {
       d3.select('#loading-circle').style('display', 'inline');
       const mthdop = d3.select(d3.select('#graph-measure').node().selectedOptions[0]);
       const query = {
-        measure: formValue('#graph-measure'),
+        measure: d3form.value('#graph-measure'),
         indices: [],
         molecules: [],
         nodeTableId: tbl.id,
-        threshold: formFloat('#graph-thld'),
-        ignoreHs: formChecked('#graph-ignoreh'),
-        diameter: mthdop.node().value === 'gls' ? formInt('#graph-diam') : null,
-        maxTreeSize: mthdop.node().value === 'gls' ? formInt('#graph-tree') : null,
-        molSizeCutoff: mthdop.node().value === 'gls' ? formInt('#graph-skip') : null,
-        timeout: mthdop.classed('rd') ? formInt('#graph-timeout') : null
+        threshold: d3form.valueFloat('#graph-thld'),
+        ignoreHs: d3form.checked('#graph-ignoreh'),
+        diameter: mthdop.node().value === 'gls' ? d3form.valueInt('#graph-diam') : null,
+        maxTreeSize: mthdop.node().value === 'gls' ? d3form.valueInt('#graph-tree') : null,
+        molSizeCutoff: mthdop.node().value === 'gls' ? d3form.valueInt('#graph-skip') : null,
+        timeout: mthdop.classed('rd') ? d3form.valueInt('#graph-timeout') : null
       };
       rcds.forEach(e => {
         query.molecules.push(e._mol);
@@ -394,28 +386,35 @@ export function graphDialog(tbl, rcds, callback) {
 }
 
 
-export function graphConfigDialog(edges, callback) {
+function graphConfigDialog(edges, callback) {
   d3.select('#graphconfig-thld')
     .attr('value', edges.networkThreshold)
     .attr('max', 1.0)
     .attr('min', edges.query.threshold);
   d3.select('#graphconfig-submit')
     .on('click', () => {
-      const newThld = formFloat('#graphconfig-thld');
+      const newThld = d3form.valueFloat('#graphconfig-thld');
       if (newThld < edges.query.threshold) return;  // TODO: fool proof
       callback(newThld);
     });
 }
 
 
-export function communityDialog(callback) {
+function communityDialog(callback) {
   d3.select('#community-name').attr('value', 'comm_');
   d3.select('#community-submit')
     .on('click', () => {
       const query = {
-        name: formValue('#community-name'),
-        nulliso: formChecked('#community-nulliso')
+        name: d3form.value('#community-name'),
+        nulliso: d3form.checked('#community-nulliso')
       };
       callback(query);
     });
 }
+
+
+export default {
+  pickDialog, propDialog, structDialog, sdfDialog,
+  columnDialog, joinDialog, importColDialog, graphDialog,
+  graphConfigDialog, communityDialog
+};

@@ -1,5 +1,5 @@
 
-import {dataSourceId} from '../helper/definition.js';
+import {default as def} from '../helper/definition.js';
 import {default as store} from './IDBStore.js';
 import {LocalServerActivity, LocalServerChemical} from '../fetcher/LocalServer.js';
 import {ScreenerFitting, ScreenerRawValue} from '../fetcher/Screener.js';
@@ -21,12 +21,12 @@ window.location.search.substring(1).split("&")
   });
 
 
-export function getGlobalConfig(key) {
+function getGlobalConfig(key) {
   return globalConfig[key];
 }
 
 
-export function setGlobalConfig(key, value) {
+function setGlobalConfig(key, value) {
   globalConfig[key] = value;
 }
 
@@ -43,22 +43,22 @@ const API = new Map(Object.entries({
 }));
 
 
-export function localChemInstance() {
+function localChemInstance() {
   return API.get('chemical');
 }
 
 
-export function getFetcher(domain) {
+function getFetcher(domain) {
   return API.get(domain);
 }
 
 
-export function fetcherInstances() {
+function fetcherInstances() {
   return Array.from(API.values());
 }
 
 
-export function dataFetcherInstances() {
+function dataFetcherInstances() {
   const res = [];
   API.forEach((v, k) => {
     if (k !== 'chemical') res.push(v);
@@ -67,7 +67,7 @@ export function dataFetcherInstances() {
 }
 
 
-export function dataFetcherDomains() {
+function dataFetcherDomains() {
   const res = [];
   API.forEach((v, k) => {
     if (k !== 'chemical') res.push(k);
@@ -78,24 +78,24 @@ export function dataFetcherDomains() {
 
 // API data resource on local IndexedDB
 
-export function getResources(domains) {
+function getResources(domains) {
   return store.getResources().then(rsrcs => {
     return rsrcs.filter(e => domains.includes(e.domain));
   });
 }
 
 
-export function setResources(rsrcs) {
+function setResources(rsrcs) {
   return store.putResources(rsrcs);
 }
 
 
-export function getResourceColumns(domains) {
+function getResourceColumns(domains) {
   return getResources(domains).then(rsrcs => {
     return rsrcs.map(rsrc => {
       return rsrc.columns.map(col => {
         col.domain = rsrc.domain;
-        col.key = dataSourceId(rsrc.domain, rsrc.id, col.key);
+        col.key = def.dataSourceId(rsrc.domain, rsrc.id, col.key);
         col.entity = rsrc.entity;
         if (!col.hasOwnProperty('tags')) col.tags = rsrc.tags;
         return col;
@@ -105,7 +105,7 @@ export function getResourceColumns(domains) {
 }
 
 
-export function getDataSourceColumns(domain, ids) {
+function getDataSourceColumns(domain, ids) {
   return store.getResources([domain]).then(rsrcs => {
     return ids.map(d => rsrcs.find(e => e.id === d).columns)
       .extend();
@@ -115,40 +115,40 @@ export function getDataSourceColumns(domain, ids) {
 
 // Datatable on local IndexedDB
 
-export function getAllTables() {
+function getAllTables() {
   return store.getAllItems();
 }
 
 
-export function getTablesByFormat(format) {
+function getTablesByFormat(format) {
   return store.getItemsByFormat(format);
 }
 
 
-export function getTable(tableId) {
+function getTable(tableId) {
   return store.getItemById(tableId);
 }
 
 
-export function getRecords(tableId) {
+function getRecords(tableId) {
   return store.getItemById(tableId)
     .then(tbl => tbl.records);
 }
 
 
-export function getCurrentTable() {
+function getCurrentTable() {
   const q = getGlobalConfig('urlQuery');
   if (!q.hasOwnProperty('id')) return Promise.resolve();
   return store.getItemById(q.id);
 }
 
 
-export function getCurrentRecords() {
+function getCurrentRecords() {
   return getCurrentTable().then(tbl => tbl.records);
 }
 
 
-export function setColumnsToShow(updates) {
+function setColumnsToShow(updates) {
   return store.updateItem(getGlobalConfig('urlQuery').id, item => {
     item.columns.forEach((col, i) => {
       col.visible = updates.visibles.includes(col.key);
@@ -159,7 +159,7 @@ export function setColumnsToShow(updates) {
 }
 
 
-export function joinColumn(mapping, tableId=globalConfig.urlQuery.id) {
+function joinColumn(mapping, tableId=globalConfig.urlQuery.id) {
   const cols = mapping.hasOwnProperty('column') ? mapping.column : mapping.columns;
   return store.updateItem(tableId, item => {
     item.records
@@ -179,19 +179,19 @@ export function joinColumn(mapping, tableId=globalConfig.urlQuery.id) {
 }
 
 
-export function updateTableAttribute(tblID, key, value) {
+function updateTableAttribute(tblID, key, value) {
   return store.updateItem(tblID, item => {
     item[key] = value;
   });
 }
 
 
-export function insertTable(data) {
+function insertTable(data) {
   return store.putItem(data);
 }
 
 
-export function updateTable(data) {
+function updateTable(data) {
   if (data === undefined) return Promise.resolve();  // No update
   if (data.status === 'Failure') {  // No data found on server
     return updateTableAttribute(data.id, 'status', 'Failure');
@@ -216,11 +216,24 @@ export function updateTable(data) {
 }
 
 
-export function deleteTable(id) {
+function deleteTable(id) {
   return store.deleteItem(id);
 }
 
 
-export function reset() {
+function reset() {
   return store.reset();
 }
+
+
+export default {
+  getGlobalConfig, setGlobalConfig,
+  localChemInstance, getFetcher, fetcherInstances,
+  dataFetcherInstances, dataFetcherDomains,
+  getResources, setResources, getResourceColumns, getDataSourceColumns,
+  getAllTables, getTablesByFormat, getTable, getRecords,
+  getCurrentTable, getCurrentRecords,
+  setColumnsToShow, joinColumn,
+  updateTableAttribute, insertTable, updateTable,
+  deleteTable, reset
+};
