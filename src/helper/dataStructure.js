@@ -1,6 +1,12 @@
 
-/** @module dataStructure */
+/** @module helper/dataStructure */
 
+
+/**
+ * Convert column mapping to table
+ * @param {object} mapping - column mapping
+ * @return {object} table object
+ */
 function columnMappingToTable(mapping) {
   const keyCol = {
     key: mapping.key,
@@ -29,6 +35,11 @@ function columnMappingToTable(mapping) {
 }
 
 
+/**
+ * Convert csv text to column mapping
+ * @param {string} csvString - csv data text
+ * @return {object} column mapping
+ */
 function csvToMapping(csvString) {
   const lines = csvString.split(/\n|\r|\r\n/);
   const header = lines.shift().split(',');
@@ -57,6 +68,12 @@ function csvToMapping(csvString) {
   return mapping;
 }
 
+
+/**
+ * Convert single column mapping to multi column mapping
+ * @param {object} mapping - single column mapping
+ * @return {object} multi column mapping
+ */
 function singleToMultiMapping(mapping) {
   const newMapping = {};
   Object.entries(mapping.mapping).forEach(m => {

@@ -1,5 +1,5 @@
 
-/** @module file */
+/** @module helper/file */
 
 import pako from 'pako';
 

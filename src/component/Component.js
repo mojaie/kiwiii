@@ -1,5 +1,5 @@
 
-/** @module component */
+/** @module component/Component */
 
 import d3 from 'd3';
 import {default as fmt} from '../helper/formatValue.js';

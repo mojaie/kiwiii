@@ -1,4 +1,6 @@
 
+/** @module graph/GraphForce */
+
 import d3 from 'd3';
 
 const fieldWidth = 1200;

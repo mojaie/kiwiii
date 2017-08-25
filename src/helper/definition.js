@@ -1,5 +1,5 @@
 
-/** @module definition */
+/** @module helper/definition */
 
 function fetchable(tbl) {
   return ['In progress', 'Queued', 'Aborting'].includes(tbl.status);

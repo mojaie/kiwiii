@@ -1,5 +1,5 @@
 
-/** @module formatValue */
+/** @module helper/formatValue */
 
 import d3 from 'd3';
 

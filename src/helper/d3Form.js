@@ -1,5 +1,5 @@
 
-/** @module d3Form */
+/** @module helper/d3Form */
 
 import d3 from 'd3';
 

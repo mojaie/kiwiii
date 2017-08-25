@@ -1,5 +1,5 @@
 
-/** @module d3Scale */
+/** @module helper/d3Scale */
 
 import d3 from 'd3';
 

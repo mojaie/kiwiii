@@ -1,5 +1,5 @@
 
-/** @module image */
+/** @module helper/image */
 
 import vega from 'vega';
 

@@ -1,5 +1,5 @@
 
-/** @module dataGrid */
+/** @module component/DataGrid */
 
 import d3 from 'd3';
 import {default as fmt} from '../helper/formatValue.js';

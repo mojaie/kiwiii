@@ -1,5 +1,5 @@
 
-import {default as Fetcher} from './Fetcher.js';
+import Fetcher from './Fetcher.js';
 
 
 export class LocalServerActivity extends Fetcher {

@@ -1,5 +1,5 @@
 
-/** @module dialog */
+/** @module component/Dialog */
 
 import d3 from 'd3';
 import {default as d3form} from '../helper/d3Form.js';

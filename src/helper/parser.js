@@ -1,5 +1,5 @@
 
-/** @module parser */
+/** @module helper/parser */
 
 function getSDFPropList(str) {
   const re = />.*?<(\S+)>/g;

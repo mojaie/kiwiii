@@ -1,10 +1,24 @@
 
-export default class Fetcher {
+/** @module fetcher/Fetcher */
+
+/** HTTP fetcher class. */
+class Fetcher {
+  /** @constructs Fetcher */
   constructor() {
+    /** @prop {string} baseURL - fetcher base URL */
     this.baseURL = "";
+    /** @prop {bool} available - resource availability */
     this.available = false;
   }
 
+  /**
+   * Send XMLHttpRequest
+   * TODO: use fetch API instead
+   * @param {string} url - resource URL
+   * @param {FormData} formData - Formdata object
+   * @param {object} options - XMLHttpRequest options
+   * @return {Promise} Promise object
+   */
   xhrRequest(url, formData=null, options={}) {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -54,3 +68,6 @@ export default class Fetcher {
 
   }
 }
+
+
+export default Fetcher;

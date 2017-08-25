@@ -1,5 +1,5 @@
 
-/** @module header */
+/** @module component/Header */
 
 import d3 from 'd3';
 import {default as def} from '../helper/definition.js';
