@@ -13,14 +13,11 @@ import {
 import {renderStatus, initialize, initializeWithData} from './component/Header.js';
 import {graphConfigDialog, communityDialog} from './component/Dialog.js';
 
-import {setForce, tick, end, fieldWidth, fieldHeight} from './graph/GraphForce.js';
-import {
-  nodeColorControlBox, nodeSizeControlBox, nodeLabelControlBox, edgeControlBox,
-  updateNodeImage, mainControlBox, updateControl
-} from './graph/GraphControlBox.js';
-import {graphNodes, graphEdges} from './graph/GraphComponent.js';
-import {zoom, restart, relax, stickNodes} from './graph/GraphInteraction.js';
-import {communityDetection} from './graph/communityDetection.js';
+import {default as force} from './graph/GraphForce.js';
+import {default as control} from './graph/GraphControlBox.js';
+import {default as component} from './graph/GraphComponent.js';
+import {default as interaction} from './graph/GraphInteraction.js';
+import {default as community} from './graph/communityDetection.js';
 
 
 const localServer = localChemInstance();
@@ -55,25 +52,25 @@ function resume(snapshot) {
   }
   if (snapshot.hasOwnProperty('nodeColor')) {
     d3.select('#color-control').datum(snapshot.nodeColor);
-    updateControl(snapshot.nodeColor);
+    control.updateControl(snapshot.nodeColor);
   }
   if (snapshot.hasOwnProperty('nodeSize')) {
     d3.select('#size-control').datum(snapshot.nodeSize);
-    updateControl(snapshot.nodeSize);
+    control.updateControl(snapshot.nodeSize);
   }
   if (snapshot.hasOwnProperty('nodeLabel')) {
     d3.select('#label-control').datum(snapshot.nodeLabel);
-    updateControl(snapshot.nodeLabel);
+    control.updateControl(snapshot.nodeLabel);
   }
   if (snapshot.hasOwnProperty('edge')) {
     d3.select('#edge-control').datum(snapshot.edge);
-    updateControl(snapshot.edge);
+    control.updateControl(snapshot.edge);
   }
   if (snapshot.hasOwnProperty('fieldTransform')) {
     const tf = snapshot.fieldTransform;
     const transform = d3.zoomIdentity.translate(tf.x, tf.y).scale(tf.k);
     d3.select('#graph-contents').attr('transform', transform);
-    d3.select('#graph-field').call(zoom.transform, transform);
+    d3.select('#graph-field').call(interaction.zoom.transform, transform);
   }
   if (snapshot.hasOwnProperty('nodePositions')) {
     d3.selectAll('.node').each((d, i) => {
@@ -81,7 +78,7 @@ function resume(snapshot) {
       d.y = snapshot.nodePositions[i].y;
     });
   }
-  updateNodeImage(snapshot);
+  control.updateNodeImage(snapshot);
 }
 
 
@@ -102,20 +99,20 @@ function start() {
     const edgeDensity = d3.format('.3e')(edgesToDraw.length / g.edges.searchCount);
     d3.select('#edge-density').text(edgeDensity);
     d3.select('#network-thld').text(g.edges.networkThreshold);
-    graphEdges(d3.select('#graph-contents'), edgesToDraw);
-    graphNodes(d3.select('#graph-contents'), g.nodes.records);
+    component.graphEdges(d3.select('#graph-contents'), edgesToDraw);
+    component.graphNodes(d3.select('#graph-contents'), g.nodes.records);
     d3.select('#show-struct').property('checked', false);  // for fast loading
-    setForce(
-      g.nodes.records, edgesToDraw, tick,
+    force.setForce(
+      g.nodes.records, edgesToDraw, force.tick,
       () => {
-        end();
+        force.end();
         saveSnapshot();
       });
     if (g.edges.hasOwnProperty('snapshot')) {
       resume(g.edges.snapshot);
-      stickNodes();
+      interaction.stickNodes();
     } else {
-      restart();
+      interaction.restart();
     }
     d3.select('#graph-contents').style('opacity', 1e-6)
       .transition()
@@ -136,7 +133,7 @@ function render() {
       const nodeIds = g.nodes.records.map(e => e._index);
       const visibleEdges = g.edges.records
         .filter(e => e.weight >= g.edges.networkThreshold);
-      const community = communityDetection(
+      const comm = community.communityDetection(
         nodeIds, visibleEdges, {nulliso: query.nulliso}
       );
       const mapping = {
@@ -144,7 +141,7 @@ function render() {
         column: {
           key: query.name, name: query.name, sort: 'numeric', visible: true
         },
-        mapping: community
+        mapping: comm
       };
       joinColumn(mapping, g.nodes.id)
         .then(() => {
@@ -157,14 +154,14 @@ function render() {
             .then(() => console.info('snapshot saved'));
         }).then(render);
     });
-    mainControlBox();
-    nodeColorControlBox(g.nodes.columns);
-    nodeSizeControlBox(g.nodes.columns);
-    nodeLabelControlBox(g.nodes.columns);
-    edgeControlBox();
+    control.mainControlBox();
+    control.nodeColorControlBox(g.nodes.columns);
+    control.nodeSizeControlBox(g.nodes.columns);
+    control.nodeLabelControlBox(g.nodes.columns);
+    control.edgeControlBox();
     d3.select('#stick-nodes')
       .on('change', function() {
-        formChecked(this) === true ? stickNodes() : relax();
+        formChecked(this) === true ? interaction.stickNodes() : interaction.relax();
       });
     d3.select('#nodetable').attr('href', `datatable.html?id=${g.edges.nodeTableId}`);
     d3.select('#rename')
@@ -218,37 +215,27 @@ function loadNewGraph(grf) {
 }
 
 
-d3.select('#export')
-  .on('click', () => {
-    // Working copy of edges and nodes are modified by d3.force.
-    // Load original data from store.
-    return getCurrentGraph().then(g => downloadJSON(g, g.edges.name));
-  });
-
-
-d3.select('#graph-field')
-  .attr('viewBox', `0 0 ${fieldWidth} ${fieldHeight}`)
-  .call(zoom);
-
-
-d3.select('#snapshot')
-  .on('click', saveSnapshot);
-
-
-d3.select('#restart')
-  .on('click', restart);
-
-
-d3.select('#import-json')
-  .on('click', () => document.getElementById('select-file').click());
-d3.select('#select-file')
-  .on('change', () => {
-    const file = document.getElementById('select-file').files[0];
-    loadJSON(file).then(loadNewGraph);
-  });
-
-
 function run() {
+  d3.select('#export')
+    .on('click', () => {
+      // Working copy of edges and nodes are modified by d3.force.
+      // Load original data from store.
+      return getCurrentGraph().then(g => downloadJSON(g, g.edges.name));
+    });
+  d3.select('#graph-field')
+    .attr('viewBox', `0 0 ${force.fieldWidth} ${force.fieldHeight}`)
+    .call(interaction.zoom);
+  d3.select('#snapshot')
+    .on('click', saveSnapshot);
+  d3.select('#restart')
+    .on('click', interaction.restart);
+  d3.select('#import-json')
+    .on('click', () => document.getElementById('select-file').click());
+  d3.select('#select-file')
+    .on('change', () => {
+      const file = document.getElementById('select-file').files[0];
+      loadJSON(file).then(loadNewGraph);
+    });
   if (getGlobalConfig('urlQuery').hasOwnProperty('location')) {
     const url = getGlobalConfig('urlQuery').location;
     return fetchJSON(url)
@@ -272,4 +259,7 @@ function run() {
     }
   });
 }
-run();
+
+export default {
+  force, control, component, interaction, community, run
+};

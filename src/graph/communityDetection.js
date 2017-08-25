@@ -23,3 +23,8 @@ export function communityDetection(nodes, edges, option) {
   }
   return community;
 }
+
+
+export default {
+  communityDetection
+};

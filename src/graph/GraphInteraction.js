@@ -1,30 +1,30 @@
 
 import d3 from 'd3';
 
-import {simulation, tick, end} from './GraphForce.js';
+import {default as force} from './GraphForce.js';
 
-export const zoom = d3.zoom()
+const zoom = d3.zoom()
   .on('zoom', () => {
     d3.select('#graph-contents').attr('transform', d3.event.transform);
   });
 
-export const dragWithForce = d3.drag()
+const dragWithForce = d3.drag()
   .on('start', () => {
     d3.select('#graph-contents').selectAll('.link')
       .attr('visibility', 'hidden');
-    if (!d3.event.active) simulation.alphaTarget(0.1).restart();
+    if (!d3.event.active) force.simulation.alphaTarget(0.1).restart();
   })
   .on('drag', d => {
     d.fx = d3.event.x;
     d.fy = d3.event.y;
   })
   .on('end', d => {
-    if (!d3.event.active) simulation.alphaTarget(0);
+    if (!d3.event.active) force.simulation.alphaTarget(0);
     d.fx = null;
     d.fy = null;
   });
 
-export const dragNoForce = d3.drag()
+const dragNoForce = d3.drag()
   .on('drag', function (d) {
     d3.select(this)
       .attr('transform', () => `translate(${d3.event.x}, ${d3.event.y})`);
@@ -44,18 +44,18 @@ export const dragNoForce = d3.drag()
       .attr('y', d => (d.target.y - d.source.y) / 2);
   })
   .on('end', () => {
-    end();
+    force.end();
   });
 
 
-export function stickNodes() {
-  simulation.alpha(0).stop();
+function stickNodes() {
+  force.simulation.alpha(0).stop();
   d3.selectAll('.node').each(d => {
     d.fx = d.x;
     d.fy = d.y;
   });
-  tick();
-  end();
+  force.tick();
+  force.end();
   d3.select('#stick-nodes').property('checked', true);
   d3.select('#graph-contents').selectAll('.link')
     .attr('visibility', 'visible');
@@ -64,7 +64,7 @@ export function stickNodes() {
 }
 
 
-export function unstickNodes() {
+function unstickNodes() {
   d3.selectAll('.node').each(d => {
     d.fx = null;
     d.fy = null;
@@ -77,19 +77,19 @@ export function unstickNodes() {
 }
 
 
-export function relax() {
+function relax() {
   unstickNodes();
-  simulation.alpha(0.1).restart();
+  force.simulation.alpha(0.1).restart();
 }
 
 
-export function restart() {
+function restart() {
   unstickNodes();
-  simulation.alpha(1).restart();
+  force.simulation.alpha(1).restart();
 }
 
 
-export function fitToScreen() {
+function fitToScreen() {
   d3.select('#graph-field').call(zoom.transform, d3.zoomIdentity);
   // TODO
   /*
@@ -110,3 +110,10 @@ export function fitToScreen() {
   updateViewportTransform(center, scaleF);
   */
 }
+
+
+export default {
+  zoom, dragWithForce, dragNoForce,
+  stickNodes, unstickNodes,
+  relax, restart, fitToScreen
+};

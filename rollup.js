@@ -25,7 +25,7 @@ const buildDir = args.targets[0];
 const isDebugMode = args.options.debug;
 
 const apps = ['control', 'datatable', 'profile', 'graph', 'report'];
-const bundles = apps.concat(['graphview', 'customMethods']);
+const bundles = apps.concat('customMethods');
 
 if (isDebugMode) {
 	apps.push('testAPI');
@@ -59,10 +59,10 @@ const jsBundled = bundles.map(e => {
     external: ['d3', 'Dexie', 'jLouvain', 'pako', 'vega']
   }).then(b => {
     b.write({
-      dest: `${buildDir}/${e}.js`,
+      dest: `${buildDir}/kw${e}.js`,
       format: 'umd',
       sourceMap: true,
-      moduleName: e,
+      moduleName: `kw${e}`,
       banner: preamble,
       intro: `const debug = ${isDebugMode};`,
       globals: {

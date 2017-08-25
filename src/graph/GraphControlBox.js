@@ -128,7 +128,7 @@ function updateNodeLabel(data) {
 }
 
 
-export function updateNodeStructure(data) {
+function updateNodeStructure(data) {
   d3.selectAll('.node').select('.node-struct')
     .attr('visibility', data.structure.visible ? 'inherit' : 'hidden')
     .each((d, i, nds) => {
@@ -139,7 +139,7 @@ export function updateNodeStructure(data) {
 }
 
 
-export function updateNodeImage(data) {
+function updateNodeImage(data) {
   updateNodeSize(data.nodeSize);
   updateNodeColor(data.nodeColor);
   updateNodeLabel(data.nodeLabel);
@@ -201,7 +201,7 @@ function updateScale(scale, id) {
 }
 
 
-export function updateControl(data) {
+function updateControl(data) {
   const id = data.id;
   d3.select(`#${id}-visible`).attr('checked', data.visible ? 'checked' : null);
   d3.select(`#${id}-text`).property('value', data.text);
@@ -221,7 +221,7 @@ export function updateControl(data) {
 
 // Generate controlBox elements
 
-export function mainControlBox() {
+function mainControlBox() {
   d3.select('#show-struct')
     .on('change', function () {
       const data = nodeContentInput();
@@ -252,7 +252,7 @@ function colorControlBox(columns, id) {
 }
 
 
-export function nodeColorControlBox(columns) {
+function nodeColorControlBox(columns) {
   const textCols = columns.filter(e => e.sort !== 'none');
   colorControlBox(textCols, 'color');
   d3.selectAll('.color-update')
@@ -266,7 +266,7 @@ export function nodeColorControlBox(columns) {
 }
 
 
-export function nodeLabelControlBox(columns) {
+function nodeLabelControlBox(columns) {
   const textCols = columns.filter(e => e.sort !== 'none');
   d3.select('#label-text')
     .call(selectOptions, textCols, d => d.key, d => d.name);
@@ -299,7 +299,7 @@ function sizeControlBox(presets, id) {
 }
 
 
-export function nodeSizeControlBox(columns) {
+function nodeSizeControlBox(columns) {
   const numCols = columns.filter(e => e.sort === 'numeric');
   d3.select(`#size-col`)
     .call(selectOptions, numCols, d => d.key, d => d.name);
@@ -315,7 +315,7 @@ export function nodeSizeControlBox(columns) {
 }
 
 
-export function edgeControlBox() {
+function edgeControlBox() {
   sizeControlBox(edgeWidthPresets, 'edge');
   d3.select('#edge-visible')
     .on('change', function() {
@@ -337,3 +337,9 @@ export function edgeControlBox() {
     })
     .dispatch('change');
 }
+
+
+export default {
+  updateNodeStructure, updateNodeImage, updateControl,
+  mainControlBox, nodeColorControlBox, nodeLabelControlBox, nodeSizeControlBox, edgeControlBox
+};

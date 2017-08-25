@@ -1,10 +1,10 @@
 
 import d3 from 'd3';
 
-export const fieldWidth = 1200;
-export const fieldHeight = 1200;
+const fieldWidth = 1200;
+const fieldHeight = 1200;
 
-export const simulation = d3.forceSimulation()
+const simulation = d3.forceSimulation()
   .force('link',
     d3.forceLink().id(d => d._index)
       .distance(60)
@@ -28,7 +28,7 @@ export const simulation = d3.forceSimulation()
   .stop();
 
 
-export function setForce(nodes, edges, tick, end) {
+function setForce(nodes, edges, tick, end) {
   simulation.nodes(nodes)
     .force('link').links(edges);
   simulation.on('tick', tick)
@@ -36,7 +36,7 @@ export function setForce(nodes, edges, tick, end) {
 }
 
 
-export function tick() {
+function tick() {
   d3.select('#graph-contents').selectAll('.node')
     .attr('transform', d => `translate(${d.x}, ${d.y})`);
   const alpha = simulation.alpha();
@@ -49,7 +49,7 @@ export function tick() {
 }
 
 
-export function end() {
+function end() {
   d3.select('#graph-contents').selectAll('.link')
     .attr('transform', d => `translate(${d.source.x}, ${d.source.y})`)
     .attr('visibility', 'visible');
@@ -62,3 +62,8 @@ export function end() {
     .attr('x', d => (d.target.x - d.source.x) / 2)
     .attr('y', d => (d.target.y - d.source.y) / 2);
 }
+
+
+export default {
+  fieldWidth, fieldHeight, simulation, setForce, tick, end
+};

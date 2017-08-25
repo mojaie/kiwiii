@@ -1,6 +1,5 @@
 
-
-export function graphNodes(selection, data) {
+function graphNodes(selection, data) {
   const nodes = selection.selectAll('.node')
     .data(data, d => d.key);
   nodes.exit().remove();
@@ -28,7 +27,7 @@ export function graphNodes(selection, data) {
 }
 
 
-export function graphEdges(selection, data) {
+function graphEdges(selection, data) {
   const edges = selection.selectAll('.link')
     .data(data, d => `${d.source}_${d.target}`);
   edges.exit().remove();
@@ -48,3 +47,8 @@ export function graphEdges(selection, data) {
     .attr('visibility', 'hidden')
     .text(d => d.weight);
 }
+
+
+export default {
+  graphNodes, graphEdges
+};
