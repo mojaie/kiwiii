@@ -6,6 +6,14 @@ Kiwiii is a web-based client-server application for chemical data analysis and v
 
 
 
+Supported browsers
+--------------------
+
+- Google Chrome 57+
+- Mozilla Firefox 50+ (may have some layout issues)
+
+
+
 Screen shots
 --------------
 
@@ -15,24 +23,22 @@ Screen shots
 
 
 
-Supported browsers
---------------------
+Bl.ocks samples
+-----------------
 
-- Google Chrome 57+
-- Mozilla Firefox 50+ (may have some layout issues)
-
+[![thumbnail](https://gist.github.com/mojaie/89293ef2f946ecb43dd3cdd73fdd64ac/raw/396f5ca5969dce3812c4ecff17d3c923350dfbab/thumbnail.png)](https://bl.ocks.org/mojaie/89293ef2f946ecb43dd3cdd73fdd64ac)
 
 
-Demo
---------------
 
-A 1046 approved drug data extracted from [DrugBank](https://www.drugbank.ca/) dataset (permitted to use under [Creative Common’s by-nc 4.0 License](https://creativecommons.org/licenses/by-nc/4.0/legalcode))
+Application
+---------------
 
-- [Table view (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii-client/datatable.html?location=resources/ApprovedFiltered.json.gz)
+
+- [Table view demo (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii-client/datatable.html?location=resources/ApprovedFiltered.json.gz)
   - Sortable chemical structure table
 
 
-- [Network view (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii-client/graph.html?location=resources/ApprovedFiltered_GLS10.json.gz)
+- [Network view demo (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii-client/graph.html?location=resources/ApprovedFiltered_GLS10.json.gz)
   - Network of chemical structure nodes connected with structure similarity relationship (known as Chemical Space Network)
   - Force-directed layout implemented with d3-force
 
@@ -62,6 +68,8 @@ License
 --------------
 
 [MIT license](http://opensource.org/licenses/MIT)
+
+[DrugBank](https://www.drugbank.ca/) dataset is permitted to use under [Creative Common’s by-nc 4.0 License](https://creativecommons.org/licenses/by-nc/4.0/legalcode)
 
 
 
