@@ -31,8 +31,9 @@ export function loadJSON(file) {
 
 
 export function fetchJSON(url) {
-  const compressed = url.endsWith('.gz');
-  return fetch(url)
+  const decoded = decodeURIComponent(url);
+  const compressed = decoded.endsWith('.gz');
+  return fetch(decoded)
     .then(res => compressed ? res.arrayBuffer() : res.json())
     .then(data => parseJSON(data, compressed));
 }

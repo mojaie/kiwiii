@@ -37,7 +37,7 @@
 /* eslint-disable indent, no-unused-vars, no-multiple-empty-lines, max-nested-callbacks, space-before-function-paren, quotes, comma-spacing */
 'use strict';
 
-var precacheConfig = [["control.html","50fbad1de64fbbb06911dc5856eeac11"],["control.js","a839397cc46596a9116d9f13bb35a77e"],["customMethods.js","89cddff818a2abb3bb161eaf61fd952a"],["datatable.html","349cadd6f235db2d86574528d45e2fb0"],["datatable.js","98e5d579aace659e3aff1e6c83675c43"],["default.css","bea7f6760af3eb932611c174ebed922a"],["graph.html","3101565191f774cc26dafa6869e98bbc"],["graph.js","21c1e41e055ba1719ba8a47bfd31ae9c"],["profile.html","c7dab61c4cb6b64ad1dfa29a625d9040"],["profile.js","4fecbd24d486606419a9f4a89fc9b42d"],["report.html","f9059ce0f019dd1a91c41ea0c64343b3"],["report.js","8d16f90b17cf835dbdf7e333edcea522"]];
+var precacheConfig = [["control.html","50fbad1de64fbbb06911dc5856eeac11"],["control.js","a839397cc46596a9116d9f13bb35a77e"],["customMethods.js","89cddff818a2abb3bb161eaf61fd952a"],["datatable.html","349cadd6f235db2d86574528d45e2fb0"],["datatable.js","57d171e3f76a285fd83df992423bab44"],["default.css","bea7f6760af3eb932611c174ebed922a"],["graph.html","3101565191f774cc26dafa6869e98bbc"],["graph.js","03585b66094ccfb04ebb83268c1e225f"],["graphview.js","daa107f1ee9887798ccd84c399bfa493"],["profile.html","c7dab61c4cb6b64ad1dfa29a625d9040"],["profile.js","4fecbd24d486606419a9f4a89fc9b42d"],["report.html","f9059ce0f019dd1a91c41ea0c64343b3"],["report.js","8d16f90b17cf835dbdf7e333edcea522"]];
 var cacheName = 'sw-precache-v3--' + (self.registration ? self.registration.scope : '');
 
 
