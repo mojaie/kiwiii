@@ -26,6 +26,7 @@ Screen shots
 Bl.ocks samples
 -----------------
 
+[![thumbnail](https://gist.github.com/mojaie/a89c7ba0ba1ee5c91a387e3fd1e8ae4e/raw/7a8f8a11ce12674fe3b1e975e98e68a443a78c93/thumbnail.png)](https://bl.ocks.org/mojaie/a89c7ba0ba1ee5c91a387e3fd1e8ae4e)
 [![thumbnail](https://gist.github.com/mojaie/89293ef2f946ecb43dd3cdd73fdd64ac/raw/396f5ca5969dce3812c4ecff17d3c923350dfbab/thumbnail.png)](https://bl.ocks.org/mojaie/89293ef2f946ecb43dd3cdd73fdd64ac)
 
 
