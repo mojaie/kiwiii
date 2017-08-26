@@ -1,4 +1,6 @@
 
+/** @module datatable */
+
 import d3 from 'd3';
 
 import {default as d3form} from './helper/d3Form.js';
@@ -86,14 +88,6 @@ function render() {
 }
 
 
-d3.select('#import-json')
-  .on('click', () => document.getElementById('select-file').click());
-d3.select('#select-file')
-  .on('change', () => {
-    const file = document.getElementById('select-file').files[0];
-    hfile.loadJSON(file).then(loadNewTable);
-  });
-
 
 function loadNewTable(data) {
   return store.insertTable(data).then(() => {
@@ -131,6 +125,13 @@ function abort() {
 
 
 function run() {
+  d3.select('#import-json')
+    .on('click', () => document.getElementById('select-file').click());
+  d3.select('#select-file')
+    .on('change', () => {
+      const file = document.getElementById('select-file').files[0];
+      hfile.loadJSON(file).then(loadNewTable);
+    });
   if (store.getGlobalConfig('urlQuery').hasOwnProperty('location')) {
     const url = store.getGlobalConfig('urlQuery').location;
     return hfile.fetchJSON(url)
@@ -161,4 +162,8 @@ function run() {
     }
   });
 }
-run();
+
+
+export default {
+  grid, render, run
+};

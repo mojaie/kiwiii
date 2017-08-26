@@ -2,6 +2,7 @@
 <title>Datatable</title>
 <% include partial/header %>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.5/pako.min.js"></script>
+<script src="kwdatatable.js"></script>
 <body style="overflow-y: hidden"><!-- disable scroll for DataGrid -->
 <div class="container-fluid">
   <img id="loading-circle" src="../assets/loading.gif"/>
@@ -55,5 +56,7 @@
   <%- include('dialog/dialogBase', {id: 'prompt', title: ''}); %>
   <%- include('dialog/confirmDialog'); %>
 </div>
-<script src="kwdatatable.js"></script>
+<script type="text/javascript">
+  kwdatatable.run();
+</script>
 </body>
