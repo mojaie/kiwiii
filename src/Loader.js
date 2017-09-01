@@ -1,4 +1,5 @@
 
+import KArray from './helper/KArray.js';
 import {default as store} from './store/StoreConnection.js';
 
 const localServer = store.localChemInstance();
@@ -30,9 +31,9 @@ function initialize() {
   // TODO: skip loader if there is already resources in the store
   // 1. collate resource version
   // 2. if no local resource or server resource is newer, fetch
-  const rsrcFetched = store.fetcherInstances()
-    .map(api => api.getResources())
-    .extendAsync().then(res => {
+  const rsrcFetched = KArray.from(
+      store.fetcherInstances().map(api => api.getResources())
+    ).extendAsync().then(res => {
       const indexed = res.map((e, i) => {
         e.idx = i;
         return e;

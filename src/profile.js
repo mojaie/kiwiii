@@ -1,5 +1,6 @@
 
 import d3 from 'd3';
+import KArray from './helper/KArray.js';
 import {default as def} from './helper/definition.js';
 import {default as d3form} from './helper/d3Form.js';
 import {default as fmt} from './helper/formatValue.js';
@@ -104,7 +105,7 @@ function updateActivities(activities) {
     .filter(fetcher => fetcher.available === true)
     .map(fetcher => {
       return fetcher.getRecordsByCompound(compound).then(res => {
-        const rcds = res.records.map(rcd => {
+        const rcds = KArray.from(res.records.map(rcd => {
           return Object.entries(rcd).map(r => {
             const rcdKey = r[0];
             const rcdValue = r[1];
@@ -120,7 +121,7 @@ function updateActivities(activities) {
               remarks: ''
             };
           }).filter(e => e !== undefined);
-        }).extend();
+        })).extend();
         cmp.appendTableRows(d3.select('#results'), rcds, undefined);
       });
     });

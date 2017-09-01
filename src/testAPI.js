@@ -1,5 +1,6 @@
 
 import d3 from 'd3';
+import KArray from './helper/KArray.js';
 import {default as cmp} from './component/Component.js';
 import {LocalServerActivity, LocalServerChemical} from './fetcher/LocalServer.js';
 import {ScreenerFitting, ScreenerRawValue} from './fetcher/Screener.js';
@@ -21,7 +22,7 @@ const localServerActivity = API.get('activity');
 testCases.push({
   name: 'resources',
   testCase: () => {
-    return Array.from(API.values()).map(api => {
+    return KArray.from(API.values()).map(api => {
       return api.getResources();
     }).extendAsync();
   }

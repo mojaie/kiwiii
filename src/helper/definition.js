@@ -1,6 +1,15 @@
 
 /** @module helper/definition */
 
+
+/**
+ * Capitalize the text -- upper case => Upper Case
+ */
+function capitalized(str) {
+  return str.replace(/(?:^|\s)\S/g, e => e.toUpperCase());
+}
+
+
 function fetchable(tbl) {
   return ['In progress', 'Queued', 'Aborting'].includes(tbl.status);
 }
@@ -19,11 +28,11 @@ function conclike(col) {
 
 function dataSourceId(domain, resource, column) {
   return [domain, resource, column]
-    .map(e => e.capitalize())
+    .map(e => capitalized(e))
     .join('');  // DomainResourceColumn
 }
 
 
 export default {
-  fetchable, abortRequestable, conclike, dataSourceId
+  capitalized, fetchable, abortRequestable, conclike, dataSourceId
 };

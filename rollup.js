@@ -42,10 +42,6 @@ const bundles = [
     deploy: false
   },
   {
-    name: 'customMethods',
-    ejs: false
-  },
-  {
     name: 'testAPI',
     cache: false,
     deploy: false

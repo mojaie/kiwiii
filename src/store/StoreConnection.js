@@ -1,4 +1,5 @@
 
+import KArray from '../helper/KArray.js';
 import {default as def} from '../helper/definition.js';
 import {default as store} from './IDBStore.js';
 import {LocalServerActivity, LocalServerChemical} from '../fetcher/LocalServer.js';
@@ -92,7 +93,7 @@ function setResources(rsrcs) {
 
 function getResourceColumns(domains) {
   return getResources(domains).then(rsrcs => {
-    return rsrcs.map(rsrc => {
+    return KArray.from(rsrcs.map(rsrc => {
       return rsrc.columns.map(col => {
         col.domain = rsrc.domain;
         col.key = def.dataSourceId(rsrc.domain, rsrc.id, col.key);
@@ -100,14 +101,14 @@ function getResourceColumns(domains) {
         if (!col.hasOwnProperty('tags')) col.tags = rsrc.tags;
         return col;
       });
-    }).extend();
+    })).extend();
   });
 }
 
 
 function getDataSourceColumns(domain, ids) {
   return store.getResources([domain]).then(rsrcs => {
-    return ids.map(d => rsrcs.find(e => e.id === d).columns)
+    return KArray.from(ids.map(d => rsrcs.find(e => e.id === d).columns))
       .extend();
   });
 }
@@ -173,7 +174,7 @@ function joinColumn(mapping, tableId=globalConfig.urlQuery.id) {
           });
         }
       });
-    item.columns = item.columns.concat(cols).unique('key');
+    item.columns = KArray.from(item.columns).concat(cols).unique('key');
     item.lastUpdated = mapping.lastUpdated;
   });
 }

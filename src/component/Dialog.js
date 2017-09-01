@@ -2,6 +2,8 @@
 /** @module component/Dialog */
 
 import d3 from 'd3';
+
+import KArray from '../helper/KArray.js';
 import {default as d3form} from '../helper/d3Form.js';
 import {default as dstr} from '../helper/dataStructure.js';
 import {default as fmt} from '../helper/formatValue.js';
@@ -49,7 +51,7 @@ function propDialog(rsrc, callback) {
   d3.select('#prop-targets')
     .call(cmp.checkboxList, rsrc, 'targets', d => d.entity, d => d.name)
     .on('change', function () {
-      const cols = d3form.checkboxData('#prop-targets')
+      const cols = KArray.from(d3form.checkboxData('#prop-targets'))
         .map(d => d.columns)
         .extend().unique('key');
       d3.select('#prop-key')
@@ -267,7 +269,7 @@ function joinDialog(tbl, rcds, callback) {
   return store.getResourceColumns(domains).then(rsrcs => {
     const shownCols = tbl.columns.map(e => e.key);
     d3.select('#join-keys')
-      .call(cmp.checkboxList, rsrcs.unique('key'), 'keys',
+      .call(cmp.checkboxList, KArray.from(rsrcs).unique('key'), 'keys',
             d => d.key, d => d.name)
       .selectAll('li')
       .each(function(d) { // disable already shown columns

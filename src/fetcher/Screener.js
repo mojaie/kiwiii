@@ -1,6 +1,6 @@
 
 import Fetcher from './Fetcher.js';
-
+import KArray from '../helper/KArray.js';
 
 export class ScreenerFitting extends Fetcher {
   constructor() {
@@ -143,7 +143,8 @@ export class ScreenerRawValue extends ScreenerFitting{
 
   requestRecords(queryString, pred) {
     return this.request(queryString).then(res => {
-      const rcds = res.plates.filter(plt => plt.wells.hasOwnProperty('compoundIds'))
+      const rcds = KArray.from(res.plates)
+        .filter(plt => plt.wells.hasOwnProperty('compoundIds'))
         .map(plt => {
           return plt.wells.compoundIds.map((c, i) => {
             return {
