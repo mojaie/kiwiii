@@ -89,7 +89,7 @@ const jsBundled = bundles.map(bundle => {
 
 // EJS build
 const htmlRendered = bundles
-  .filter(bundle => !bundle.hasOwnProperty('deploy') || bundle.deploy)
+  .filter(bundle => isDebugMode || !bundle.hasOwnProperty('deploy') || bundle.deploy)
   .filter(bundle => !bundle.hasOwnProperty('ejs') || bundle.ejs)
   .map(bundle => {
     return new Promise((resolve, reject) => {
