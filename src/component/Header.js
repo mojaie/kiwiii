@@ -5,28 +5,26 @@ import d3 from 'd3';
 import {default as def} from '../helper/definition.js';
 
 
-function renderStatus(tbl, refresh_callback, abort_callback) {
+function renderStatus(data, refresh_callback, abort_callback) {
   d3.select('#loading-circle').style('display', 'none');
-  if (!tbl.hasOwnProperty('status')) tbl.status = 'Completed';
-  d3.select('title').text(tbl.name);
-  d3.select('#title').text(tbl.name);
+  d3.select('title').text(data.name);
+  d3.select('#title').text(data.name);
   d3.select('#refresh')
-    .text(tbl.status === 'Aborting' ? 'Abort requested' : 'Refresh')
-    .style('display', def.fetchable(tbl) ? 'inline-block' : 'none');
+    .style('display', def.ongoing(data) ? 'inline-block' : 'none');
   d3.select('#abort')
-    .style('display', def.abortRequestable(tbl) ? 'inline-block' : 'none');
+    .style('display', def.ongoing(data) ? 'inline-block' : 'none');
   const doneText = {
-    'datatable': 'entries found',
-    'connection': 'connections created'
+    'nodes': 'entries found',
+    'edges': 'connections created'
   };
-  const dtx = doneText[tbl.format];
+  const dtx = doneText[data.dataType];
   d3.select('#progress')
-    .text(`(${tbl.status} - ${tbl.recordCount} ${dtx} in ${tbl.execTime} sec.)`);
-  if (tbl.status === 'In progress') {
+    .text(`(${data.status} - ${data.resultCount} ${dtx} in ${data.execTime} sec.)`);
+  if (def.ongoing(data)) {
     d3.select('#progress').append('div').append('progress')
       .attr('max', 100)
-      .attr('value', tbl.progress)
-      .text(`${tbl.progress}%`);
+      .attr('value', data.progress)
+      .text(`${data.progress}%`);
   }
   d3.select('#refresh').on('click', refresh_callback);
   d3.select('#abort')
@@ -36,12 +34,10 @@ function renderStatus(tbl, refresh_callback, abort_callback) {
       d3.select('#confirm-submit')
         .classed('btn-primary', false)
         .classed('btn-warning', true)
-        .on('click', () => {
-          abort_callback();
-        });
+        .on('click', abort_callback);
     });
   console.info('Query');
-  console.info(tbl.query);  // query datails are available on browser console.
+  console.info(data.query);  // query datails are available on browser console.
 }
 
 

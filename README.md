@@ -1,8 +1,8 @@
 
-kiwiii-client
+Kiwiii
 ================
 
-Kiwiii is a web-based client-server application for chemical data analysis and visualization.
+Kiwiii is a web application package for chemical data analysis and visualization.
 
 
 
@@ -49,7 +49,7 @@ Application
   - The web application uses IndexedDB for the persistent storage. The dataset will remain in the browser local storage until it is deleted via control panel. Be careful not to leave confidential data on public access PC.
 
 
-If you already have kiwiii dataset file (.json.gz), use the following link and then load the data.
+If you already have a table data file (.ndc, .ndr) or a network data file(.gfc, .gfr), use the following link and then load the data.
 
 - [Load new table view](https://mojaie.github.io/kiwiii-client/datatable.html)
 

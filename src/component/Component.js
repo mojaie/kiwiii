@@ -36,24 +36,46 @@ function checkboxList(selection, data, name, key, text) {
 }
 
 
-function createTable(selection, tbl) {
+// checkbox list with tooltip
+// call $('[data-toggle="tooltip"]').tooltip() after this function
+function checkboxListT(selection, data, name, key, text) {
+  const items = selection.selectAll('li').data(data, key);
+  items.exit().remove();
+  const entered = items.enter().append('li')
+    .attr('class', 'form-check')
+    .append('label');
+  entered.append('input');
+  entered.append('a');
+  const updated = entered.merge(items.select('label'))
+    .attr('class', 'form-check-label');
+  updated.select('input')
+    .attr('type', 'checkbox')
+    .attr('class', 'form-check-input')
+    .attr('name', name)
+    .attr('value', key);
+  updated.select('a')
+    .attr('data-toggle', 'tooltip')
+    .attr('data-placement', 'bottom')
+    .attr('title', d => d.description || 'No')
+    .text(text);
+}
+
+
+function createTable(selection, data) {
   // Header
-  if (!selection.select('thead').size()) {
-    selection.append('thead').append('tr');
-  }
+  if (selection.select('thead').size()) selection.select('thead').remove();
+  selection.append('thead').append('tr');
   // Records
-  if (!selection.select('tbody').size()) {
+  if (selection.select('tbody').size()) selection.select('tbody').remove();
     selection.append('tbody');
-  }
-  const cols = tbl.columns
-    .filter(e => !e.hasOwnProperty('visible') || e.visible !== false
-  );
+
+  const cols = data.fields.filter(e => e.visible);
   const header = selection.select('thead tr').selectAll('th')
     .data(cols, d => d.key);
   header.exit().remove();
   header.enter().append('th')
     .merge(header)
-      .text(d => d.hasOwnProperty('name') ? d.name : d.key);
+      .text(d => d.name);
 }
 
 
@@ -69,15 +91,18 @@ function updateTableRecords(selection, rcds, keyFunc) {
     .enter().append('td');
   rowEntered.merge(rowSelection)
     .selectAll('td')
-    .classed('align-middle', true)
-    .html((d, i) => {
+      .classed('align-middle', true)
+    .html(function (d, i) {
       if (d === undefined) return '';
       if (header[i].valueType === 'plot') return '[plot]';
       if (header[i].valueType === 'image') return '[image]';
-      if (header[i].hasOwnProperty('digit') && header[i].digit !== 'raw') {
-        return fmt.formatNum(d, header[i].digit);
-      }
+      if (header[i].valueType === 'control') return;
+      if (header[i].digit !== 'raw') return fmt.formatNum(d, header[i].digit);
       return d;
+    })
+    .each((d, i, nodes) => {
+      // This should be called after html
+      if (header[i].valueType === 'control') d3.select(nodes[i]).call(d);
     });
 }
 
@@ -91,7 +116,7 @@ function appendTableRows(selection, rcds, keyFunc) {
 
 function addSort(selection) {
   selection.select('thead tr').selectAll('th')
-    .filter(d => d.sort !== 'none')
+    .filter(d => d.sortType !== 'none')
     .append('span').append('a')
       .attr('id', d => `sort-${d.key}`)
       .text('^v')
@@ -100,7 +125,7 @@ function addSort(selection) {
       .style('text-align', 'center')
     .on('click', d => {
       const isAsc = d3.select(`#sort-${d.key}`).text() === 'v';
-      const isNum = !d.hasOwnProperty('sort') || d.sort === 'numeric';
+      const isNum = d.sortType === 'numeric';
       const cmp = isAsc
         ? (isNum ? fmt.numericAsc : fmt.textAsc)
         : (isNum ? fmt.numericDesc : fmt.textDesc);
@@ -116,7 +141,7 @@ function formatNumbers(selection) {
   // DEPRECATED: no longer used
   selection.select('thead tr').selectAll('th')
     .each((col, colIdx) => {
-      if (!col.hasOwnProperty('digit') || col.digit === 'raw') return;
+      if (col.digit === 'raw') return;
       selection.select('tbody').selectAll('tr')
         .selectAll('td')
           .filter((d, i) => i === colIdx)
@@ -126,7 +151,7 @@ function formatNumbers(selection) {
 
 
 export default {
-  selectOptions, checkboxList,
+  selectOptions, checkboxList, checkboxListT,
   createTable, updateTableRecords,
   appendTableRows, addSort, formatNumbers
 };

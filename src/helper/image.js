@@ -7,8 +7,8 @@ function showPlot(vegaSpec, selector) {
   new vega.View(vega.parse(vegaSpec))
     .initialize(selector)
     .run();
-
 }
+
 
 function plotThumbnail(vegaSpec) {
   const view = new vega.View(vega.parse(vegaSpec));

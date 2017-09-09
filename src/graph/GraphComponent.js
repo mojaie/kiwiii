@@ -12,17 +12,10 @@ function graphNodes(selection, data) {
   entered.append('text')
     .attr('class', 'node-label');
   const updated = entered.merge(nodes);
-  updated.select('.node-symbol')
-    .attr('r', 20)
-    .style('fill', '#6c6');
   updated.select('.node-struct')
-    .attr('visibility', 'hidden')
     .html(d => d._structure);
   updated.select('.node-label')
-    .attr('visibility', 'hidden')
     .attr('x', 0)
-    .attr('y', 20 + 10)
-    .attr('font-size', 16)
     .attr('text-anchor', 'middle');
 }
 
@@ -42,9 +35,7 @@ function graphEdges(selection, data) {
     .style('stroke', '#999')
     .style('stroke-opacity', 0.6);
   updated.select('.edge-label')
-    .attr('font-size', 16)
     .attr('text-anchor', 'middle')
-    .attr('visibility', 'hidden')
     .text(d => d.weight);
 }
 

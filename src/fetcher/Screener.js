@@ -16,22 +16,10 @@ export class ScreenerFitting extends Fetcher {
     return fetch('source', {method: 'post', body: formData, credentials: 'include'})
       .then(res => res.json())
       .then(json => {
-        if (json.hasOwnProperty('enabled') && json.enabled === false) return;
         this.available = true;
         this.domain = json.domain;
         this.baseURL = json.url;
-        return json.resources.map(rsrc => {
-          rsrc.domain = json.domain;
-          rsrc.entity = `${rsrc.qcsRefId}:${rsrc.layerIndex}`;
-          delete rsrc.qcsRefId;
-          delete rsrc.layerIndex;
-          rsrc.columns.forEach(col => {
-            if (!col.hasOwnProperty('name')) col.name = col.key;
-            if (!col.hasOwnProperty('dataColumn')) col.dataColumn = col.key;
-            col.visible = true;
-          });
-          return rsrc;
-        });
+        return json.resources;
     });
   }
 
@@ -121,23 +109,10 @@ export class ScreenerRawValue extends ScreenerFitting{
     return fetch('source', {method: 'post', body: formData, credentials: 'include'})
       .then(res => res.json())
       .then(json => {
-        if (json.hasOwnProperty('enabled') && json.enabled === false) return;
         this.available = true;
         this.domain = json.domain;
         this.baseURL = json.url;
-        return json.resources.map(rsrc => {
-          rsrc.domain = json.domain;
-          rsrc.entity = `${rsrc.qcsRefId}:${rsrc.layerIndex}`;
-          delete rsrc.qcsRefId;
-          delete rsrc.layerIndex;
-          rsrc.columns.forEach(col => {
-            col.key = 'rawValue';
-            if (!col.hasOwnProperty('name')) col.name = col.key;
-            if (!col.hasOwnProperty('dataColumn')) col.dataColumn = col.key;
-            col.visible = true;
-          });
-          return rsrc;
-        });
+        return json.resources;
       });
   }
 

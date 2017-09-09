@@ -1,224 +1,133 @@
 
-import KArray from '../helper/KArray.js';
 import {default as def} from '../helper/definition.js';
+import {default as mapper} from '../helper/mapper.js';
 import {default as store} from './IDBStore.js';
-import {LocalServerActivity, LocalServerChemical} from '../fetcher/LocalServer.js';
-import {ScreenerFitting, ScreenerRawValue} from '../fetcher/Screener.js';
-import {ScreenerFittingStub, ScreenerRawValueStub} from '../fetcher/ScreenerTestStub.js';
 
 
-// Global config
-
-const globalConfig = {
-  "onLine": true,
-  "server": {},
-  "templates": {},
-  "urlQuery": {}
-};
-
-window.location.search.substring(1).split("&")
-  .map(e => e.split('=')).forEach(e => {
-    globalConfig.urlQuery[e[0]] = e[1];
-  });
-
-
-function getGlobalConfig(key) {
-  return globalConfig[key];
+function getAppSetting(key) {
+  return store.getAppSetting(key)
+    .catch(err => {
+      console.error(`Unexpected key: ${key}`);
+      Promise.reject(err);
+    });
 }
 
 
-function setGlobalConfig(key, value) {
-  globalConfig[key] = value;
+function setAppSetting(key, value) {
+  return store.putAppSetting(key, value)
+    .catch(err => {
+      console.error(`Unexpected key: ${key} or value: ${value}`);
+      Promise.reject(err);
+    });
 }
 
 
-// API instances
-
-const API = new Map(Object.entries({
-  chemical: new LocalServerChemical(),
-  activity: new LocalServerActivity(),
-  screenerrawvalue: new ScreenerRawValue(),
-  screenerfitting: new ScreenerFitting(),
-  screenerrawvaluestub: new ScreenerRawValueStub(),
-  screenerfittingstub: new ScreenerFittingStub()
-}));
-
-
-function localChemInstance() {
-  return API.get('chemical');
-}
-
-
-function getFetcher(domain) {
-  return API.get(domain);
-}
-
-
-function fetcherInstances() {
-  return Array.from(API.values());
-}
-
-
-function dataFetcherInstances() {
-  const res = [];
-  API.forEach((v, k) => {
-    if (k !== 'chemical') res.push(v);
-  });
-  return res;
-}
-
-
-function dataFetcherDomains() {
-  const res = [];
-  API.forEach((v, k) => {
-    if (k !== 'chemical') res.push(k);
-  });
-  return res;
-}
-
-
-// API data resource on local IndexedDB
-
-function getResources(domains) {
-  return store.getResources().then(rsrcs => {
-    return rsrcs.filter(e => domains.includes(e.domain));
-  });
+function getResources() {
+  return store.getResources();
 }
 
 
 function setResources(rsrcs) {
-  return store.putResources(rsrcs);
+  return store.putResources(rsrcs)
+    .catch(err => {
+      console.error(`Unexpected resources: ${rsrcs}`);
+      Promise.reject(err);
+    });
 }
 
-
-function getResourceColumns(domains) {
-  return getResources(domains).then(rsrcs => {
-    return KArray.from(rsrcs.map(rsrc => {
-      return rsrc.columns.map(col => {
-        col.domain = rsrc.domain;
-        col.key = def.dataSourceId(rsrc.domain, rsrc.id, col.key);
-        col.entity = rsrc.entity;
-        if (!col.hasOwnProperty('tags')) col.tags = rsrc.tags;
-        return col;
-      });
-    })).extend();
-  });
-}
-
-
-function getDataSourceColumns(domain, ids) {
-  return store.getResources([domain]).then(rsrcs => {
-    return KArray.from(ids.map(d => rsrcs.find(e => e.id === d).columns))
-      .extend();
-  });
-}
-
-
-// Datatable on local IndexedDB
 
 function getAllTables() {
   return store.getAllItems();
 }
 
 
-function getTablesByFormat(format) {
-  return store.getItemsByFormat(format);
-}
-
-
-function getTable(tableId) {
-  return store.getItemById(tableId);
-}
-
-
-function getRecords(tableId) {
-  return store.getItemById(tableId)
-    .then(tbl => tbl.records);
-}
-
-
-function getCurrentTable() {
-  const q = getGlobalConfig('urlQuery');
-  if (!q.hasOwnProperty('id')) return Promise.resolve();
-  return store.getItemById(q.id);
-}
-
-
-function getCurrentRecords() {
-  return getCurrentTable().then(tbl => tbl.records);
-}
-
-
-function setColumnsToShow(updates) {
-  return store.updateItem(getGlobalConfig('urlQuery').id, item => {
-    item.columns.forEach((col, i) => {
-      col.visible = updates.visibles.includes(col.key);
-      col.sort = updates.sorts[i];
-      col.digit = updates.digits[i];
+function getTablesByDataType(type) {
+  return store.getItemsByDataType(type)
+    .catch(err => {
+      console.error(`Unexpected dataType: ${type}`);
+      Promise.reject(err);
     });
+}
+
+
+function getTable(id) {
+  return store.getItemById(id)
+    .catch(err => {
+      console.error(`Unexpected table ID: ${id}`);
+      Promise.reject(err);
+    });
+}
+
+
+function setFieldProperties(id, updates) {
+  return store.updateItem(id, item => {
+    item.fields.forEach((fd, i) => {
+      fd.visible = updates.visibles.includes(fd.key);
+      fd.sortType = updates.sortTypes[i];
+      fd.digit = updates.digits[i];
+    });
+    item.revision++;
+  })
+  .catch(err => {
+    console.error(`Unexpected table ID: ${id} or updates: ${updates}`);
+    Promise.reject(err);
   });
 }
 
 
-function joinColumn(mapping, tableId=globalConfig.urlQuery.id) {
-  const cols = mapping.hasOwnProperty('column') ? mapping.column : mapping.columns;
-  return store.updateItem(tableId, item => {
-    item.records
-      .filter(rcd => mapping.mapping.hasOwnProperty(rcd[mapping.key]))
-      .forEach(rcd => {
-        if (mapping.hasOwnProperty('column')) {
-          rcd[mapping.column.key] = mapping.mapping[rcd[mapping.key]];
-        } else {
-          mapping.columns.forEach((col, i) => {
-            rcd[col.key] = mapping.mapping[rcd[mapping.key]][i];
-          });
-        }
-      });
-    item.columns = KArray.from(item.columns).concat(cols).unique('key');
-    item.lastUpdated = mapping.lastUpdated;
+function joinFields(id, mapping) {
+  return store.updateItem(id, item => {
+    mapper.apply(item, mapping);
+    item.revision++;
+  })
+  .catch(err => {
+    console.error(`Unexpected table ID: ${id} or mapping: ${mapping}`);
+    Promise.reject(err);
   });
 }
 
 
-function updateTableAttribute(tblID, key, value) {
-  return store.updateItem(tblID, item => {
+function updateTableAttribute(id, key, value) {
+  return store.updateItem(id, item => {
     item[key] = value;
+    item.revision++;
+  })
+  .catch(err => {
+    console.error(`Unexpected table ID: ${id}, key: ${key} or value: ${value}`);
+    Promise.reject(err);
   });
 }
 
 
 function insertTable(data) {
-  return store.putItem(data);
+  data.fields = def.defaultFieldProperties(data.fields);
+  return store.putItem(data)
+    .catch(err => {
+      console.error(`Unexpected data: ${data}`);
+      Promise.reject(err);
+    });
 }
 
 
 function updateTable(data) {
-  if (data === undefined) return Promise.resolve();  // No update
-  if (data.status === 'Failure') {  // No data found on server
-    return updateTableAttribute(data.id, 'status', 'Failure');
+  if (data.status === 'failure') {  // No data found on server
+    return updateTableAttribute(data.id, 'status', 'failure');
   }
   // update
   return store.updateItem(data.id, item => {
-    const update = {
-      responseDate: data.responseDate,
-      records: data.records,
-      columns: data.columns,
-      recordCount: data.recordCount,
-      searchDoneCount: data.searchDoneCount,
-      execTime: data.execTime,
-      progress: data.progress,
-      status: data.status,
-    };
-    if (data.hasOwnProperty('lastUpdated')) {
-      update.lastUpdated = data.lastUpdated;
-    }
-    Object.assign(item, update);
+    data.fields = def.defaultFieldProperties(data.fields);
+    Object.assign(item, data);
+    item.revision++;
   });
 }
 
 
 function deleteTable(id) {
-  return store.deleteItem(id);
+  return store.deleteItem(id)
+    .catch(err => {
+      console.error(`Unexpected table ID: ${id}`);
+      Promise.reject(err);
+    });
 }
 
 
@@ -228,13 +137,9 @@ function reset() {
 
 
 export default {
-  getGlobalConfig, setGlobalConfig,
-  localChemInstance, getFetcher, fetcherInstances,
-  dataFetcherInstances, dataFetcherDomains,
-  getResources, setResources, getResourceColumns, getDataSourceColumns,
-  getAllTables, getTablesByFormat, getTable, getRecords,
-  getCurrentTable, getCurrentRecords,
-  setColumnsToShow, joinColumn,
+  getAppSetting, setAppSetting, getResources, setResources,
+  getAllTables, getTablesByDataType, getTable,
+  setFieldProperties, joinFields,
   updateTableAttribute, insertTable, updateTable,
   deleteTable, reset
 };

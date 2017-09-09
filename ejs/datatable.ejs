@@ -15,7 +15,7 @@
         <a class="dropdown-item online-command" data-toggle="modal" data-target="#prop-dialog">Search by properties</a>
         <a class="dropdown-item online-command" data-toggle="modal" data-target="#sdf-dialog">Import SDFile</a>
         <form action="open" method="post" enctype="multipart/form-data" style="display: none">
-          <input id="select-file" type="file" name="file" accept=".json,.gz"/>
+          <input id="select-file" type="file" name="file" accept=".ndc,.ndr,.json,.gz"/>
         </form>
         <a id="import-json" class="dropdown-item">Import JSON table</a>
       </div>
@@ -55,6 +55,7 @@
   <%- include('dialog/dialogBase', {id: 'graph', title: 'Show common structure map'}); %>
   <%- include('dialog/dialogBase', {id: 'prompt', title: ''}); %>
   <%- include('dialog/confirmDialog'); %>
+  <%- include('dialog/importConfirmDialog'); %>
 </div>
 <script type="text/javascript">
   kwdatatable.run();

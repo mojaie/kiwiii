@@ -1,84 +1,71 @@
 
 import d3 from 'd3';
 
-import {default as def} from './helper/definition.js';
-import {default as loader} from './Loader.js';
+import {default as common} from './common.js';
+import {default as fetcher} from './fetcher.js';
 import {default as cmp} from './component/Component.js';
 import {default as store} from './store/StoreConnection.js';
+import {default as def} from './helper/definition.js';
 
-const localServer = store.localChemInstance();
 
-
-function actionTable(selection, tbl) {
-  tbl.records.forEach(rcd => {
-    rcd.action = `<a role="button" class="btn btn-secondary btn-sm" href="${tbl.app}?id=${rcd.id}" target="_blank">Open</a>`;
-    if (def.fetchable(tbl)) {
-      rcd.action += `<button type="button" class="btn btn-warning btn-sm" disabled>Running</button>`;
-    } else {
-      rcd.action += `<button type="button" class="btn btn-warning btn-sm delete-item" data-toggle="modal" data-target="#confirm-dialog" data-tblid="${rcd.id}" data-tblname="${rcd.name}">Delete</button>`;
-    }
-  });
-  d3.select(selection).call(cmp.createTable, tbl)
-    .call(cmp.updateTableRecords, tbl.records, d => d.id);
-  d3.selectAll('tr button.delete-item')
-    .on('click', function() {
-      const id = d3.select(this).attr('data-tblid');
-      const name = d3.select(this).attr('data-tblname');
-      d3.select('#confirm-message')
-        .text(`Are you sure you want to delete ${name} ?`);
-      d3.select('#confirm-submit')
-        .on('click', () => store.deleteTable(id).then(render));
-    });
+function tableAction(selection, data, app) {
+  selection.append('a')
+      .classed('btn btn-secondary btn-sm', true)
+      .attr('role', 'button')
+      .attr('href', `${app}?id=${data.id}`)
+      .attr('target', '_blank')
+      .text('Open');
+  const ongoing = def.ongoing(data);
+  selection.insert('button')
+      .classed('btn btn-warning btn-sm', true)
+      .attr('type', 'button')
+      .attr('data-toggle', ongoing ? null : 'modal')
+      .attr('data-target', ongoing ? null : '#confirm-dialog')
+      .property('disabled', ongoing ? 'disabled' : null)
+      .text(ongoing ? 'Running' : 'Delete')
+      .on('click', function() {
+        d3.select('#confirm-message')
+          .text(`Are you sure you want to delete ${data.name} ?`);
+        d3.select('#confirm-submit')
+          .on('click', () => store.deleteTable(data.id).then(run));
+      });
 }
 
 
-function renderTableStatus(tbls) {
-  const data = {
-    app: 'datatable.html',
-    columns: [
-      {key: 'name'},
-      {key: 'responseDate'},
-      {key: 'status'},
-      {key: 'records'},
-      {key: 'action'}
-    ]};
-  data.records = tbls.map(tbl => {
-    if (!tbl.hasOwnProperty('status')) tbl.status = 'Completed';
-    return {
-      "id": tbl.id,
-      "name": tbl.name,
-      "responseDate": tbl.responseDate,
-      "status": tbl.status,
-      "records": tbl.records.length,
-    };
+function renderTableStatus(data) {
+  const table = {
+    fields: def.defaultFieldProperties([
+      {key: 'name', valueType: 'text'},
+      {key: 'status', valueType: 'text'},
+      {key: 'resultCount', valueType: 'count'},
+      {key: 'action', valueType: 'control'}
+    ])
+  };
+  const records = data.map(e => {
+    e.action = (s) => tableAction(s, e, 'datatable.html');
+    return e;
   });
-  actionTable('#local-tables', data);
+  d3.select('#local-tables').call(cmp.createTable, table)
+    .call(cmp.updateTableRecords, records, d => d.id);
 }
 
 
-function renderGraphStatus(grfs) {
-  const data = {
-    app: 'graph.html',
-    columns: [
-      {key: 'name'},
-      {key: 'responseDate'},
-      {key: 'nodeTableId'},
-      {key: 'status'},
-      {key: 'edges'},
-      {key: 'action'}
-    ]};
-  data.records = grfs.map(grf => {
-    if (!grf.hasOwnProperty('status')) grf.status = 'Completed';
-    return {
-      "id": grf.id,
-      "name": grf.name,
-      "responseDate": grf.responseDate,
-      "nodeTableId": grf.nodeTableId,
-      "status": grf.status,
-      "edges": grf.records.length,
-    };
+function renderGraphStatus(data) {
+  const table = {
+    fields: def.defaultFieldProperties([
+      {key: 'name', valueType: 'text'},
+      {key: 'nodesID', valueType: 'text'},
+      {key: 'status', valueType: 'text'},
+      {key: 'resultCount', valueType: 'count'},
+      {key: 'action', valueType: 'control'}
+    ])
+  };
+  const records = data.map(e => {
+    e.action = (s) => tableAction(s, e, 'graph.html');
+    return e;
   });
-  actionTable('#local-graphs', data);
+  d3.select('#local-graphs').call(cmp.createTable, table)
+    .call(cmp.updateTableRecords, records, d => d.id);
 }
 
 
@@ -86,51 +73,45 @@ function renderServerStatus(data) {
   d3.select('#server-calc').call(cmp.createTable, data.calc)
     .call(cmp.updateTableRecords, data.calc.records, d => d._index);
   const server = {
-    columns: [{key: 'key'}, {key: 'value'}],
-    records: []
+    fields: def.defaultFieldProperties([
+      {key: 'key', valueType: 'text'},
+      {key: 'value', valueType: 'text'}
+    ])
   };
-  Object.entries(data).filter(e => e[0] !== 'calc')
-    .forEach(e => server.records.push({key: e[0], value: e[1]}));
+  server.records = Object.entries(data)
+    .filter(e => e[0] !== 'calc')
+    .map(e => ({key: e[0], value: e[1]}));
   d3.select('#server-status').call(cmp.createTable, server)
     .call(cmp.updateTableRecords, server.records, d => d._index);
 }
 
 
-function render() {
-  if (store.getGlobalConfig('onLine')) {
-    renderServerStatus(store.getGlobalConfig('server'));
-  }
-  return Promise.all([
-    store.getTablesByFormat('datatable').then(renderTableStatus),
-    store.getTablesByFormat('connection').then(renderGraphStatus)
-  ]);
-}
-
-
-d3.select('#refresh-all')
-  .on('click', () => {
-    return store.getAllTables().then(tbls => {
-      const tasks = tbls.map(tbl => {
-        if (!def.fetchable(tbl)) return Promise.resolve();
-        const query = {id: tbl.id, command: 'fetch'};
-        return localServer.getRecords(query).then(store.updateTable);
-      });
-      return Promise.all(tasks);
-    }).then(render);
-  });
-
-
-d3.select('#reset-local')
-  .on('click', () => {
-    d3.select('#confirm-message')
-      .text('Are you sure you want to delete all local tables and reset the datastore ?');
-    d3.select('#confirm-submit')
-      .on('click', () => store.reset().then(render));
-  });
-
-
-
 function run() {
-  return loader.loader().then(render);
+  d3.select('#refresh-all')
+    .on('click', () => {
+      return store.getAllTables().then(tables => {
+        return Promise.all(tables.map(tbl => {
+          if (tbl.status !== 'running') return Promise.resolve();
+          const query = {id: tbl.id, command: 'fetch'};
+          return fetcher.get('res', query)
+            .then(fetcher.json)
+            .then(store.updateTable);
+        }));
+      }).then(run);
+    });
+  d3.select('#reset-local')
+    .on('click', () => {
+      d3.select('#confirm-message')
+        .text('Are you sure you want to delete all local tables and reset the datastore ?');
+      d3.select('#confirm-submit')
+        .on('click', () => store.reset().then(run));
+    });
+  return common.loader().then(serverStatus => {
+    if (serverStatus) renderServerStatus(serverStatus);
+    return Promise.all([
+      store.getTablesByDataType('nodes').then(renderTableStatus),
+      store.getTablesByDataType('edges').then(renderGraphStatus)
+    ]);
+  });
 }
 run();

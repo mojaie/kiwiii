@@ -1,11 +1,11 @@
 {
-  "name": "kiwiii-client",
-  "version": "0.7.2",
+  "name": "kiwiii",
+  "version": "0.8.0",
   "author": "Seiji Matsuoka",
-  "homepage": "https://github.com/mojaie/kiwiii-client",
+  "homepage": "https://github.com/mojaie/kiwiii",
   "repository": {
     "type": "git",
-    "url": "git+https://bitbucket.org/mojaie/kiwiii-client.git"
+    "url": "git+https://bitbucket.org/mojaie/kiwiii.git"
   },
   "description": "Kinetic interactive web interface for intuitive informatics",
   "license": "MIT",

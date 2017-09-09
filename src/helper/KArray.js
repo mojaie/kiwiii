@@ -36,6 +36,14 @@ class KArray extends Array {
   toArray() {
     return new Array(this);
   }
+
+  toObject() {
+    const obj = {};
+    this.forEach(kv => {
+      obj[kv[0]] = kv[1];
+    });
+    return obj;
+  }
 }
 
 export default KArray;
