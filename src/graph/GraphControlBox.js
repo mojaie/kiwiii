@@ -116,14 +116,15 @@ function updateNodeLabelVisibility(visible) {
 
 
 function updateNodeLabel(data) {
-  if (!data.hasOwnProperty(data.text)) return;
   d3.selectAll('.node').select('.node-label')
     .text(d => {
+      if (data.text === null) return '';
       if (!d.hasOwnProperty(data.text.key)) return '';
       if (data.text.digit === 'raw') return d[data.text.key];
       return fmt.formatNum(d[data.text.key], data.text.digit);
     })
     .attr('font-size', data.size)
+    .attr('y', 90) // TODO: derived from structure size or node circle radius
     .attr('visibility', data.visible ? 'inherit' : 'hidden')
     .style('fill', d =>
       d3scale.scaleFunction(data.scale)(data.field ? d[data.field.key] : null));
@@ -261,8 +262,8 @@ function nodeColorControlBox(fields) {
       d3.select('#color-control').datum(data);
       updateControl(data);
       updateNodeColor(data);
-    })
-    .dispatch('change');
+    });
+  d3.select('.color-update').dispatch('change');
 }
 
 
@@ -282,8 +283,8 @@ function nodeLabelControlBox(fields) {
       d3.select('#label-control').datum(data);
       updateControl(data);
       updateNodeLabel(data);
-    })
-    .dispatch('change');
+    });
+  d3.select(`.label-update`).dispatch('change');
 }
 
 
@@ -310,8 +311,8 @@ function nodeSizeControlBox(fields) {
       d3.select('#size-control').datum(data);
       updateControl(data);
       updateNodeSize(data);
-    })
-    .dispatch('change');
+    });
+  d3.select(`.size-update`).dispatch('change');
 }
 
 
@@ -334,8 +335,8 @@ function edgeControlBox() {
       d3.select('#edge-control').datum(data);
       updateControl(data);
       updateEdge(data);
-    })
-    .dispatch('change');
+    });
+  d3.select(`.edge-update`).dispatch('change');
 }
 
 

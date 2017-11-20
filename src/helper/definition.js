@@ -4,6 +4,7 @@
 
 const defaultHiddenFields = ['_mw', '_mw_wo_sw', '_logp', '_formula', '_nonH'];
 
+// TODO: timestamp sort
 const defaultSort = {
     id: 'text',
     compound_id: 'text',
@@ -15,11 +16,13 @@ const defaultSort = {
     ec50: 'numeric',
     'active%': 'numeric',
     'inhibition%': 'numeric',
+    filesize: 'numeric',
     numeric: 'numeric',
     count: 'numeric',
     int: 'numeric',
     flag: 'numeric',
     bool: 'numeric',
+    timestamp: 'none',
     image: 'none',
     control: 'none',
     'undefined': 'none'
@@ -36,11 +39,13 @@ const defaultDigit = {
     ec50: 'scientific',
     'active%': 'rounded',
     'inhibition%': 'rounded',
+    filesize: 'si',
     numeric: 'rounded',
     count: 'raw',
     int: 'raw',
     flag: 'raw',
     bool: 'raw',
+    timestamp: 'raw',
     image: 'raw',
     control: 'raw',
     'undefined': 'raw'

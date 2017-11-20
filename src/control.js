@@ -70,7 +70,10 @@ function renderGraphStatus(data) {
 
 
 function renderServerStatus(data) {
-  d3.select('#server-calc').call(cmp.createTable, data.calc)
+  const calc = {
+    fields: def.defaultFieldProperties(data.calc.fields)
+  };
+  d3.select('#server-calc').call(cmp.createTable, calc)
     .call(cmp.updateTableRecords, data.calc.records, d => d._index);
   const server = {
     fields: def.defaultFieldProperties([
