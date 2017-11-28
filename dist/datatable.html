@@ -12,7 +12,6 @@
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <script src="https://vega.github.io/vega/vega-core.min.js"></script>
-<script src="customMethods.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.5/pako.min.js"></script>
 <script src="kwdatatable.js"></script>
@@ -28,7 +27,7 @@
         <a class="dropdown-item online-command" data-toggle="modal" data-target="#prop-dialog">Search by properties</a>
         <a class="dropdown-item online-command" data-toggle="modal" data-target="#sdf-dialog">Import SDFile</a>
         <form action="open" method="post" enctype="multipart/form-data" style="display: none">
-          <input id="select-file" type="file" name="file" accept=".json,.gz"/>
+          <input id="select-file" type="file" name="file" accept=".ndc,.ndr,.json,.gz"/>
         </form>
         <a id="import-json" class="dropdown-item">Import JSON table</a>
       </div>
@@ -71,15 +70,9 @@
         <form id="pick-form">
           
 <div class="form-group row">
-  <label for="pick-target" class="col-sm-2 col-form-label">Database</label>
-  <div class="col-sm-10">
-    <select id="pick-target" class="form-control"></select>
-  </div>
-</div>
-<div class="form-group row">
   <label for="pick-queryarea" class="col-sm-2 col-form-label">Query</label>
   <div class="col-sm-10">
-    <textarea id="pick-queryarea" class="form-control" rows="10"></textarea>
+    <textarea id="pick-queryarea" class="form-control" rows="20"></textarea>
   </div>
 </div>
 
@@ -114,7 +107,7 @@
   </div>
   <label for="struct-qsrc" class="col-sm-2 col-form-label">Database</label>
   <div class="col-sm-5">
-    <select id="struct-qsrc" class="form-control" name="query_source" disabled></select>
+    <select id="struct-qsrc" class="form-control" name="query_source"></select>
   </div>
 </div>
 <div class="form-group row">
@@ -136,25 +129,24 @@
   <div class="col-sm-10">
     <select id="struct-method" class="form-control" name="method">
       <option value="exact">Exact match</option>
-      <option value="sub">Substructure</option>
-      <option value="super">Superstructure</option>
-      <option class="gls thld edge" value="mcsdr">MCS-DR edge count</option>
-      <option class="gls thld sim" value="gls">Graph-based local similarity(GLS)</option>
-      <option class="rd thld sim" value="rdmorgan" disabled>RDKit Morgan similarity</option>
-      <option class="rd thld sim edge" value="rdfmcs" disabled>RDKit FMCS</option>
+      <option value="substr">Substructure</option>
+      <option value="supstr">Superstructure</option>
+      <option value="gls">MCS-DR/GLS</option>
+      <option class="rd" value="rdmorgan">RDKit Morgan similarity</option>
+      <option class="rd" value="rdfmcs">RDKit FMCS</option>
     </select>
   </div>
 </div>
 <fieldset class="form-group row">
   <legend class="col-form-legend col-sm-2">Threshold</legend>
   <div class="col-sm-4">
-    <select id="struct-thldtype" class="form-control" name="method" disabled>
+    <select id="struct-thldtype" class="form-control" name="method">
       <option class="sim" value="sim">Similarity</option>
       <option class="edge" value="edge">Edge count</option>
     </select>
   </div>
   <div class="col-sm-4">
-    <input type="number" id="struct-thld" class="form-control" name="thld" value="0.7" min="0" max="1" step="0.01" disabled/>
+    <input type="number" id="struct-thld" class="form-control" name="thld"/>
   </div>
 </fieldset>
 <h6 class="form-group row">
@@ -165,21 +157,21 @@
   <div class="form-group row">
     <div class="col-sm-6 form-inline">
       <label for="struct-diam" class="form-label">Diameter</label>
-      <input type="number" id="struct-diam" class="form-control gls" name="diameter" value="10" min="5" max="999" disabled/>
+      <input type="number" id="struct-diam" class="form-control gls" name="diameter" value="8" min="4" max="999"/>
     </div>
     <div class="col-sm-6 form-inline">
       <label for="struct-tree" class="form-label">Tree size</label>
-      <input type="number" id="struct-tree" class="form-control gls" name="max_tree" value="40" min="20" max="999" disabled/>
+      <input type="number" id="struct-tree" class="form-control gls" name="max_tree" value="40" min="20" max="999"/>
     </div>
   </div>
   <div class="form-group row">
     <div class="col-sm-7 form-inline">
       <label for="struct-skip" class="form-label">Skip molecule larger than</label>
-      <input type="number" id="struct-skip" class="form-control gls" name="skip_large" value="150" min="50" max="999" disabled/>
+      <input type="number" id="struct-skip" class="form-control gls" name="skip_large" value="500" min="20" max="999"/>
     </div>
     <div class="col-sm-5 form-inline">
       <label for="struct-timeout" class="form-label">Timeout(sec)</label>
-      <input type="number" id="struct-timeout" class="form-control fmcs" name="timeout" value="1" min="1" max="999" disabled/>
+      <input type="number" id="struct-timeout" class="form-control fmcs" name="timeout" value="1" min="1" max="999"/>
     </div>
   </div>
   <div class="form-group row">
@@ -421,7 +413,7 @@
 <div class="form-group row">
   <label for="graph-thld" class="col-sm-4 col-form-label">Network threshold</label>
   <div class="col-sm-8">
-    <input type="number" id="graph-thld" class="form-control" name="threshold" value="0.7" min="0" max="1" step="0.01" />
+    <input type="number" id="graph-thld" class="form-control" name="threshold" value="0.5" min="0" max="1" step="0.01" />
   </div>
 </div>
 <h6 class="form-group row">
@@ -432,7 +424,7 @@
   <div class="form-group row">
     <div class="col-sm-6 form-inline">
       <label for="graph-diam" class="form-label">Diameter</label>
-      <input type="number" id="graph-diam" class="form-control gls" name="diameter" value="10" min="5" max="999"/>
+      <input type="number" id="graph-diam" class="form-control gls" name="diameter" value="8" min="4" max="999"/>
     </div>
     <div class="col-sm-6 form-inline">
       <label for="graph-tree" class="form-label">Tree size</label>
@@ -442,7 +434,7 @@
   <div class="form-group row">
     <div class="col-sm-7 form-inline">
       <label for="graph-skip" class="form-label">Skip molecule larger than</label>
-      <input type="number" id="graph-skip" class="form-control gls" name="skip_large" value="150" min="50" max="999"/>
+      <input type="number" id="graph-skip" class="form-control gls" name="skip_large" value="500" min="20" max="999"/>
     </div>
     <div class="col-sm-5 form-inline">
       <label for="graph-timeout" class="form-label">Timeout(sec)</label>
@@ -506,6 +498,21 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
         <button type="button" id="confirm-submit" class="btn btn-warning" data-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <div id="importconfirm-dialog" class="modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">
+        <div id="importconfirm-message">Another revision of the data was found in the local storage. Do you want to overwrite it or keep both of them?</div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" id="importconfirm-overwrite" class="btn btn-primary" data-dismiss="modal">Overwrite</button>
+        <button type="button" id="importconfirm-keepboth" class="btn btn-primary" data-dismiss="modal">Keep both</button>
       </div>
     </div>
   </div>

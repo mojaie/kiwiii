@@ -37,7 +37,7 @@
 /* eslint-disable indent, no-unused-vars, no-multiple-empty-lines, max-nested-callbacks, space-before-function-paren, quotes, comma-spacing */
 'use strict';
 
-var precacheConfig = [["control.html","7bd55d9d9ece0ff3910360de044db142"],["customMethods.js","89cddff818a2abb3bb161eaf61fd952a"],["datatable.html","b2d9f4033ad84f4d5219ff3a375bd516"],["default.css","bea7f6760af3eb932611c174ebed922a"],["graph.html","fe1ab77ceaa96cd2001eebfb4165aa43"],["kwcontrol.js","e33e76705d11b51fc4611a390b744c06"],["kwdatatable.js","1606efd3a5ffc22fb853de0a8604fd78"]];
+var precacheConfig = [["control.html","a0dc3b69124814626b0b61f073abb9f3"],["customMethods.js","89cddff818a2abb3bb161eaf61fd952a"],["datatable.html","2b18476fb3ed52576fc238fa6ac97eb4"],["default.css","bea7f6760af3eb932611c174ebed922a"],["graph.html","456278c2c26c52b944d0441cc5670d56"],["kwcontrol.js","42a6d4973a2520d93eaa485d5128c53d"],["kwdatatable.js","543092e6a74065e8bf5f5de7e454205c"],["kwgraph.js","5f64bfcc6e3ad315db83698857c64d0e"]];
 var cacheName = 'sw-precache-v3--' + (self.registration ? self.registration.scope : '');
 
 

@@ -35,11 +35,11 @@ Application
 ---------------
 
 
-- [Table view demo (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii-client/datatable.html?location=resources/ApprovedFiltered.json.gz)
+- [Table view demo (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii-client/datatable.html?location=resources/ApprovedFiltered.ndc)
   - Sortable chemical structure table
 
 
-- [Network view demo (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii-client/graph.html?location=resources/ApprovedFiltered_GLS10.json.gz)
+- [Network view demo (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii-client/graph.html?location=resources/ApprovedFiltered_GLS10.gfc)
   - Network of chemical structure nodes connected with structure similarity relationship (known as Chemical Space Network)
   - Force-directed layout implemented with d3-force
 
