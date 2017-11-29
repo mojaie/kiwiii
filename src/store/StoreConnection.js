@@ -63,8 +63,8 @@ function setFieldProperties(id, updates) {
   return store.updateItem(id, item => {
     item.fields.forEach((fd, i) => {
       fd.visible = updates.visibles.includes(fd.key);
-      fd.sortType = updates.sortTypes[i];
-      fd.digit = updates.digits[i];
+      fd.format = updates.formats[i];
+      if (updates.d3_formats[i]) fd.d3_format = updates.d3_formats[i];
     });
     item.revision++;
   })

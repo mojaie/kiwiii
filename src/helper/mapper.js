@@ -31,7 +31,7 @@ function singleToMulti(mapping) {
  */
 function mappingToTable(mapping) {
   const mp = mapping.hasOwnProperty('field') ? singleToMulti(mapping) : mapping;
-  const keyField = {key: mp.key, valueType: 'text'};
+  const keyField = {key: mp.key, format: 'text'};
   const data = {
     fields: def.defaultFieldProperties([keyField].concat(mp.fields)),
     records: Object.entries(mp.mapping).map(entry => {
@@ -85,7 +85,7 @@ function csvToMapping(csvString) {
   header.forEach((h, i) => {
     if (h === '') return;
     headerIdx.push(i);
-    fields.push({key: h, valueType: 'text'});
+    fields.push({key: h, format: 'text'});
   });
   const mapping = {
     created: now.toString(),

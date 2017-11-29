@@ -2,6 +2,7 @@
 import d3 from 'd3';
 import {default as d3scale} from '../helper/d3Scale.js';
 import {default as d3form} from '../helper/d3Form.js';
+import {default as def} from '../helper/definition.js';
 import {default as fmt} from '../helper/formatValue.js';
 import {default as cmp} from '../component/Component.js';
 
@@ -120,8 +121,10 @@ function updateNodeLabel(data) {
     .text(d => {
       if (data.text === null) return '';
       if (!d.hasOwnProperty(data.text.key)) return '';
-      if (data.text.digit === 'raw') return d[data.text.key];
-      return fmt.formatNum(d[data.text.key], data.text.digit);
+      if (data.text.format === 'd3_format') {
+        return fmt.formatNum(d[data.text.key], data.text.d3_format);
+      }
+      return d[data.text.key];
     })
     .attr('font-size', data.size)
     .attr('y', 90) // TODO: derived from structure size or node circle radius
@@ -254,7 +257,7 @@ function colorControlBox(fields, id) {
 
 
 function nodeColorControlBox(fields) {
-  const textCols = fields.filter(e => e.sortType !== 'none');
+  const textCols = fields.filter(e => def.sortType(e.format) !== 'none');
   colorControlBox(textCols, 'color');
   d3.selectAll('.color-update')
     .on('change', () => {
@@ -268,7 +271,7 @@ function nodeColorControlBox(fields) {
 
 
 function nodeLabelControlBox(fields) {
-  const textCols = fields.filter(e => e.sortType !== 'none');
+  const textCols = fields.filter(e => def.sortType(e.format) !== 'none');
   d3.select('#label-text')
     .call(cmp.selectOptions, textCols, d => d.key, d => d.name);
   colorControlBox(textCols, 'label');
@@ -301,7 +304,7 @@ function sizeControlBox(presets, id) {
 
 
 function nodeSizeControlBox(fields) {
-  const numCols = fields.filter(e => e.sortType === 'numeric');
+  const numCols = fields.filter(e => def.sortType(e.format) === 'numeric');
   d3.select(`#size-col`)
     .call(cmp.selectOptions, numCols, d => d.key, d => d.name);
   sizeControlBox(d3scale.sizePresets, 'size');

@@ -15,23 +15,23 @@ function updateChem(resources) {
   const query = {
     type: 'chemsearch',
     targets: resources.filter(e => e.domain === 'chemical').map(e => e.id),
-    key: 'id',
+    key: 'compound_id',
     values: [compound]
   };
   return fetcher.get('run', query)
     .then(fetcher.json)
     .then(res => {
       const rcd = res.records[0];
-      d3.select('#compoundid').html(rcd.id);
-      d3.select('#compounddb').html(resources.find(e => e.id === rcd.source).name);
+      d3.select('#compoundid').html(rcd.compound_id);
+      d3.select('#compounddb').html(
+        resources.find(e => e.id === rcd.source).name);
       d3.select('#structure').html(rcd._structure);
       const records = res.fields
-        .filter(e => !['_structure', '_index', 'id'].includes(e.key))
+        .filter(e => !['_structure', '_index', 'compound_id'].includes(e.key))
         .map(e => ({ key: e.name, value: rcd[e.key] }));
       const data = {
         fields: def.defaultFieldProperties([
-          {key: 'key', valueType: 'text'},
-          {key: 'value', valueType: 'text'}
+          {key: 'key'}, {key: 'value'}
         ])
       };
       d3.select('#properties').call(cmp.createTable, data)
@@ -48,7 +48,7 @@ function updateChemAliases(resources, qrcd) {
     queryMol: {
       format: 'dbid',
       source: qrcd.source,
-      value: qrcd.id
+      value: qrcd.compound_id
     },
     params: {ignoreHs: true}
   };
@@ -56,21 +56,20 @@ function updateChemAliases(resources, qrcd) {
     .then(fetcher.json)
     .then(res => {
       const records = res.records
-        .filter(rcd => rcd.id !== qrcd.id || rcd.source !== qrcd.source)
+        .filter(rcd => rcd.compound_id !== qrcd.compound_id || rcd.source !== qrcd.source)
         .map(rcd => {
           return {
-            id: `<a href="profile.html?compound=${rcd.id}" target="_blank">${rcd.id}</a>`,
+            compound_id: `<a href="profile.html?compound=${rcd.compound_id}" target="_blank">${rcd.compound_id}</a>`,
             database: resources.find(e => e.id === rcd.source).name
           };
         });
       const data = {
         fields: def.defaultFieldProperties([
-          {key: 'id', valueType: 'text'},
-          {key: 'database', valueType: 'text'}
+          {key: 'compound_id'}, {key: 'database'}
         ])
       };
       d3.select('#aliases').call(cmp.createTable, data)
-        .call(cmp.updateTableRecords, records, d => d.id);
+        .call(cmp.updateTableRecords, records, d => d.compound_id);
     }, fetcher.error);
 }
 
@@ -91,22 +90,20 @@ function updateActivities() {
   });
   const query = {
     type: 'profile',
-    id: compound
+    compound_id: compound
   };
   return fetcher.get('run', query)
     .then(fetcher.json)
     .then(res => {
       const table = {
         fields: def.defaultFieldProperties([
-          {key: '_index', name: 'index', valueType: 'numeric'},
-          {key: 'assayID', valueType: 'text'},
-          {key: 'field', valueType: 'text'},
-          {key: 'valueType', valueType: 'text'},
-          {key: '_value', name: 'value', valueType: 'numeric'}
+          {key: 'assay_id', name: 'Assay ID', format: 'text'},
+          {key: 'field', name: 'Value type', format: 'text'},
+          {key: '_value', name: 'value', format: 'numeric'}
         ])
       };
       d3.select('#results').call(cmp.createTable, table)
-        .call(cmp.updateTableRecords, res.records, d => d.id)
+        .call(cmp.updateTableRecords, res.records, d => d._index)
         .call(cmp.addSort);
     }, fetcher.error);
 }

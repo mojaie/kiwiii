@@ -2,6 +2,7 @@
 /** @module component/DataGrid */
 
 import d3 from 'd3';
+import {default as def} from '../helper/definition.js';
 import {default as fmt} from '../helper/formatValue.js';
 import {default as img} from '../helper/image.js';
 
@@ -33,8 +34,8 @@ function createDataGrid(selection, data) {
     .append('div').classed('dg-body', true);
   const cols = data.fields.filter(e => e.visible)
     .map(e => {
-      e.width = defaultColumnWidth[e.sortType];
-      e.height = defaultColumnHeight[e.sortType];
+      e.width = defaultColumnWidth[def.sortType(e.format)];
+      e.height = defaultColumnHeight[def.sortType(e.format)];
       return e;
     });
   const rowSize = {
@@ -91,15 +92,20 @@ function updateRows(selection, rcds, keyFunc, position, visibleRows) {
             d3.select(this).attr('id', `c${ri}-${i}`);
             const value = d[cData[i].key];
             if (value === undefined) return '';
-            if (cData[i].valueType === 'plot') return '';
-            if (cData[i].valueType === 'image') {  // data URI
+            if (cData[i].format === 'd3_format') {
+              return fmt.formatNum(value, cData[i].d3_format);
+            }
+            if (cData[i].format === 'plot') return '';
+            if (cData[i].format === 'compound_id') {
+              return `<a href="profile.html?compound=${value}" target="_blank">${value}</a>`;
+            }
+            if (cData[i].format === 'image') {  // data URI
               return `<img src="${value}" width="180" height="180"/>`;
             }
-            if (cData[i].digit !== 'raw') return fmt.formatNum(value, cData[i].digit);
             return value;
           })
           .each(function(_, i) {
-            if (cData[i].valueType !== 'plot') return;
+            if (cData[i].format !== 'plot') return;
             if (!d.hasOwnProperty(cData[i].key)) return;
             const value = d[cData[i].key];
             img.showPlot(value, `#c${ri}-${i}`);
@@ -144,7 +150,7 @@ function dataGridRecords(selection, rcds, keyFunc) {
 
 function addSort(selection, rcds, keyFunc) {
   selection.select('.dg-header').selectAll('.dg-hcell')
-    .filter(d => d.sortType !== 'none')
+    .filter(d => def.sortType(d.format) !== 'none')
     .append('span').append('a')
       .attr('id', d => `sort-${d.key}`)
       .text('^v')
@@ -154,7 +160,7 @@ function addSort(selection, rcds, keyFunc) {
     .on('click', d => {
       const isAsc = d3.select(`#sort-${d.key}`).text() === 'v';
       d3.select(`#sort-${d.key}`).text(isAsc ? '^' : 'v');
-      const isNum = d.sortType === 'numeric';
+      const isNum = def.sortType(d.format) === 'numeric';
       const cmp = isAsc
         ? (isNum ? fmt.numericAsc : fmt.textAsc)
         : (isNum ? fmt.numericDesc : fmt.textDesc);

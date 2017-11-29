@@ -51,6 +51,21 @@ function fetchResults(command='update') {
 }
 
 
+function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker
+      .register('sw.js')
+      .then(reg => {
+        console.info('ServiceWorker registration successful with scope: ', reg.scope);
+      }).catch(err => {
+        console.info('ServiceWorker registration failed: ', err);
+      });
+  } else {
+    console.info('Off-line mode is not supported');
+  }
+}
+
+
 function loader() {
   /*
   if (document.location.protocol === "file:") {
@@ -65,19 +80,6 @@ function loader() {
       return Promise.resolve();
     }
   }*/
-  if ('serviceWorker' in navigator && !debug) {
-    navigator.serviceWorker
-      .register('sw.js')
-      .then(reg => {
-        console.info('ServiceWorker registration successful with scope: ', reg.scope);
-      }).catch(err => {
-        console.info('ServiceWorker registration failed: ', err);
-      });
-  } else if (debug) {
-    console.info('Off-line mode is disabled for debugging');
-  } else {
-    console.info('Off-line mode is not supported');
-  }
   const server = fetcher.get('server')
     .then(fetcher.json)
     .catch(() => null);
@@ -86,6 +88,11 @@ function loader() {
     const serverStatus = ps[0];
     const clientInstance = ps[1];
     if (!serverStatus) return Promise.resolve(null);
+    if (!serverStatus.debugMode) {
+      registerServiceWorker();
+    } else {
+      console.info('Off-line mode is disabled for debugging');
+    }
     if (serverStatus.instance === clientInstance) {
       console.info('Resource schema is already up to date');
       return Promise.resolve(serverStatus);
@@ -99,6 +106,8 @@ function loader() {
             store.setAppSetting('templates', schema.templates),
             store.setAppSetting(
               'compoundIDPlaceholder', schema.compoundIDPlaceholder),
+              store.setAppSetting(
+                'defaultDataType', schema.defaultDataType),
             store.setAppSetting('serverInstance', serverStatus.instance),
             store.setAppSetting('rdkit', serverStatus.rdkit)
           ])
@@ -110,5 +119,5 @@ function loader() {
 
 
 export default {
-  interactiveInsert, fetchResults, loader
+  interactiveInsert, fetchResults, registerServiceWorker, loader
 };

@@ -2,6 +2,7 @@
 /** @module component/Component */
 
 import d3 from 'd3';
+import {default as def} from '../helper/definition.js';
 import {default as fmt} from '../helper/formatValue.js';
 
 
@@ -94,15 +95,17 @@ function updateTableRecords(selection, rcds, keyFunc) {
       .classed('align-middle', true)
     .html(function (d, i) {
       if (d === undefined) return '';
-      if (header[i].valueType === 'plot') return '[plot]';
-      if (header[i].valueType === 'image') return '[image]';
-      if (header[i].valueType === 'control') return;
-      if (header[i].digit !== 'raw') return fmt.formatNum(d, header[i].digit);
+      if (header[i].format === 'd3_format') {
+        return fmt.formatNum(d, header[i].d3_format);
+      }
+      if (header[i].format === 'plot') return '[plot]';
+      if (header[i].format === 'image') return '[image]';
+      if (header[i].format === 'control') return;
       return d;
     })
     .each((d, i, nodes) => {
       // This should be called after html
-      if (header[i].valueType === 'control') d3.select(nodes[i]).call(d);
+      if (header[i].format === 'control') d3.select(nodes[i]).call(d);
     });
 }
 
@@ -116,7 +119,7 @@ function appendTableRows(selection, rcds, keyFunc) {
 
 function addSort(selection) {
   selection.select('thead tr').selectAll('th')
-    .filter(d => d.sortType !== 'none')
+    .filter(d => def.sortType(d.format) !== 'none')
     .append('span').append('a')
       .attr('id', d => `sort-${d.key}`)
       .text('^v')
@@ -125,7 +128,7 @@ function addSort(selection) {
       .style('text-align', 'center')
     .on('click', d => {
       const isAsc = d3.select(`#sort-${d.key}`).text() === 'v';
-      const isNum = d.sortType === 'numeric';
+      const isNum = def.sortType(d.format) === 'numeric';
       const cmp = isAsc
         ? (isNum ? fmt.numericAsc : fmt.textAsc)
         : (isNum ? fmt.numericDesc : fmt.textDesc);

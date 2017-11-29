@@ -14,14 +14,6 @@ import {default as header} from './component/Header.js';
 import {default as grid} from './component/DataGrid.js';
 
 
-function idLink(rcds, idKey) {
-  rcds.filter(e => e.hasOwnProperty(idKey))
-    .forEach(e => {
-      e[idKey] = `<a href="profile.html?compound=${e[idKey]}" target="_blank">${e[idKey]}</a>`;
-    });
-}
-
-
 function render() {
   return store.getTable(win.URLQuery().id)
     .then(data => {
@@ -49,20 +41,16 @@ function render() {
             });
         });
       // Following operations use data.records
-      const copied = JSON.parse(JSON.stringify(data.records));  // deep copy
-      idLink(copied, 'id');
       d3.select('#datatable')
         .call(grid.createDataGrid, data)
-        .call(grid.dataGridRecords, copied, d => d._index)
-        .call(grid.addSort, copied, d => d._index);
+        .call(grid.dataGridRecords, data.records, d => d._index)
+        .call(grid.addSort, data.records, d => d._index);
       store.getResources().then(rsrc => {
         const actres = rsrc.filter(e => e.domain === 'activity');
         const compoundIDs = data.records.map(e => e.id);
         dialog.fieldFetchDialog(compoundIDs, data.fields, actres, mapping => {
           return store.joinFields(win.URLQuery().id, mapping).then(render);
         });
-
-
       });
       dialog.graphDialog(params => {
         const formData = new FormData();

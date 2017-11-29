@@ -21,7 +21,7 @@ const dataTypeConv = {
 
 function v07_to_v08_nodes(json) {
   const fields = json.columns.map(e => {
-    e.sortType = e.sort;
+    e.format = 'raw';
     return e;
   });
   return {

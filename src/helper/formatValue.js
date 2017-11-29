@@ -9,15 +9,9 @@ import d3 from 'd3';
  * @param {object} value - value
  * @param {string} type - si | scientific | rounded | raw
  */
-function formatNum(value, type) {
-  const conv = {
-    scientific: ".3e",
-    si: ".3s",
-    rounded: ".3r"
-  };
-  if (type === 'raw') return value;
+function formatNum(value, d3format) {
   if (value === undefined || value === null || Number.isNaN(value)) return '';
-  return value == parseFloat(value) ? d3.format(conv[type])(value) : value;
+  return value == parseFloat(value) ? d3.format(d3format)(value) : value;
 }
 
 function partialMatch(query, target) {

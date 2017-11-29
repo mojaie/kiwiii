@@ -19,12 +19,12 @@ const preamble = `// ${json.homepage} Version ${json.version}. Copyright ${(new 
 argv.option({
   name: 'debug',
   type : 'boolean',
-  description :'debug mode',
+  description :'debug build',
   example: "'script --debug=true'"
 });
 const args = argv.run();
 const buildDir = args.targets[0];
-const isDebugMode = args.options.debug;
+const isDebugBuild = args.options.debug;
 
 
 // Bundle setting
@@ -62,7 +62,7 @@ const external = {
 // JS build
 const jsBundled = bundles.map(bundle => {
   const plugins = [resolve({jsnext: true})];
-  if (!isDebugMode) {
+  if (!isDebugBuild) {
     if (bundle.hasOwnProperty('deploy') && !bundle.deploy) {
       return Promise.resolve();
     }
@@ -80,7 +80,6 @@ const jsBundled = bundles.map(bundle => {
       sourcemap: true,
       name: module,
       banner: preamble,
-      intro: `const debug = ${isDebugMode};`,
       globals: external
     });
   });
@@ -89,7 +88,7 @@ const jsBundled = bundles.map(bundle => {
 
 // EJS build
 const htmlRendered = bundles
-  .filter(bundle => isDebugMode || !bundle.hasOwnProperty('deploy') || bundle.deploy)
+  .filter(bundle => isDebugBuild || !bundle.hasOwnProperty('deploy') || bundle.deploy)
   .filter(bundle => !bundle.hasOwnProperty('ejs') || bundle.ejs)
   .map(bundle => {
     return new Promise((resolve, reject) => {

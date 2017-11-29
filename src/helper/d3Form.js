@@ -29,6 +29,11 @@ function firstFile(selector) {
 }
 
 
+function inputValues(selector) {
+  return d3.selectAll(selector).selectAll('input').nodes().map(e => e.value);
+}
+
+
 function checkboxValues(selector) {
   return d3.selectAll(selector).selectAll('input:checked').nodes().map(e => e.value);
 }
@@ -57,6 +62,6 @@ function checkboxData(selector) {
 
 export default {
   value, valueInt, valueFloat, checked,
-  firstFile, checkboxValues, optionValues, textareaLines,
+  firstFile, inputValues, checkboxValues, optionValues, textareaLines,
   optionData, checkboxData
 };

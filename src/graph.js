@@ -146,7 +146,8 @@ function render() {
         );
         const mapping = {
           key: '_index',
-          field: def.defaultFieldProperties([{key: query.name, valueType: 'numeric'}]),
+          field: def.defaultFieldProperties(
+            [{key: query.name, format: 'd3_format', d3_format: 'd'}]),
           mapping: comm
         };
         store.joinFields(g.nodes.id, mapping)

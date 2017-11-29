@@ -112,7 +112,7 @@ testCases.push(() =>
   fetcher.get('run', {
     type: 'chemsearch',
     targets: ['drugbankfda'],
-    key: 'id',
+    key: 'compound_id',
     values: ['DB00186', 'DB00189', 'DB00193', 'DB00203', 'DB00764', 'DB00863',
              'DB00865', 'DB00868', 'DB01143', 'DB01240', 'DB01242', 'DB01361',
              'DB01366', 'DB02638', 'DB02959']
@@ -142,8 +142,8 @@ testCases.push(() =>
 function run() {
   const tbl = {
       fields: def.defaultFieldProperties([
-        {key: 'test', valueType: 'text'},
-        {key: 'result', valueType: 'text'}
+        {key: 'test'},
+        {key: 'result'}
       ]),
       records: []
   };

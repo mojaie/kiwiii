@@ -35,10 +35,10 @@ function tableAction(selection, data, app) {
 function renderTableStatus(data) {
   const table = {
     fields: def.defaultFieldProperties([
-      {key: 'name', valueType: 'text'},
-      {key: 'status', valueType: 'text'},
-      {key: 'resultCount', valueType: 'count'},
-      {key: 'action', valueType: 'control'}
+      {key: 'name', format: 'text'},
+      {key: 'status', format: 'text'},
+      {key: 'resultCount', d3_format: 'd'},
+      {key: 'action', format: 'control'}
     ])
   };
   const records = data.map(e => {
@@ -53,11 +53,11 @@ function renderTableStatus(data) {
 function renderGraphStatus(data) {
   const table = {
     fields: def.defaultFieldProperties([
-      {key: 'name', valueType: 'text'},
-      {key: 'nodesID', valueType: 'text'},
-      {key: 'status', valueType: 'text'},
-      {key: 'resultCount', valueType: 'count'},
-      {key: 'action', valueType: 'control'}
+      {key: 'name', format: 'text'},
+      {key: 'nodesID', format: 'text'},
+      {key: 'status', format: 'text'},
+      {key: 'resultCount', d3_format: 'd'},
+      {key: 'action', format: 'control'}
     ])
   };
   const records = data.map(e => {
@@ -77,8 +77,8 @@ function renderServerStatus(data) {
     .call(cmp.updateTableRecords, data.calc.records, d => d._index);
   const server = {
     fields: def.defaultFieldProperties([
-      {key: 'key', valueType: 'text'},
-      {key: 'value', valueType: 'text'}
+      {key: 'key', format: 'text'},
+      {key: 'value', format: 'text'}
     ])
   };
   server.records = Object.entries(data)

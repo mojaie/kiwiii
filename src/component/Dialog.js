@@ -103,11 +103,11 @@ function structDialog(resources, callback) {
     });
   d3.select('#struct-preview')
     .on('click', () => {
-      const fmt = d3form.value('#struct-format');
+      const f = d3form.value('#struct-format');
       const query = {
-        format: fmt,
-        source: fmt === 'dbid' ? d3form.value('#struct-qsrc') : null,
-        value: fmt === 'molfile'
+        format: f,
+        source: f === 'dbid' ? d3form.value('#struct-qsrc') : null,
+        value: f === 'molfile'
           ? d3form.value('#struct-queryarea') : d3form.textareaLines('#struct-queryarea')[0],
       };
       return fetcher.get('strprev', query)
@@ -118,14 +118,14 @@ function structDialog(resources, callback) {
     .on('click', () => {
       const method = d3form.value('#struct-method');
       d3.select('#loading-circle').style('display', 'inline');
-      const fmt = d3form.value('#struct-format');
+      const f = d3form.value('#struct-format');
       const query = {
         type: d3form.value('#struct-method'),
         targets: d3form.checkboxValues('#struct-targets'),
         queryMol: {
-          format: fmt,
-          source: fmt === 'dbid' ? d3form.value('#struct-qsrc') : null,
-          value: fmt === 'molfile'
+          format: f,
+          source: f === 'dbid' ? d3form.value('#struct-qsrc') : null,
+          value: f === 'molfile'
             ? d3form.value('#struct-queryarea') : d3form.textareaLines('#struct-queryarea')[0]
         },
         params: {
@@ -186,42 +186,43 @@ function sdfDialog(callback) {
 function columnDialog(dataFields, callback) {
   const table = {
     fields: def.defaultFieldProperties([
-      {key: 'name', valueType: 'text'},
-      {key: 'visible', valueType: 'control'},
-      {key: 'sortType', valueType: 'control'},
-      {key: 'digit', valueType: 'control'}
+      {key: 'name', format: 'text'},
+      {key: 'visible', format: 'control'},
+      {key: 'format', format: 'control'},
+      {key: 'd3_format', format: 'control'}
     ])
   };
-  const records = dataFields.map((e, i) => {
-    return {
-      key: e.key,
-      name: e.name,
-      visible: selection => selection
-          .classed('column-vis', true)
-          .classed(`row${i}`, true)
-        .append('input')
-          .attr('type', 'checkbox')
-          .attr('value', e.key)
-          .property('checked', e.visible)
-      ,sortType: selection => selection
-          .classed('column-sort', true)
-          .classed(`row${i}`, true)
-        .append('select')
-          .call(cmp.selectOptions,
-                e.sortType === 'none' ? ['none'] : ['numeric', 'text'], d => d, d => d)
-          .property('value', e.sortType)
-          .on('change', function () {
-            d3.select(`.column-digit.row${i} select`)
-              .attr('disabled', this.value === 'numeric' ? null : 'disabled');
-          })
-      ,digit: selection => selection
-          .classed('column-digit', true)
-          .classed(`row${i}`, true)
-        .append('select')
-          .call(cmp.selectOptions, ['raw', 'rounded', 'scientific', 'si'], d => d, d => d)
-          .property('value', e.digit)
-          .attr('disabled', e.sortType === 'numeric' ? null : 'disabled')
-    };
+  const records = dataFields.map(e => {
+    const rcd = {};
+    const generalFormat = ['text', 'numeric', 'd3_format'];
+    rcd.name = e.name;
+    rcd.visible = selection => selection
+        .classed('column-vis', true)
+        .classed(`row-${e.key}`, true)
+      .append('input')
+        .attr('type', 'checkbox')
+        .attr('value', e.key)
+        .property('checked', e.visible);
+    rcd.format = selection => selection
+        .classed('column-format', true)
+        .classed(`row-${e.key}`, true)
+      .append('select')
+        .call(cmp.selectOptions,
+              generalFormat.includes(e.format) ? generalFormat : [e.format],
+              d => d, d => d)
+        .property('value', e.format)
+        .attr('disabled', generalFormat.includes(e.format) ? null : 'disabled')
+        .on('change', function () {
+          d3.select(`.column-d3f.row-${e.key} input`)
+            .attr('disabled', this.value === 'd3_format' ? null : 'disabled');
+        });
+    rcd.d3_format = selection => selection
+        .classed('column-d3f', true)
+        .classed(`row-${e.key}`, true)
+      .append('input')
+        .property('value', e.d3_format)
+        .attr('disabled', e.format === 'd3_format' ? null : 'disabled');
+    return rcd;
   });
   d3.select('#column-table')
     .call(cmp.createTable, table)
@@ -230,8 +231,8 @@ function columnDialog(dataFields, callback) {
     .on('click', () => {
       const query = {
         visibles: d3form.checkboxValues('.column-vis'),
-        sortTypes: d3form.optionValues('.column-sort'),
-        digits: d3form.optionValues('.column-digit')
+        formats: d3form.optionValues('.column-format'),
+        d3_formats: d3form.inputValues('.column-d3f')
       };
       return store.setFieldProperties(win.URLQuery().id, query)
         .then(callback);
@@ -311,8 +312,8 @@ function fieldFileDialog(callback) {
         mapping = mapper.singleToMulti(mapping);
       }
       mapping.fields.forEach((e, i) => {
-        if (e.valueType === 'plot') {
-          mapping.fields[i].valueType = 'image';
+        if (e.format === 'plot') {
+          mapping.fields[i].format = 'image';
           plotCols.push(i);
         }
       });
