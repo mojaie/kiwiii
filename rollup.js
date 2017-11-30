@@ -70,15 +70,15 @@ const jsBundled = bundles.map(bundle => {
   }
   const module = bundle.hasOwnProperty('module') ? bundle.module : bundle.name;
   return rollup.rollup({
-    entry: bundle.hasOwnProperty('source') ? bundle.source : `src/${bundle.name}.js`,
+    input: bundle.hasOwnProperty('source') ? bundle.source : `src/${bundle.name}.js`,
     plugins: plugins,
     external: Object.values(external)
   }).then(b => {
     b.write({
-      dest: `${buildDir}/${module}.js`,
+      file: `${buildDir}/${module}.js`,
       format: 'umd',
-      sourceMap: true,
-      moduleName: module,
+      sourcemap: true,
+      name: module,
       banner: preamble,
       intro: `const debug = ${isDebugMode};`,
       globals: external
