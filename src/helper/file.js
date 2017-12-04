@@ -104,7 +104,9 @@ function v07_to_v08_edges(json, nodeFields) {
     dataType: dataTypeConv[json.format],
     schemaVersion: 0.8,
     revision: 0,
-    nodesID: json.nodeTableId,
+    reference: {
+      nodes: json.nodeTableId
+    },
     status: statusConv[json.status],
     fields: def.defaultFieldProperties([
       {'key': 'source'},

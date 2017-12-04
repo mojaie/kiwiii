@@ -46,7 +46,7 @@ testCases.push(() =>
 testCases.push(() =>
   fetcher.get('run', {
     type: 'profile',
-    compoundID: 'DB00189'
+    compound_id: 'DB00189'
   }).then(fetcher.json)
     .then(res => ({output: res, test: 'profile', pass: true}))
     .catch(err => ({output: err, test: 'profile', pass: false}))

@@ -66,7 +66,7 @@ function resume(snapshot) {
 function getGraph() {
   return store.getTable(win.URLQuery().id)
     .then(edges => {
-      return store.getTable(edges.nodesID)
+      return store.getTable(edges.reference.nodes)
         .then(nodes => {
           return {edges: edges, nodes: nodes};
         });
@@ -169,7 +169,7 @@ function render() {
         .on('change', function() {
           d3form.checked(this) === true ? interaction.stickNodes() : interaction.relax();
         });
-      d3.select('#nodetable').attr('href', `datatable.html?id=${g.edges.nodesID}`);
+      d3.select('#nodetable').attr('href', `datatable.html?id=${g.edges.reference.nodes}`);
       d3.select('#rename')
         .on('click', () => {
           d3.select('#prompt-title').text('Rename table');
@@ -194,7 +194,7 @@ function render() {
 function loadNewGraph(data) {
   return common.interactiveInsert(data.nodes)
     .then(id => {
-      data.edges.nodesID = id;
+      data.edges.reference.nodes = id;
       return common.interactiveInsert(data.edges);
     })
     .then(id => {
@@ -230,7 +230,7 @@ function run() {
       .then(data => {
         return common.interactiveInsert(data.nodes)
           .then(id => {
-            data.edges.nodesID = id;
+            data.edges.reference.nodes = id;
             return common.interactiveInsert(data.edges);
           })
           .then(id => {

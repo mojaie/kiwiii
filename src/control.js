@@ -54,13 +54,14 @@ function renderGraphStatus(data) {
   const table = {
     fields: def.defaultFieldProperties([
       {key: 'name', format: 'text'},
-      {key: 'nodesID', format: 'text'},
+      {key: 'nodes', format: 'text'},
       {key: 'status', format: 'text'},
       {key: 'resultCount', d3_format: 'd'},
       {key: 'action', format: 'control'}
     ])
   };
   const records = data.map(e => {
+    e.nodes = e.reference.nodes;
     e.action = (s) => tableAction(s, e, 'graph.html');
     return e;
   });
