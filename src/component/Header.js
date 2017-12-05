@@ -19,7 +19,7 @@ function renderStatus(data, refresh_callback, abort_callback) {
   };
   const dtx = doneText[data.dataType];
   d3.select('#progress')
-    .text(`(${data.status} - ${data.resultCount} ${dtx} in ${data.execTime} sec.)`);
+    .text(`(${data.status} - ${data.records.length} ${dtx} in ${data.execTime} sec.)`);
   if (def.ongoing(data)) {
     d3.select('#progress').append('div').append('progress')
       .attr('max', 100)

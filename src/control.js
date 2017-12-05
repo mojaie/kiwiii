@@ -42,6 +42,7 @@ function renderTableStatus(data) {
     ])
   };
   const records = data.map(e => {
+    e.resultCount = e.records.length;
     e.action = (s) => tableAction(s, e, 'datatable.html');
     return e;
   });
@@ -62,6 +63,7 @@ function renderGraphStatus(data) {
   };
   const records = data.map(e => {
     e.nodes = e.reference.nodes;
+    e.resultCount = e.records.length;
     e.action = (s) => tableAction(s, e, 'graph.html');
     return e;
   });
