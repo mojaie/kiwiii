@@ -194,7 +194,7 @@ function columnDialog(dataFields, callback) {
   };
   const records = dataFields.map(e => {
     const rcd = {};
-    const generalFormat = ['text', 'numeric', 'd3_format'];
+    const generalFormat = ['raw', 'text', 'numeric', 'd3_format'];
     rcd.name = e.name;
     rcd.visible = selection => selection
         .classed('column-vis', true)
@@ -210,8 +210,8 @@ function columnDialog(dataFields, callback) {
         .call(cmp.selectOptions,
               generalFormat.includes(e.format) ? generalFormat : [e.format],
               d => d, d => d)
-        .property('value', e.format)
         .attr('disabled', generalFormat.includes(e.format) ? null : 'disabled')
+        .property('value', e.format)
         .on('change', function () {
           d3.select(`.column-d3f.row-${e.key} input`)
             .attr('disabled', this.value === 'd3_format' ? null : 'disabled');
@@ -220,8 +220,9 @@ function columnDialog(dataFields, callback) {
         .classed('column-d3f', true)
         .classed(`row-${e.key}`, true)
       .append('input')
-        .property('value', e.d3_format)
-        .attr('disabled', e.format === 'd3_format' ? null : 'disabled');
+        .attr('size', 10)
+        .attr('disabled', e.format === 'd3_format' ? null : 'disabled')
+        .property('value', e.d3_format);
     return rcd;
   });
   d3.select('#column-table')
