@@ -194,7 +194,7 @@ function columnDialog(dataFields, callback) {
   };
   const records = dataFields.map(e => {
     const rcd = {};
-    const generalFormat = ['raw', 'text', 'numeric', 'd3_format'];
+    const generalFormat = ['text', 'numeric', 'd3_format', 'raw', 'compound_id'];
     rcd.name = e.name;
     rcd.visible = selection => selection
         .classed('column-vis', true)
