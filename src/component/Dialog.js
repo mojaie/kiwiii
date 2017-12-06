@@ -23,7 +23,7 @@ function pickDialog(resources, callback) {
   });
   d3.select('#pick-submit')
     .on('click', () => {
-      d3.select('#loading-circle').style('display', 'inline');
+      d3.select('#loading-icon').style('display', 'inline');
       const query = {
         type: 'chemsearch',
         targets: resources.filter(e => e.domain === 'chemical').map(e => e.id),
