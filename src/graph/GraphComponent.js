@@ -13,7 +13,7 @@ function graphNodes(selection, data) {
     .attr('class', 'node-label');
   const updated = entered.merge(nodes);
   updated.select('.node-struct')
-    .html(d => d._structure);
+    .html(d => d.structure);
   updated.select('.node-label')
     .attr('x', 0)
     .attr('text-anchor', 'middle');

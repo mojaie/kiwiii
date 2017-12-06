@@ -8,7 +8,7 @@ const fieldHeight = 1200;
 
 const simulation = d3.forceSimulation()
   .force('link',
-    d3.forceLink().id(d => d._index)
+    d3.forceLink().id(d => d.index)
       .distance(60)
       .strength(1))
   .force('charge',

@@ -77,7 +77,7 @@ function renderServerStatus(data) {
     fields: def.defaultFieldProperties(data.calc.fields)
   };
   d3.select('#server-calc').call(cmp.createTable, calc)
-    .call(cmp.updateTableRecords, data.calc.records, d => d._index);
+    .call(cmp.updateTableRecords, data.calc.records, d => d.index);
   const server = {
     fields: def.defaultFieldProperties([
       {key: 'key', format: 'text'},
@@ -88,7 +88,7 @@ function renderServerStatus(data) {
     .filter(e => e[0] !== 'calc')
     .map(e => ({key: e[0], value: e[1]}));
   d3.select('#server-status').call(cmp.createTable, server)
-    .call(cmp.updateTableRecords, server.records, d => d._index);
+    .call(cmp.updateTableRecords, server.records, d => d.index);
 }
 
 

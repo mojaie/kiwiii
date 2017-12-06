@@ -53,7 +53,7 @@ function mappingToTable(mapping) {
  * @param {object} key - key
  * @return {object} field mapping
  */
-function tableToMapping(table, key, ignore=['_index']) {
+function tableToMapping(table, key, ignore=['index']) {
   const now = new Date();
   const mapping = {
     created: now.toString(),

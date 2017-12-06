@@ -43,8 +43,8 @@ function render() {
       // Following operations use data.records
       d3.select('#datatable')
         .call(grid.createDataGrid, data)
-        .call(grid.dataGridRecords, data.records, d => d._index)
-        .call(grid.addSort, data.records, d => d._index);
+        .call(grid.dataGridRecords, data.records, d => d.index)
+        .call(grid.addSort, data.records, d => d.index);
       store.getResources().then(rsrc => {
         const actres = rsrc.filter(e => e.domain === 'activity');
         const compoundIDs = data.records.map(e => e.id);

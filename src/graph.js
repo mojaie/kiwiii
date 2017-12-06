@@ -138,14 +138,14 @@ function render() {
           .then(start);
       });
       dialog.communityDialog(query => {
-        const nodeIds = g.nodes.records.map(e => e._index);
+        const nodeIds = g.nodes.records.map(e => e.index);
         const visibleEdges = g.edges.records
           .filter(e => e.weight >= g.edges.networkThreshold);
         const comm = community.communityDetection(
           nodeIds, visibleEdges, {nulliso: query.nulliso}
         );
         const mapping = {
-          key: '_index',
+          key: 'index',
           field: def.defaultFieldProperties(
             [{key: query.name, format: 'd3_format', d3_format: 'd'}]),
           mapping: comm

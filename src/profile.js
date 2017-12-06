@@ -25,9 +25,9 @@ function updateChem(resources) {
       d3.select('#compoundid').html(rcd.compound_id);
       d3.select('#compounddb').html(
         resources.find(e => e.id === rcd.source).name);
-      d3.select('#structure').html(rcd._structure);
+      d3.select('#structure').html(rcd.structure);
       const records = res.fields
-        .filter(e => !['_structure', '_index', 'compound_id'].includes(e.key))
+        .filter(e => !['structure', 'index', 'compound_id'].includes(e.key))
         .map(e => ({ key: e.name, value: rcd[e.key] }));
       const data = {
         fields: def.defaultFieldProperties([
@@ -98,12 +98,12 @@ function updateActivities() {
       const table = {
         fields: def.defaultFieldProperties([
           {key: 'assay_id', name: 'Assay ID', format: 'text'},
-          {key: 'field', name: 'Value type', format: 'text'},
-          {key: '_value', name: 'value', format: 'numeric'}
+          {key: 'value_type', name: 'Value type', format: 'text'},
+          {key: 'value', name: 'value', format: 'numeric'}
         ])
       };
       d3.select('#results').call(cmp.createTable, table)
-        .call(cmp.updateTableRecords, res.records, d => d._index)
+        .call(cmp.updateTableRecords, res.records, d => d.index)
         .call(cmp.addSort);
     }, fetcher.error);
 }

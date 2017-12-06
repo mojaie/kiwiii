@@ -81,7 +81,7 @@ function v07_to_v08_edges(json, nodeFields) {
     snp.nodeLabel.field = nodeFields.find(e => e.key === json.snapshot.nodeLabel.column);
   } else {
     snp.nodeLabel = {
-      id: 'label', size: 12, text: '_index', visible: false, field: nodeFields[0],
+      id: 'label', size: 12, text: 'index', visible: false, field: nodeFields[0],
       scale: {scale: 'linear', domain: [0, 1], range: ['black', 'white'], unknown: 'gray'}
     };
   }
