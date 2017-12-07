@@ -1,12 +1,17 @@
-#loading-circle {
+html,
+body,
+.container-fluid {
+  height: 100%;
+}
+#loading-icon {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   margin: auto;
-  width: 40px;
-  height: 40px;
+  width: 100px;
+  height: 100px;
   display: none;
 }
 .listbox {
