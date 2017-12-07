@@ -12,6 +12,7 @@ import {default as cmp} from './component/Component.js';
 
 function updateChem(resources) {
   const compound = win.URLQuery().compound;
+  d3.select('title').text(compound);
   const query = {
     type: 'chemsearch',
     targets: resources.filter(e => e.domain === 'chemical').map(e => e.id),
@@ -24,7 +25,7 @@ function updateChem(resources) {
       const rcd = res.records[0];
       d3.select('#compoundid').html(rcd.compound_id);
       d3.select('#compounddb').html(
-        resources.find(e => e.id === rcd.source).name);
+        resources.find(e => e.id === rcd.__source).name);
       d3.select('#structure').html(rcd.structure);
       const records = res.fields
         .filter(e => !['structure', 'index', 'compound_id'].includes(e.key))
@@ -47,7 +48,7 @@ function updateChemAliases(resources, qrcd) {
     targets: resources.filter(e => e.domain === 'chemical').map(e => e.id),
     queryMol: {
       format: 'dbid',
-      source: qrcd.source,
+      source: qrcd.__source,
       value: qrcd.compound_id
     },
     params: {ignoreHs: true}
@@ -56,11 +57,12 @@ function updateChemAliases(resources, qrcd) {
     .then(fetcher.json)
     .then(res => {
       const records = res.records
-        .filter(rcd => rcd.compound_id !== qrcd.compound_id || rcd.source !== qrcd.source)
+        .filter(rcd => rcd.compound_id !== qrcd.compound_id ||
+                rcd.__source !== qrcd.__source)
         .map(rcd => {
           return {
             compound_id: `<a href="profile.html?compound=${rcd.compound_id}" target="_blank">${rcd.compound_id}</a>`,
-            database: resources.find(e => e.id === rcd.source).name
+            database: resources.find(e => e.id === rcd.__source).name
           };
         });
       const data = {
@@ -99,7 +101,7 @@ function updateActivities() {
         fields: def.defaultFieldProperties([
           {key: 'assay_id', name: 'Assay ID', format: 'text'},
           {key: 'value_type', name: 'Value type', format: 'text'},
-          {key: 'value', name: 'value', format: 'numeric'}
+          {key: 'value', name: 'Value', format: 'numeric'}
         ])
       };
       d3.select('#results').call(cmp.createTable, table)

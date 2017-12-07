@@ -19,6 +19,9 @@ const defaultColumnHeight = {
   none: 200
 };
 
+const scrollBarSpace = 20;
+
+
 
 function createDataGrid(selection, data) {
   // Header
@@ -42,7 +45,7 @@ function createDataGrid(selection, data) {
     height: cols.reduce((a, b) => a.height > b.height ? a : b).height,
     width: cols.reduce((a, b) => ({width: a.width + b.width})).width
   };
-  selection.style('width', `${rowSize.width}px`);
+  selection.style('width', `${rowSize.width + scrollBarSpace}px`);
   selection.select('.dg-header').datum(rowSize);
   const header = selection.select('.dg-header')
     .selectAll('.dg-hcell')

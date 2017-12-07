@@ -31,7 +31,7 @@ const isDebugBuild = args.options.debug;
 const bundles = [
   {name: 'control', module: 'kwcontrol'},
   {name: 'datatable', module: 'kwdatatable'},
-  {name: 'profile', module: 'kwprofile', deploy: false},
+  {name: 'profile', module: 'kwprofile'},
   {name: 'graph', module: 'kwgraph'},
   {name: 'report', module: 'kwreport', deploy: false},
   {
