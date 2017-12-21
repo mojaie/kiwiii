@@ -157,7 +157,31 @@ function parseJSON(data, compressed) {
   const json = JSON.parse(text);
   if (json.hasOwnProperty('schemaVersion')) return json;
   if (json.hasOwnProperty('edges')) {
-    if (json.edges.hasOwnProperty('schemaVersion')) return json;
+    if (json.edges.hasOwnProperty('schemaVersion')) {
+      if (!json.edges.hasOwnProperty('reference')) { // ver0.8.0-0.8.1
+        json.edges.reference = {nodes: json.edges.nodesID};
+        const idx_converter = {};
+        json.nodes.records.forEach((e, i) => {
+            e.index = i;
+            e.structure = e._structure;
+            idx_converter[e._index] = e.index;
+            delete e._index;
+            delete e._structure;
+        });
+        json.edges.records.forEach(e => {
+            e.source = idx_converter[e.source];
+            e.target = idx_converter[e.target];
+        });
+        json.nodes.fields.forEach(e => {
+          if (e.key === '_index') e.key = 'index';
+          if (e.key === '_structure') e.key = 'structure';
+        });
+        json.edges.snapshot.nodeColor.field.key = 'index';
+        json.edges.snapshot.nodeLabel.field.key = 'index';
+        json.edges.snapshot.nodeSize.field.key = 'index';
+      }
+      return json;
+    }
   }
   return v07_to_v08_convert(json);
 }
