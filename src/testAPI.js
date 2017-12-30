@@ -36,8 +36,8 @@ testCases.push(() =>
     type: 'filter',
     targets: ['exp_results'],
     key: 'compound_id',
-    values: ['DB00189', 'DB00193', 'DB00203', 'DB00865', 'DB01143'],
-    operator: 'in'
+    value: 'DB00189',
+    operator: 'eq'
   }).then(fetcher.json)
     .then(res => ({output: res, test: 'filter', pass: true}))
     .catch(err => ({output: err, test: 'filter', pass: false}))
@@ -46,6 +46,7 @@ testCases.push(() =>
 testCases.push(() =>
   fetcher.get('run', {
     type: 'profile',
+    targets: ['exp_results'],
     compound_id: 'DB00189'
   }).then(fetcher.json)
     .then(res => ({output: res, test: 'profile', pass: true}))
@@ -95,7 +96,7 @@ testCases.push(() =>
       type: 'chemprop',
       targets: ['drugbankfda'],
       key: '_mw',
-      values: [1000],
+      value: 1000,
       operator: 'gt'
     }).then(fetcher.json)
       .then(res => {

@@ -54,7 +54,7 @@ function propDialog(resources, callback) {
         type: 'chemprop',
         targets: d3form.checkboxValues('#prop-targets'),
         key: d3form.optionData('#prop-key').key,
-        values: d3form.textareaLines('#prop-queryarea'),
+        value: d3form.value('#prop-value'),
         operator: d3form.value('#prop-operator')
       };
       return fetcher.get('async', query)
