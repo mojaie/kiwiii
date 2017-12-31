@@ -82,7 +82,9 @@ function start() {
         () => common.fetchResults('abort').then(render));
       const edgesToDraw = g.edges.records
         .filter(e => e.weight >= g.edges.networkThreshold);
-      const logD = d3.format('.2f')(Math.log10(edgesToDraw.length / g.edges.taskCount));
+      const n = g.nodes.records.length;
+      const combinations = n * (n - 1) / 2;
+      const logD = d3.format('.2f')(Math.log10(edgesToDraw.length / combinations));
       d3.select('#edge-density').text(logD);
       d3.select('#network-thld').text(g.edges.networkThreshold);
       component.graphEdges(d3.select('#graph-contents'), edgesToDraw);

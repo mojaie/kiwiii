@@ -14,12 +14,12 @@ function updateChem(resources) {
   const compound = win.URLQuery().compound;
   d3.select('title').text(compound);
   const query = {
-    type: 'chemsearch',
+    workflow: 'chemsearch',
     targets: resources.filter(e => e.domain === 'chemical').map(e => e.id),
     key: 'compound_id',
     values: [compound]
   };
-  return fetcher.get('run', query)
+  return fetcher.get(query.workflow, query)
     .then(fetcher.json)
     .then(res => {
       const rcd = res.records[0];
@@ -44,7 +44,7 @@ function updateChem(resources) {
 
 function updateChemAliases(resources, qrcd) {
   const query = {
-    type: 'exact',
+    workflow: 'exact',
     targets: resources.filter(e => e.domain === 'chemical').map(e => e.id),
     queryMol: {
       format: 'dbid',
@@ -53,7 +53,7 @@ function updateChemAliases(resources, qrcd) {
     },
     params: {ignoreHs: true}
   };
-  return fetcher.get('run', query)
+  return fetcher.get(query.workflow, query)
     .then(fetcher.json)
     .then(res => {
       const records = res.records
@@ -76,7 +76,7 @@ function updateChemAliases(resources, qrcd) {
 }
 
 
-function updateActivities() {
+function updateActivities(resources) {
   const compound = win.URLQuery().compound;
   // Prevent implicit submission
   document.getElementById('search')
@@ -91,10 +91,11 @@ function updateActivities() {
       .style('position', d => match(d) ? null : 'absolute');
   });
   const query = {
-    type: 'profile',
-    compound_id: compound
+    workflow: 'profile',
+    compound_id: compound,
+    targets: resources.filter(e => e.domain === 'activity').map(e => e.id),
   };
-  return fetcher.get('run', query)
+  return fetcher.get(query.workflow, query)
     .then(fetcher.json)
     .then(res => {
       const table = {
@@ -116,7 +117,7 @@ function run() {
     .then(() => store.getResources())
     .then(rsrcs => Promise.all([
       updateChem(rsrcs).then(qrcd => updateChemAliases(rsrcs, qrcd)),
-      updateActivities()
+      updateActivities(rsrcs)
     ]));
 }
 

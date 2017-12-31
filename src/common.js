@@ -44,7 +44,7 @@ function fetchResults(command='update') {
     })
     .then(data => {
       const query = {id: data.id, command: command};
-      return fetcher.get('res', query)
+      return fetcher.get('progress', query)
         .then(fetcher.json)
         .then(store.updateTable, fetcher.error);
     }, () => Promise.resolve());

@@ -52,20 +52,13 @@ function render() {
           return store.joinFields(win.URLQuery().id, mapping).then(render);
         });
       });
-      dialog.graphDialog(params => {
-        const formData = new FormData();
-        formData.append('contents', new Blob([JSON.stringify(data)]));
-        formData.append('params', JSON.stringify(params));
-        return fetcher.post('simnet', formData)
-          .then(fetcher.json)
-          .then(json => {
-            json.networkThreshold = json.query.threshold;
-            return common.interactiveInsert(json)
-              .then(id => {
-                d3.select('#loading-circle').style('display', 'none');
-                window.open(`graph.html?id=${id}`, '_blank');
-              });
-          }, fetcher.error);
+      dialog.graphDialog(data, graph => {
+        graph.networkThreshold = graph.query.params.threshold;
+        return common.interactiveInsert(graph)
+          .then(id => {
+            d3.select('#loading-circle').style('display', 'none');
+            window.open(`graph.html?id=${id}`, '_blank');
+          });
       });
       d3.select('#export')
         .on('click', () => hfile.downloadJSON(data, data.name, true));

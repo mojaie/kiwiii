@@ -21,8 +21,7 @@ testCases.push(() =>
 );
 
 testCases.push(() =>
-  fetcher.get('run', {
-    type: 'chemsearch',
+  fetcher.get('chemsearch', {
     targets: ['drugbankfda'],
     key: 'compound_id',
     values: ['DB00189', 'DB00193', 'DB00203', 'DB00865', 'DB01143']
@@ -32,20 +31,7 @@ testCases.push(() =>
 );
 
 testCases.push(() =>
-  fetcher.get('run', {
-    type: 'filter',
-    targets: ['exp_results'],
-    key: 'compound_id',
-    value: 'DB00189',
-    operator: 'eq'
-  }).then(fetcher.json)
-    .then(res => ({output: res, test: 'filter', pass: true}))
-    .catch(err => ({output: err, test: 'filter', pass: false}))
-);
-
-testCases.push(() =>
-  fetcher.get('run', {
-    type: 'profile',
+  fetcher.get('profile', {
     targets: ['exp_results'],
     compound_id: 'DB00189'
   }).then(fetcher.json)
@@ -68,8 +54,7 @@ testCases.push(() =>
 
 testCases.push(() =>
   new Promise(r => {
-    fetcher.get('async', {
-      type: 'substr',
+    fetcher.get('substr', {
       targets: ['drugbankfda'],
       queryMol: {
         format: 'dbid',
@@ -83,7 +68,7 @@ testCases.push(() =>
       .then(res => {
         setTimeout(() => {
           const query = {id: res.id, command: 'abort'};
-          fetcher.get('res', query).then(fetcher.json).then(rows => r([res, rows]));
+          fetcher.get('progress', query).then(fetcher.json).then(rows => r([res, rows]));
         }, 2000);
       });
   }).then(res => ({output: res, test: 'substr', pass: true}))
@@ -92,8 +77,7 @@ testCases.push(() =>
 
 testCases.push(() =>
   new Promise(r => {
-    fetcher.get('async', {
-      type: 'chemprop',
+    fetcher.get('chemprop', {
       targets: ['drugbankfda'],
       key: '_mw',
       value: 1000,
@@ -102,16 +86,15 @@ testCases.push(() =>
       .then(res => {
         setTimeout(() => {
           const query = {id: res.id, command: 'abort'};
-          fetcher.get('res', query).then(fetcher.json).then(rows => r([res, rows]));
+          fetcher.get('progress', query).then(fetcher.json).then(rows => r([res, rows]));
         }, 2000);
       });
-  }).then(res => ({output: res, test: 'prop', pass: true}))
-    .catch(err => ({output: err, test: 'prop', pass: false}))
+  }).then(res => ({output: res, test: 'chemprop', pass: true}))
+    .catch(err => ({output: err, test: 'chemprop', pass: false}))
 );
 
 testCases.push(() =>
-  fetcher.get('run', {
-    type: 'chemsearch',
+  fetcher.get('chemsearch', {
     targets: ['drugbankfda'],
     key: 'compound_id',
     values: ['DB00186', 'DB00189', 'DB00193', 'DB00203', 'DB00764', 'DB00863',
@@ -121,22 +104,22 @@ testCases.push(() =>
     .then(res =>
       new Promise(r => {
         const params = {
-          measure: 'gls', threshold: 0.25, ignoreHs: true,
+          threshold: 0.25, ignoreHs: true,
           diameter: 8, maxTreeSize: 40, molSizeCutoff: 500
         };
         const formData = new FormData();
         formData.append('contents', new Blob([JSON.stringify(res)]));
         formData.append('params', JSON.stringify(params));
-        fetcher.post('simnet', formData)
+        fetcher.post('glsnet', formData)
           .then(fetcher.json)
           .then(res => {
             setTimeout(() => {
               const query = {id: res.id, command: 'abort'};
-              fetcher.get('res', query).then(fetcher.json).then(rows => r([res, rows]));
+              fetcher.get('progress', query).then(fetcher.json).then(rows => r([res, rows]));
             }, 2000);
           });
-      }).then(res => ({output: res, test: 'simnet', pass: true}))
-        .catch(err => ({output: err, test: 'simnet', pass: false}))
+      }).then(res => ({output: res, test: 'glsnet', pass: true}))
+        .catch(err => ({output: err, test: 'glsnet', pass: false}))
     )
 );
 

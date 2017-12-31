@@ -99,7 +99,7 @@ function run() {
         return Promise.all(tables.map(tbl => {
           if (tbl.status !== 'running') return Promise.resolve();
           const query = {id: tbl.id, command: 'fetch'};
-          return fetcher.get('res', query)
+          return fetcher.get('progress', query)
             .then(fetcher.json)
             .then(store.updateTable);
         }));

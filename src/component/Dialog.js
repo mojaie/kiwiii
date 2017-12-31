@@ -25,12 +25,12 @@ function pickDialog(resources, callback) {
     .on('click', () => {
       d3.select('#loading-icon').style('display', 'inline');
       const query = {
-        type: 'chemsearch',
+        workflow: 'chemsearch',
         targets: resources.filter(e => e.domain === 'chemical').map(e => e.id),
         key: 'compound_id',
         values: d3form.textareaLines('#pick-queryarea')
       };
-      return fetcher.get('run', query)
+      return fetcher.get(query.workflow, query)
         .then(fetcher.json)
         .then(callback, fetcher.error);
     });
@@ -51,13 +51,13 @@ function propDialog(resources, callback) {
     .on('click', () => {
       d3.select('#loading-circle').style('display', 'inline');
       const query = {
-        type: 'chemprop',
+        workflow: 'chemprop',
         targets: d3form.checkboxValues('#prop-targets'),
         key: d3form.optionData('#prop-key').key,
         value: d3form.value('#prop-value'),
         operator: d3form.value('#prop-operator')
       };
-      return fetcher.get('async', query)
+      return fetcher.get(query.workflow, query)
         .then(fetcher.json)
         .then(callback, fetcher.error);
     });
@@ -116,11 +116,11 @@ function structDialog(resources, callback) {
     });
   d3.select('#struct-submit')
     .on('click', () => {
-      const method = d3form.value('#struct-method');
+      const workflow = d3form.value('#struct-method');
       d3.select('#loading-circle').style('display', 'inline');
       const f = d3form.value('#struct-format');
       const query = {
-        type: d3form.value('#struct-method'),
+        workflow: workflow,
         targets: d3form.checkboxValues('#struct-targets'),
         queryMol: {
           format: f,
@@ -132,14 +132,13 @@ function structDialog(resources, callback) {
           measure: d3form.value('#struct-thldtype'),
           threshold: d3form.valueFloat('#struct-thld'),
           ignoreHs: d3form.checked('#struct-ignoreh'),
-          diameter: method === 'gls' ? d3form.valueInt('#struct-diam') : null,
-          maxTreeSize: method === 'gls' ? d3form.valueInt('#struct-tree') : null,
-          molSizeCutoff: method === 'gls' ? d3form.valueInt('#struct-skip') : null,
-          timeout: method === 'rdfmcs' ? d3form.valueInt('#struct-timeout') : null
+          diameter: workflow === 'gls' ? d3form.valueInt('#struct-diam') : null,
+          maxTreeSize: workflow === 'gls' ? d3form.valueInt('#struct-tree') : null,
+          molSizeCutoff: workflow === 'gls' ? d3form.valueInt('#struct-skip') : null,
+          timeout: workflow === 'rdfmcs' ? d3form.valueInt('#struct-timeout') : null
         }
       };
-      const command = query.type === 'exact' ? 'run' : 'async';
-      return fetcher.get(command, query)
+      return fetcher.get(query.workflow, query)
         .then(fetcher.json)
         .then(callback, fetcher.error);
     });
@@ -337,7 +336,7 @@ function fieldFileDialog(callback) {
 }
 
 
-function graphDialog(callback) {
+function graphDialog(data, callback) {
   store.getAppSetting('rdkit').then(rdk => {
     d3.select('#graph-measure').selectAll('option.rd')
       .attr('disabled', rdk ? null : 'disabled');
@@ -362,7 +361,12 @@ function graphDialog(callback) {
         molSizeCutoff: measure === 'gls' ? d3form.valueInt('#graph-skip') : null,
         timeout: measure === 'rdfmcs' ? d3form.valueInt('#graph-timeout') : null
       };
-      callback(params);
+      const formData = new FormData();
+      formData.append('contents', new Blob([JSON.stringify(data)]));
+      formData.append('params', JSON.stringify(params));
+      return fetcher.post(`${params.measure}net`, formData)
+        .then(fetcher.json)
+        .then(callback, fetcher.error);
     });
 }
 
