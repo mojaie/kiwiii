@@ -5,12 +5,19 @@ import {default as force} from './GraphForce.js';
 
 const zoom = d3.zoom()
   .on('zoom', () => {
-    d3.select('#graph-contents').attr('transform', d3.event.transform);
+    d3.select('#graph-field').attr('transform', d3.event.transform);
+    // debug
+    d3.select('#debug-transform').text(d3.event.transform);
+    const box = d3.select('#graph-components').node().getBBox();
+    d3.select('#debug-viewport-left').text(box.x);
+    d3.select('#debug-viewport-top').text(box.y);
+    d3.select('#debug-viewport-width').text(box.width);
+    d3.select('#debug-viewport-height').text(box.height);
   });
 
 const dragWithForce = d3.drag()
   .on('start', () => {
-    d3.select('#graph-contents').selectAll('.link')
+    d3.select('#graph-components').selectAll('.link')
       .attr('visibility', 'hidden');
     if (!d3.event.active) force.simulation.alphaTarget(0.1).restart();
   })
@@ -27,10 +34,10 @@ const dragWithForce = d3.drag()
 const dragNoForce = d3.drag()
   .on('drag', function (d) {
     d3.select(this)
-      .attr('transform', () => `translate(${d3.event.x}, ${d3.event.y})`);
+      .attr('transform', `translate(${d3.event.x}, ${d3.event.y})`);
     d.x = d3.event.x;
     d.y = d3.event.y;
-    const connected = d3.select('#graph-contents').selectAll('.link')
+    const connected = d3.select('#graph-components').selectAll('.link')
       .filter(d => [d.source.index, d.target.index].includes(this.__data__.index));
     connected.attr('transform', d => `translate(${d.source.x}, ${d.source.y})`)
       .attr('visibility', 'visible');
@@ -45,6 +52,12 @@ const dragNoForce = d3.drag()
   })
   .on('end', () => {
     force.end();
+    // debug
+    const box = d3.select('#graph-components').node().getBBox();
+    d3.select('#debug-viewport-left').text(box.x);
+    d3.select('#debug-viewport-top').text(box.y);
+    d3.select('#debug-viewport-width').text(box.width);
+    d3.select('#debug-viewport-height').text(box.height);
   });
 
 
@@ -57,10 +70,16 @@ function stickNodes() {
   force.tick();
   force.end();
   d3.select('#stick-nodes').property('checked', true);
-  d3.select('#graph-contents').selectAll('.link')
+  d3.select('#graph-components').selectAll('.link')
     .attr('visibility', 'visible');
-  d3.select('#graph-contents').selectAll('.node')
+  d3.select('#graph-components').selectAll('.node')
     .call(dragNoForce);
+  // debug
+  const box = d3.select('#graph-components').node().getBBox();
+  d3.select('#debug-viewport-left').text(box.x);
+  d3.select('#debug-viewport-top').text(box.y);
+  d3.select('#debug-viewport-width').text(box.width);
+  d3.select('#debug-viewport-height').text(box.height);
 }
 
 
@@ -70,9 +89,9 @@ function unstickNodes() {
     d.fy = null;
   });
   d3.select('#stick-nodes').property('checked', false);
-  d3.select('#graph-contents').selectAll('.link')
+  d3.select('#graph-components').selectAll('.link')
     .attr('visibility', 'hidden');
-  d3.select('#graph-contents').selectAll('.node')
+  d3.select('#graph-components').selectAll('.node')
     .call(dragWithForce);
 }
 
@@ -90,25 +109,22 @@ function restart() {
 
 
 function fitToScreen() {
-  d3.select('#graph-field').call(zoom.transform, d3.zoomIdentity);
-  // TODO
-  /*
-  const p = 0.9;  // padding factor
-  const x = extent(selectAll('.node').data(), d => d.x);
-  const y = extent(selectAll('.node').data(), d => d.y);
-  const w = x[1] - x[0];
-  const h = y[1] - y[0];
-  const vb = select('#graph-field').attr('viewBox').split(' ');
-  const xScaleF = vb[2] / w * p;
-  const yScaleF = vb[3] / h * p;
-  const scaleF = Math.max(xScaleF, yScaleF);
-  const center = [(w * (1 - p) / 2 - x[0]) * xScaleF,
-                  (h * (1 - p) / 2 - y[0]) * yScaleF];
-  // Reset zoom point
-  zoom.scale(scaleF);
-  zoom.translate(center);
-  updateViewportTransform(center, scaleF);
-  */
+  const viewBox = d3.select('#graph-view-boundary').node().getBBox();
+  const viewBoxRatio = viewBox.width / viewBox.height;
+  const field = d3.select('#graph-components').node().getBBox();
+  const fieldRatio = field.width / field.height;
+  const scale = viewBoxRatio >= fieldRatio
+    ? viewBox.height / field.height
+    : viewBox.width / field.width;
+  const tx = -field.x * scale;
+  const ty = -field.y * scale;
+  d3.select('#graph-field')
+      .attr('transform', `translate(${tx}, ${ty}) scale(${scale})`);
+  d3.select('#graph-view')
+      .call(
+        zoom.transform,
+        d3.zoomIdentity.translate(tx, ty).scale(scale)
+      );
 }
 
 

@@ -39,7 +39,7 @@ function setForce(nodes, edges, tick, end) {
 
 
 function tick() {
-  d3.select('#graph-contents').selectAll('.node')
+  d3.select('#graph-components').selectAll('.node')
     .attr('transform', d => `translate(${d.x}, ${d.y})`);
   const alpha = simulation.alpha();
   const isStopped = alpha <= simulation.alphaMin();
@@ -52,15 +52,15 @@ function tick() {
 
 
 function end() {
-  d3.select('#graph-contents').selectAll('.link')
+  d3.select('#graph-components').selectAll('.link')
     .attr('transform', d => `translate(${d.source.x}, ${d.source.y})`)
     .attr('visibility', 'visible');
-  d3.select('#graph-contents').selectAll('.edge-line')
+  d3.select('#graph-components').selectAll('.edge-line')
     .attr('x1', 0)
     .attr('y1', 0)
     .attr('x2', d => d.target.x - d.source.x)
     .attr('y2', d => d.target.y - d.source.y);
-  d3.select('#graph-contents').selectAll('.edge-label')
+  d3.select('#graph-components').selectAll('.edge-label')
     .attr('x', d => (d.target.x - d.source.x) / 2)
     .attr('y', d => (d.target.y - d.source.y) / 2);
 }

@@ -5,7 +5,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.5/pako.min.js"></script>
 <script src="kwgraph.js"></script>
 <div class="container-fluid" style="background-color: #fffff9">
-  <div class="btn-toolbar" role="toolbar">
+  <div id="debugbar">
+    <div>d3.event.transform: <span id="debug-transform"></span></div>
+    <div>left: <span id="debug-viewport-left"></span>, top: <span id="debug-viewport-top"></span>, width: <span id="debug-viewport-width"></span>, height: <span id="debug-viewport-height"></span></div>
+    <div>canvas width: <span id="debug-canvas-width"></span>, canvas height: <span id="debug-canvas-height"></span></div>
+  </div>
+  <div id="toolbar" class="btn-toolbar" role="toolbar">
     <div id="new-data" class="btn-group">
       <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">+ New graph</button>
       <div class="dropdown-menu">
@@ -19,7 +24,7 @@
       <button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-toggle="dropdown">Graph control</button>
       <div class="dropdown-menu">
         <a id="snapshot" class="dropdown-item">Save snapshot</a>
-        <!--<a id="fit" class="dropdown-item">Fit to screen</a>-->
+        <a id="fit" class="dropdown-item">Fit to screen</a>
         <a id="restart" class="dropdown-item">Restart simulation</a>
         <a class="dropdown-item" data-toggle="modal" data-target="#community-dialog">Community detection</a>
         <a class="dropdown-item" data-toggle="modal" data-target="#graphconfig-dialog">Graph settings</a>
@@ -36,8 +41,8 @@
       <span id="progress"></span>
     </span>
   </div>
-  <div class="row">
-    <div class="col-sm-3 px-0">
+  <div id="contents" class="row">
+    <div id="controlbox" class="col-sm-3 px-0">
       <div class="card">
         <div class="card-header">Control</div>
         <div id="main-control" class="card-block">
@@ -131,9 +136,12 @@
 
       </div>
     </div>
-    <div class="col-sm-9 px-0">
-      <svg id="graph-field" preserveAspectRatio="xMidYMid meet" pointer-events="all">
-        <g id="graph-contents"></g>
+    <div id="graph-area" class="col-sm-9 px-0">
+      <svg id="graph-view" preserveAspectRatio="xMinYMin meet" pointer-events="all">
+        <rect id="graph-view-boundary" />
+        <g id="graph-field">
+          <g id="graph-components"></g>
+        </g>
       </svg>
     </div>
   </div>

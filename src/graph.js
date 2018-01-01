@@ -23,7 +23,7 @@ import {default as community} from './graph/communityDetection.js';
 function takeSnapshot() {
   return {
     nodePositions: d3.selectAll('.node').data().map(d => ({x: d.x, y: d.y})),
-    fieldTransform: d3.zoomTransform(d3.select('#graph-field').node()),
+    fieldTransform: d3.zoomTransform(d3.select('#graph-view').node()),
     nodeContent: d3.select('#main-control').datum(),
     nodeColor: d3.select('#color-control').datum(),
     nodeSize: d3.select('#size-control').datum(),
@@ -53,8 +53,8 @@ function resume(snapshot) {
   control.updateControl(snapshot.edge);
   const tf = snapshot.fieldTransform;
   const transform = d3.zoomIdentity.translate(tf.x, tf.y).scale(tf.k);
-  d3.select('#graph-contents').attr('transform', transform);
-  d3.select('#graph-field').call(interaction.zoom.transform, transform);
+  d3.select('#graph-field').attr('transform', transform);
+  d3.select('#graph-view').call(interaction.zoom.transform, transform);
   d3.selectAll('.node').each((d, i) => {
     d.x = snapshot.nodePositions[i].x;
     d.y = snapshot.nodePositions[i].y;
@@ -87,8 +87,8 @@ function start() {
       const logD = d3.format('.2f')(Math.log10(edgesToDraw.length / combinations));
       d3.select('#edge-density').text(logD);
       d3.select('#network-thld').text(g.edges.networkThreshold);
-      component.graphEdges(d3.select('#graph-contents'), edgesToDraw);
-      component.graphNodes(d3.select('#graph-contents'), g.nodes.records);
+      component.graphEdges(d3.select('#graph-components'), edgesToDraw);
+      component.graphNodes(d3.select('#graph-components'), g.nodes.records);
       force.setForce(
         g.nodes.records, edgesToDraw, force.tick,
         () => {
@@ -121,7 +121,7 @@ function start() {
         control.updateEdge(dflt.defaultEdge);
         interaction.restart();
       }
-      d3.select('#graph-contents').style('opacity', 1e-6)
+      d3.select('#graph-components').style('opacity', 1e-6)
         .transition()
         .duration(1000)
         .style('opacity', 1);
@@ -212,11 +212,29 @@ function run() {
       // Load original data from store.
       return getGraph().then(g => hfile.downloadJSON(g, g.edges.name));
     });
-  d3.select('#graph-field')
-    .attr('viewBox', `0 0 ${force.fieldWidth} ${force.fieldHeight}`)
-    .call(interaction.zoom);
+  const resize = () => {
+    const area = d3.select('#graph-area').node();
+    const ratio = area.offsetWidth / area.offsetHeight;
+    const height = force.fieldWidth / ratio;
+    d3.select('#graph-view')
+      .attr('viewBox', `0 0 ${force.fieldWidth} ${height}`);
+    d3.select('#graph-view-boundary')
+      .attr('width', force.fieldWidth)
+      .attr('height', height);
+    d3.select('#debug-canvas-width').text(force.fieldWidth);
+    d3.select('#debug-canvas-height').text(height);
+  };
+  window.onresize = resize;
+  resize();
+  d3.select('#graph-view').call(interaction.zoom);
+  d3.select('#graph-view-boundary')
+    .attr('x', 0)
+    .attr('y', 0)
+    .attr('fill', '#ffffee');
   d3.select('#snapshot')
     .on('click', saveSnapshot);
+  d3.select('#fit')
+    .on('click', interaction.fitToScreen);
   d3.select('#restart')
     .on('click', interaction.restart);
   d3.select('#import-json')
