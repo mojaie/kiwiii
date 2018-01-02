@@ -32,7 +32,7 @@ const bundles = [
   {name: 'control', module: 'kwcontrol'},
   {name: 'datatable', module: 'kwdatatable'},
   {name: 'profile', module: 'kwprofile'},
-  {name: 'graph', module: 'kwgraph'},
+  {name: 'network', module: 'kwnetwork'},
   {name: 'report', module: 'kwreport', deploy: false},
   {
     name: 'main',

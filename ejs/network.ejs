@@ -3,12 +3,13 @@
 <% include partial/header %>
 <script src="https://cdn.rawgit.com/upphiminn/jLouvain/76b19313/jLouvain.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.5/pako.min.js"></script>
-<script src="kwgraph.js"></script>
+<script src="kwnetwork.js"></script>
 <div class="container-fluid" style="background-color: #fffff9">
   <div id="debugbar">
-    <div>d3.event.transform: <span id="debug-transform"></span></div>
-    <div>left: <span id="debug-viewport-left"></span>, top: <span id="debug-viewport-top"></span>, width: <span id="debug-viewport-width"></span>, height: <span id="debug-viewport-height"></span></div>
-    <div>canvas width: <span id="debug-canvas-width"></span>, canvas height: <span id="debug-canvas-height"></span></div>
+    <div>state.transform: <span id="debug-transform"></span></div>
+    <div>state.boundary: <span id="debug-boundary"></span></div>
+    <div>state.focusArea: <span id="debug-focusarea"></span></div>
+    <div>state.viewBox: <span id="debug-viewbox"></span></div>
   </div>
   <div id="toolbar" class="btn-toolbar" role="toolbar">
     <div id="new-data" class="btn-group">
@@ -136,14 +137,7 @@
 
       </div>
     </div>
-    <div id="graph-area" class="col-sm-9 px-0">
-      <svg id="graph-view" preserveAspectRatio="xMinYMin meet" pointer-events="all">
-        <rect id="graph-view-boundary" />
-        <g id="graph-field">
-          <g id="graph-components"></g>
-        </g>
-      </svg>
-    </div>
+    <div id="nw-frame" class="col-sm-9 px-0"></div>
   </div>
 </div>
 <div id="dialogs">
@@ -154,5 +148,5 @@
   <%- include('dialog/importConfirmDialog'); %>
 </div>
 <script type="text/javascript">
-  kwgraph.run();
+  kwnetwork.run();
 </script>

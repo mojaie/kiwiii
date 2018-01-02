@@ -55,7 +55,15 @@ const defaultEdge = {
 };
 
 
+const defaultAppearance = {
+  nodeColor: defaultNodeColor,
+  nodeSize: defaultNodeSize,
+  nodeLabel: defaultNodeLabel,
+  nodeContent: defaultNodeContent,
+  edge: defaultEdge
+};
+
 export default {
   defaultNodeColor, defaultNodeSize, defaultNodeLabel, defaultNodeContent,
-  defaultEdge
+  defaultEdge, defaultAppearance
 };
