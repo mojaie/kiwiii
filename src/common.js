@@ -101,6 +101,9 @@ function loader() {
         .then(fetcher.json)
         .then(schema => {
           console.info(`New resource schema version: ${serverStatus.instance}`);
+          schema.resources.forEach(e => {
+            e.fields = def.defaultFieldProperties(e.fields);
+          });
           return Promise.all([
             store.setResources(schema.resources),
             store.setAppSetting('templates', schema.templates),

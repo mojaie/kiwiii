@@ -25,7 +25,7 @@ function pickDialog(resources, callback) {
     .on('click', () => {
       d3.select('#loading-icon').style('display', 'inline');
       const query = {
-        workflow: 'chemsearch',
+        workflow: 'search',
         targets: resources.filter(e => e.domain === 'chemical').map(e => e.id),
         key: 'compound_id',
         values: d3form.textareaLines('#pick-queryarea')
@@ -41,9 +41,11 @@ function propDialog(resources, callback) {
   d3.select('#prop-targets')
     .call(cmp.checkboxList, resources, 'targets', d => d.id, d => d.name)
     .on('change', function () {
+      const types = ['compound_id', 'd3_format', 'numeric', 'text'];
       const cols = KArray.from(d3form.checkboxData('#prop-targets'))
         .map(d => d.fields)
-        .extend().unique('key');
+        .extend().unique('key')
+        .filter(d => types.includes(d.format));
       d3.select('#prop-key')
         .call(cmp.selectOptions, cols, d => d.key, d => d.name);
     });
@@ -51,7 +53,7 @@ function propDialog(resources, callback) {
     .on('click', () => {
       d3.select('#loading-circle').style('display', 'inline');
       const query = {
-        workflow: 'chemprop',
+        workflow: 'filter',
         targets: d3form.checkboxValues('#prop-targets'),
         key: d3form.optionData('#prop-key').key,
         value: d3form.value('#prop-value'),

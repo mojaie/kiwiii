@@ -14,7 +14,7 @@ function updateChem(resources) {
   const compound = win.URLQuery().compound;
   d3.select('title').text(compound);
   const query = {
-    workflow: 'chemsearch',
+    workflow: 'search',
     targets: resources.filter(e => e.domain === 'chemical').map(e => e.id),
     key: 'compound_id',
     values: [compound]
