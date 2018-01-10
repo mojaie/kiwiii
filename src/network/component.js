@@ -1,5 +1,5 @@
 
-/** @module network */
+/** @module network/component */
 
 import d3 from 'd3';
 
@@ -11,23 +11,22 @@ function updateNodes(selection, records) {
   const nodes = selection.selectAll('.node')
     .data(records, d => d.index);
   nodes.exit().remove();
-  const entered = nodes.enter().append('g')
-    .attr('class', 'node');
-  entered.append('circle')
-    .attr('class', 'node-symbol');
-  entered.append('g')
-    .attr('class', 'node-struct');
-  entered.append('text')
-    .attr('class', 'node-label');
-  const updated = entered.merge(nodes);
-  updated.select('.node-struct')
-    .html(d => d.structure);
-  updated.select('.node-label')
-    .attr('x', 0)
-    .attr('text-anchor', 'middle');
-  updated.each(function(d) {
-    d3.select(this).call(updateNodeCoords, d.x, d.y);
-  });
+  const entered = nodes.enter()
+    .append('g')
+      .attr('class', 'node')
+      .call(updateNodeCoords);
+  entered
+    .append('circle')
+      .attr('class', 'node-symbol');
+  entered
+    .append('g')
+      .attr('class', 'node-struct')
+      .html(d => d.structure);
+  entered
+    .append('text')
+      .attr('class', 'node-label')
+      .attr('x', 0)
+      .attr('text-anchor', 'middle');
 }
 
 
@@ -35,22 +34,21 @@ function updateEdges(selection, records) {
   const edges = selection.selectAll('.link')
     .data(records, d => `${d.source}_${d.target}`);
   edges.exit().remove();
-  const entered = edges.enter().append('g')
-    .attr('class', 'link');
-  entered.append('line')
-    .attr('class', 'edge-line');
-  entered.append('text')
-    .attr('class', 'edge-label');
-  const updated = entered.merge(edges);
-  updated.select('.edge-line')
-    .style('stroke', '#999')
-    .style('stroke-opacity', 0.6);
-  updated.select('.edge-label')
-    .attr('text-anchor', 'middle')
-    .text(d => d.weight);
-  updated.each(function(d) {
-    d3.select(this).call(updateEdgeCoords, d.sx, d.sy, d.tx, d.ty);
-  });
+  const entered = edges.enter()
+    .append('g')
+      .attr('class', 'link');
+  entered
+    .append('line')
+      .attr('class', 'edge-line')
+      .style('stroke', '#999')
+      .style('stroke-opacity', 0.6);
+  entered
+    .append('text')
+      .attr('class', 'edge-label')
+      .attr('text-anchor', 'middle')
+      .text(d => d.weight);
+  // draw all components and then
+  entered.call(updateEdgeCoords);
 }
 
 
@@ -99,38 +97,21 @@ function updateEdgeAttrs(selection, state) {
 }
 
 
-function updateNodeCoords(selection, x, y) {
-  selection.attr('transform', `translate(${x}, ${y})`);
+function updateNodeCoords(selection) {
+  selection.attr('transform', d => `translate(${d.x}, ${d.y})`);
 }
 
 
-function updateEdgeCoords(selection, sx, sy, tx, ty) {
-  selection.attr('transform', `translate(${sx}, ${sy})`);
+function updateEdgeCoords(selection) {
+  selection.attr('transform', d => `translate(${d.sx}, ${d.sy})`);
   selection.select('.edge-line')
     .attr('x1', 0)
     .attr('y1', 0)
-    .attr('x2', tx - sx)
-    .attr('y2', ty - sy);
+    .attr('x2', d => d.tx - d.sx)
+    .attr('y2', d => d.ty - d.sy);
   selection.select('.edge-label')
-    .attr('x', (tx - sx) / 2)
-    .attr('y', (ty - sy) / 2);
-}
-
-
-function updateCoords(selection, n, x, y) {
-  selection.select('.nw-nodes').selectAll(".node")
-    .filter(d => d.index == n)
-    .call(updateNodeCoords, x, y);
-  selection.select('.nw-edges').selectAll(".link")
-    .filter(d => d.source == n)
-    .each(function(d) {
-      d3.select(this).call(updateEdgeCoords, x, y, d.tx, d.ty);
-    });
-  selection.select('.nw-edges').selectAll(".link")
-    .filter(d => d.target == n)
-    .each(function(d) {
-      d3.select(this).call(updateEdgeCoords, d.sx, d.sy, x, y);
-    });
+    .attr('x', d => (d.tx - d.sx) / 2)
+    .attr('y', d => (d.ty - d.sy) / 2);
 }
 
 
@@ -143,10 +124,60 @@ function updateAttrs(selection, state) {
 function updateComponents(selection, state) {
   selection.select('.nw-nodes').call(updateNodes, state.nodesToRender());
   selection.select('.nw-edges').call(updateEdges, state.edgesToRender());
+  selection.call(updateAttrs, state);
+  if (state.zoomListener) {
+    selection.call(state.zoomListener);
+  }
+  if (state.dragListener) {
+    selection.select('.nw-nodes').selectAll('.node')
+      .call(state.dragListener);
+  }
 }
 
 
-function updateViewBox(selection, width, height) {
+function moveNode(selection, x, y) {
+  selection.attr('transform', `translate(${x}, ${y})`);
+}
+
+
+function moveEdge(selection, sx, sy, tx, ty) {
+  selection.attr('transform', `translate(${sx}, ${sy})`);
+  selection.select('.edge-line')
+    .attr('x1', 0)
+    .attr('y1', 0)
+    .attr('x2', tx - sx)
+    .attr('y2', ty - sy);
+  selection.select('.edge-label')
+    .attr('x', (tx - sx) / 2)
+    .attr('y', (ty - sy) / 2);
+}
+
+
+function move(selection, node, x, y) {
+  const n = d3.select(node).call(moveNode, x, y).datum();
+  n.adjacency.forEach(adj => {
+    const nbr = adj[0];
+    const edge = adj[1];
+    selection.select('.nw-edges').selectAll(".link")
+      .filter((_, i) => i === edge)
+      .each(function(d) {
+        if (n.index < nbr) {
+          d3.select(this).call(moveEdge, x, y, d.tx, d.ty);
+        } else {
+          d3.select(this).call(moveEdge, d.sx, d.sy, x, y);
+        }
+    });
+  });
+}
+
+
+function transform(selection, tx, ty, tk) {
+  selection.select('.nw-field')
+    .attr('transform', `translate(${tx}, ${ty}) scale(${tk})`);
+}
+
+
+function resizeViewBox(selection, width, height) {
   selection.attr('viewBox', `0 0 ${width} ${height}`);
   selection.select('.nw-view-boundary')
     .attr('width', width)
@@ -154,12 +185,8 @@ function updateViewBox(selection, width, height) {
 }
 
 
-function updateTransform(selection, tx, ty, tk) {
-  selection.select('.nw-field')
-    .attr('transform', `translate(${tx}, ${ty}) scale(${tk})`);
-}
-
-
 export default {
-  updateComponents, updateCoords, updateAttrs, updateTransform, updateViewBox
+  updateNodes, updateEdges, updateNodeCoords,
+  updateAttrs, updateComponents,
+  move, transform, resizeViewBox
 };

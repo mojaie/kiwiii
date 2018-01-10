@@ -1,5 +1,5 @@
 
-/** @module network */
+/** @module network/view */
 
 import {default as component} from './component.js';
 
@@ -33,8 +33,7 @@ function networkView(selection, state) {
   nwField.append('g').classed('nw-edges', true);
   nwField.append('g').classed('nw-nodes', true);
   selection
-    .call(component.updateComponents, state)
-    .call(component.updateAttrs, state);
+    .call(component.updateComponents, state);
 }
 
 

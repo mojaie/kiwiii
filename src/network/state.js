@@ -1,5 +1,5 @@
 
-/** @module network */
+/** @module network/state */
 
 import d3 from 'd3';
 
@@ -7,6 +7,7 @@ import d3 from 'd3';
 export default class NetworkState {
   constructor(data, width, height) {
     // TODO: v0.8 compatibility
+    // TODO: nodes and edges working copy
     this.nodes = data.nodes.records;
     this.edges = data.edges.records;
     this.transform = data.edges.snapshot.fieldTransform;
@@ -19,6 +20,12 @@ export default class NetworkState {
     this.edgeLabel = data.edges.snapshot.edge.label;
     this.networkThreshold = data.edges.networkThreshold;
 
+    this.simulationOnLoad = false;  // debug
+
+    // Event listener
+    this.zoomListener = null;
+    this.dragListener = null;
+
     // Working memory
     this.forceField = {top: 0, right: width, bottom: height, left: 0};
     this.viewBox = {top: 0, right: width, bottom: height, left: 0};
@@ -26,10 +33,12 @@ export default class NetworkState {
     this.boundary = {};
     // Assuming that the network is undirected graph and
     // source index < target index
-    this.adjacency = this.nodes.map(() => []);
+    this.nodes.forEach(n => {
+      n.adjacency = [];
+    });
     this.edges.forEach((e, i) => {
-      this.adjacency[e.source].push([e.target, i]);
-      this.adjacency[e.target].push([e.source, i]);
+      this.nodes[e.source].adjacency.push([e.target, i]);
+      this.nodes[e.target].adjacency.push([e.source, i]);
     });
 
     // Set default state
@@ -45,46 +54,52 @@ export default class NetworkState {
     this.boundary.left = Math.min.apply(null, xs);
     this.boundary.bottom = Math.max.apply(null, ys);
     this.boundary.right = Math.max.apply(null, xs);
-    this.showBoundary(); // debug
+    // this.showBoundary(); // debug
   }
 
   setFocusArea() {
     const tx = this.transform.x;
     const ty = this.transform.y;
     const tk = this.transform.k;
-    const margin = 0;
+    const margin = 50;
     this.focusArea.top = (this.viewBox.top - ty) / tk - margin;
     this.focusArea.left = (this.viewBox.left - tx) / tk - margin;
     this.focusArea.bottom = (this.viewBox.bottom - ty) / tk + margin;
     this.focusArea.right = (this.viewBox.right - tx) / tk + margin;
-    this.showFocusArea();  // debug
+    // this.showFocusArea();  // debug
   }
 
   setTransform(tx, ty, tk) {
     this.transform.x = tx;
     this.transform.y = ty;
     this.transform.k = tk;
-    this.showTransform(); // debug
+    // this.showTransform(); // debug
     this.setFocusArea();
   }
 
   setViewBox(width, height) {
     this.viewBox.right = width;
     this.viewBox.bottom = height;
-    this.showViewBox();  // debug
+    // this.showViewBox();  // debug
     this.setFocusArea();
   }
 
   setAllCoords(coordsList) {
-    this.nodes.forEach(e => {
-      e.x = coordsList[e.index].x;
-      e.y = coordsList[e.index].y;
-    });
-    this.edges.forEach(d => {
-      d.sx = coordsList[d.source].x;
-      d.sy = coordsList[d.source].y;
-      d.tx = coordsList[d.target].x;
-      d.ty = coordsList[d.target].y;
+    this.nodes.forEach(n => {
+      n.x = coordsList[n.index].x;
+      n.y = coordsList[n.index].y;
+      // this.edges can be changed by forceSimulation so use adjacency
+      n.adjacency.forEach(e => {
+        const nbr = e[0];
+        const edge = e[1];
+        if (n.index < nbr) {
+          this.edges[edge].sx = coordsList[n.index].x;
+          this.edges[edge].sy = coordsList[n.index].y;
+        } else {
+          this.edges[edge].tx = coordsList[n.index].x;
+          this.edges[edge].ty = coordsList[n.index].y;
+        }
+      });
     });
     this.setBoundary();
   }
@@ -92,7 +107,7 @@ export default class NetworkState {
   setCoords(n, x, y) {
     this.nodes[n].x = x;
     this.nodes[n].y = y;
-    this.adjacency[n].forEach(e => {
+    this.nodes[n].adjacency.forEach(e => {
       const nbr = e[0];
       const edge = e[1];
       if (n < nbr) {

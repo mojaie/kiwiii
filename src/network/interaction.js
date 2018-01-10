@@ -1,23 +1,19 @@
 
-/** @module network */
+/** @module network/interaction */
 
 import d3 from 'd3';
 
 import {default as component} from './component.js';
 
 
-function setDragListener(selection, state) {
-  selection.select('.nw-nodes').selectAll('.node')
-    .call(
-      d3.drag()
-        .on('drag', function (d) {
-          selection.call(
-            component.updateCoords, d.index, d3.event.x, d3.event.y);
-        })
-        .on('end', function (d) {
-          state.setCoords(d.index, d3.event.x, d3.event.y);
-        })
-    );
+function dragListener(selection, state) {
+  return d3.drag()
+    .on('drag', function () {
+      selection.call(component.move, this, d3.event.x, d3.event.y);
+    })
+    .on('end', function (d) {
+      state.setCoords(d.index, d3.event.x, d3.event.y);
+    });
 }
 
 
@@ -25,7 +21,7 @@ function zoomListener(selection, state) {
   return d3.zoom()
     .on('zoom', function() {
       selection.call(
-        component.updateTransform,
+        component.transform,
         d3.event.transform.x, d3.event.transform.y, d3.event.transform.k
       );
     })
@@ -34,17 +30,17 @@ function zoomListener(selection, state) {
         d3.event.transform.x, d3.event.transform.y, d3.event.transform.k
       );
       selection
-        .call(component.updateComponents, state)
-        .call(component.updateAttrs, state)
-        .call(setDragListener, state);
+        .call(component.updateComponents, state);
     });
 }
 
 
 function setInteraction(selection, state) {
-  selection
-    .call(zoomListener(selection, state))
-    .call(setDragListener, state);
+  state.zoomListener = zoomListener(selection, state);
+  state.dragListener = dragListener(selection, state);
+  selection.call(state.zoomListener);
+  selection.select('.nw-nodes').selectAll('.node')
+    .call(state.dragListener);
 }
 
 
@@ -60,10 +56,8 @@ function fit(selection, state) {
   const ty = -field.y * scale;
   state.setTransform(tx, ty, scale);
   selection
-    .call(component.updateTransform, tx, ty, scale)
+    .call(component.transform, tx, ty, scale)
     .call(component.updateComponents, state)
-    .call(component.updateAttrs, state)
-    .call(setDragListener, state)
     .call(
       d3.event.transform,
       d3.zoomIdentity.translate(tx, ty).scale(scale)
@@ -72,5 +66,5 @@ function fit(selection, state) {
 
 
 export default {
-  setInteraction, fit
+  dragListener, zoomListener, setInteraction, fit
 };

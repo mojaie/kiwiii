@@ -1,5 +1,5 @@
 
-/** @module network */
+/** @module network/frame */
 
 import {default as component} from './component.js';
 
@@ -21,7 +21,7 @@ function resize(selection, state) {
   const area = selection.node();
   state.setViewBox(area.offsetWidth, area.offsetHeight);
   selection.select('.nw-view')
-    .call(component.updateViewBox, area.offsetWidth, area.offsetHeight);
+    .call(component.resizeViewBox, area.offsetWidth, area.offsetHeight);
 }
 
 export default {

@@ -1,4 +1,6 @@
 
+/** @module network */
+
 import d3 from 'd3';
 
 import {default as hfile} from './helper/file.js';
@@ -9,6 +11,7 @@ import {default as header} from './component/Header.js';
 import {default as view} from './network/view.js';
 import {default as frame} from './network/frame.js';
 import {default as interaction} from './network/interaction.js';
+import {default as force} from './network/force.js';
 import NetworkState from './network/state.js';
 
 
@@ -72,11 +75,13 @@ function render() {
       const width = 1200;
       const height = 1200;
       const state = new NetworkState(data, width, height);
+      const simulation = force.forceSimulation(width, height);
       d3.select('#nw-frame')
           .call(frame.networkViewFrame, state)
         .select('.nw-view')
           .call(view.networkView, state)
-          .call(interaction.setInteraction, state);
+          .call(interaction.setInteraction, state)
+          .call(force.activate, simulation, state);
       window.onresize = () =>
         d3.select('#nw-frame').call(frame.resize, state);
     });

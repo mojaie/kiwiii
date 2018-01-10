@@ -1,14 +1,13 @@
 
-/** @module graph/GraphForce */
+/** @module network/force */
 
 import d3 from 'd3';
 
-import {default as component} from './GraphComponent.js';
-import {default as interaction} from './GraphInteraction.js';
+import {default as component} from './component.js';
+import {default as interaction} from './interaction.js';
 
 
 function forceSimulation(width, height) {
-  // width, height = 1200;
   return d3.forceSimulation()
     .force('link',
       d3.forceLink().id(d => d.index)
@@ -34,45 +33,22 @@ function forceSimulation(width, height) {
 }
 
 
-function forceTickListener(selection, simulation) {
-  return () => {
-    selection.select('.nw-nodes').selectAll('.node')
-      .attr('transform', d => `translate(${d.x}, ${d.y})`);
-    // show temperature
-    const alpha = simulation.alpha();
-    const isStopped = alpha <= simulation.alphaMin();
-    d3.select('#temperature')
-      .classed('progress-success', isStopped)
-      .classed('progress-warning', !isStopped)
-      .attr('value', isStopped ? 1 : 1 - alpha)
-      .text(isStopped ? 1 : 1 - alpha);
-  };
+function showTemperature(simulation) {
+  const alpha = simulation.alpha();
+  const isStopped = alpha <= simulation.alphaMin();
+  // TODO: select temperature indicator
+  d3.select('#temperature')
+    .classed('progress-success', isStopped)
+    .classed('progress-warning', !isStopped)
+    .attr('value', isStopped ? 1 : 1 - alpha)
+    .text(isStopped ? 1 : 1 - alpha);
 }
 
 
-function forceEndListener(selection) {
-  return () => {
-    selection.select('.nw-edges').selectAll('.link')
-      .attr('transform', d => `translate(${d.source.x}, ${d.source.y})`)
-      .attr('visibility', 'visible');
-    selection.select('.nw-edges').selectAll('.edge-line')
-      .attr('x1', 0)
-      .attr('y1', 0)
-      .attr('x2', d => d.target.x - d.source.x)
-      .attr('y2', d => d.target.y - d.source.y);
-    selection.select('.nw-edges').selectAll('.edge-label')
-      .attr('x', d => (d.target.x - d.source.x) / 2)
-      .attr('y', d => (d.target.y - d.source.y) / 2);
-  };
-}
-
-
-function forceDragListener(selection, simulation) {
+function forceDragListener(selection, simulation, state) {
   return d3.drag()
     .on('start', () => {
-      d3.select('#graph-components').selectAll('.link')
-        .attr('visibility', 'hidden');
-      if (!d3.event.active) simulation.alphaTarget(0.1).restart();
+      if (!d3.event.active) selection.call(relax, simulation, state);
     })
     .on('drag', d => {
       d.fx = d3.event.x;
@@ -86,60 +62,101 @@ function forceDragListener(selection, simulation) {
 }
 
 
-function activate(selection, simulation, data) {
-  simulation.nodes(data.nodes)
-    .force('link').links(data.edges);
-  simulation
-    .on('tick', forceTickListener(selection, simulation))
-    .on('end', forceEndListener(selection));
-  simulation.alpha(1).restart();
+function forceZoomListener(selection, simulation, state) {
+  return d3.zoom()
+    .on('zoom', function() {
+      selection.call(
+        component.transform,
+        d3.event.transform.x, d3.event.transform.y, d3.event.transform.k
+      );
+    })
+    .on('end', function() {
+      const alpha = simulation.alpha();
+      const isStopped = alpha <= simulation.alphaMin();
+      if (isStopped) {
+        state.setTransform(
+          d3.event.transform.x, d3.event.transform.y, d3.event.transform.k
+        );
+        selection
+          .call(component.updateComponents, state);
+      }
+    });
 }
 
 
-function stick(selection, simulation, data) {
+function end(selection, simulation, state) {
+  const coords = state.nodes.map(e => ({x: e.x, y: e.y}));
+  state.setAllCoords(coords);
+  selection
+    .call(component.updateComponents, state);
+  showTemperature(simulation);
+}
+
+
+function stick(selection, simulation, state) {
   simulation.alpha(0).stop();
-  selection.selectAll('.node').each(d => {
-    d.fx = d.x;
-    d.fy = d.y;
-  });
-  simulation.dispatch('tick');
-  simulation.dispatch('end');
-  d3.select('#graph-components').selectAll('.node')
-    .call(interaction.setDragListener(selection, data));
-  // d3.select('#stick-nodes').property('checked', true);
-  selection.select('.nw-edges').selectAll('.link')
-    .attr('visibility', 'visible');
-  // debug
-  component.showBoundary(d3.select('#graph-components'));
+  selection.select('.nw-nodes').selectAll('.node')
+    .each(d => {
+      d.fx = d.x;
+      d.fy = d.y;
+    });
+  state.zoomListener = interaction.zoomListener(selection, state);
+  state.dragListener = interaction.dragListener(selection, state);
+  selection.call(end, simulation, state);
 }
 
 
-function unstick(selection, simulation) {
-  d3.selectAll('.node').each(d => {
-    d.fx = null;
-    d.fy = null;
-  });
-  d3.select('#stick-nodes').property('checked', false);
-  d3.select('#graph-components').selectAll('.link')
-    .attr('visibility', 'hidden');
-  d3.select('#graph-components').selectAll('.node')
-    .call(forceDragListener(selection, simulation));
+function unstick(selection, simulation, state) {
+  selection.select('.nw-nodes').selectAll('.node')
+    .each(d => {
+      d.fx = null;
+      d.fy = null;
+    });
+  state.zoomListener = forceZoomListener(selection, simulation, state);
+  state.dragListener = forceDragListener(selection, simulation, state);
+  // Render all nodes and do not render edges
+  // TODO: edge rendering behavior should be changed by data size or setting
+  selection.select('.nw-nodes')
+    .call(component.updateNodes, state.nodes);
+  selection.select('.nw-edges')
+    .call(component.updateEdges, []);
+  selection.call(component.updateAttrs, state);
+  selection.call(state.zoomListener);
+  selection.select('.nw-nodes').selectAll('.node')
+    .call(state.dragListener);
 }
 
 
-function relax(selection, simulation) {
-  unstick(selection, simulation);
-  simulation.alpha(0.1).restart();
+function relax(selection, simulation, state) {
+  selection.call(unstick, simulation, state);
+  simulation.alphaTarget(0.1).restart();
 }
 
 
-function restart(selection, simulation) {
-  unstick(selection, simulation);
+function restart(selection, simulation, state) {
+  selection.call(unstick, simulation, state);
   simulation.alpha(1).restart();
+}
+
+
+function activate(selection, simulation, state) {
+  simulation.nodes(state.nodes)
+    .force('link').links(state.edges);
+  simulation
+    .on('tick', () => {
+      selection.select('.nw-nodes').selectAll(".node")
+        .call(component.updateNodeCoords);
+      showTemperature(simulation);
+    })
+    .on('end', () => selection.call(end, simulation, state));
+  if (state.simulationOnLoad) {
+    selection.call(restart, simulation, state);
+  } else {
+    selection.call(stick, simulation, state);
+  }
 }
 
 
 export default {
-  forceSimulation, forceTickListener, forceEndListener, forceDragListener,
-  activate, stick, unstick, relax, restart
+  forceSimulation, activate, stick, relax, restart
 };
