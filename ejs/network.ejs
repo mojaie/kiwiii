@@ -5,6 +5,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.5/pako.min.js"></script>
 <script src="kwnetwork.js"></script>
 <div class="container-fluid" style="background-color: #fffff9">
+
   <!--
   <div id="debugbar">
     <div>state.transform: <span id="debug-transform"></span></div>
@@ -13,8 +14,11 @@
     <div>state.viewBox: <span id="debug-viewbox"></span></div>
   </div>
   -->
+
   <div id="toolbar" class="btn-toolbar" role="toolbar">
-    <div id="new-data" class="btn-group">
+
+    <!-- New graph -->
+    <div id="new-data" class="btn-group mr-1">
       <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">+ New graph</button>
       <div class="dropdown-menu">
         <form action="open" method="post" enctype="multipart/form-data" style="display: none">
@@ -23,127 +27,33 @@
         <a id="import-json" class="dropdown-item">Import JSON graph</a>
       </div>
     </div>
-    <div id="data-control" class="btn-group">
+
+    <!-- Graph control -->
+    <div id="data-control" class="btn-group mr-1">
       <button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-toggle="dropdown">Graph control</button>
       <div class="dropdown-menu">
-        <a id="snapshot" class="dropdown-item">Save snapshot</a>
-        <a id="fit" class="dropdown-item">Fit to screen</a>
-        <a id="restart" class="dropdown-item">Restart simulation</a>
         <a class="dropdown-item" data-toggle="modal" data-target="#community-dialog">Community detection</a>
-        <a class="dropdown-item" data-toggle="modal" data-target="#graphconfig-dialog">Graph settings</a>
         <a id="rename" class="dropdown-item" data-toggle="modal" data-target="#prompt-dialog">Rename graph</a>
         <a id="export" class="dropdown-item">Export snapshot to JSON</a>
       </div>
     </div>
-    <a role="button" id="nodetable" class="btn btn-secondary btn-sm" target="_blank">Node datatable</a>
-    <a role="button" class="btn btn-secondary btn-sm" href="control.html" target="_blank">Open control panel</a>
-    <a role="button" id="refresh" class="btn btn-secondary btn-sm">Refresh</a>
-    <a role="button" id="abort" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#confirm-dialog">Abort server job</a>
+
+    <a role="button" id="nodetable" class="btn btn-outline-secondary btn-sm mr-1" target="_blank">Node datatable</a>
+    <a role="button" class="btn btn-outline-secondary btn-sm mr-1" href="control.html" target="_blank">Open control panel</a>
+    <a role="button" id="refresh" class="btn btn-outline-secondary btn-sm mr-1">Refresh</a>
+    <a role="button" id="abort" class="btn btn-warning btn-sm mr-1" data-toggle="modal" data-target="#confirm-dialog">Abort server job</a>
     <span class="status">
       <span id="title"></span>
       <span id="progress"></span>
     </span>
+
   </div>
   <div id="contents" class="row">
-    <div id="controlbox" class="col-sm-3 px-0">
-      <div class="card">
-        <div class="card-header">Control</div>
-        <div id="main-control" class="card-block">
-        <div class="form-group">
-          <div class="form-check">Network threshold: <span id="network-thld"></span></div>
-          <div class="form-check">logD: <span id="edge-density"></span></div>
-          <div class="form-check">
-            <label class="form-check-label"><input id="show-struct" class="form-check-input" type="checkbox"/>Show structure</label>
-          </div>
-          <div class="form-check">
-            <label class="form-check-label"><input id="stick-nodes" class="form-check-input" type="checkbox"/>Stick nodes</label>
-          </div>
-          <progress id="temperature" class="progress" value="0" max="1" ></progress>
-        </div>
-        </div>
-      </div>
-      <div id="accordion">
-
-        <!-- Node color control -->
-
-        <div class="card">
-          <div class="card-header">
-            <a href="#collapse-color" data-toggle="collapse" data-parent="#accordion">Node color</a>
-          </div>
-          <div id="collapse-color" class="collapse">
-          <div id="color-control" class="card-block">
-            <%- include('partial/colorScaleControl', {item: 'color'}); %>
-          </div>
-          </div>
-        </div>
-
-        <!-- Node size control -->
-
-        <div class="card">
-          <div class="card-header">
-            <a href="#collapse-size" data-toggle="collapse" data-parent="#accordion">Node size</a>
-          </div>
-          <div id="collapse-size" class="collapse">
-          <div id="size-control" class="card-block">
-            <div class="form-group">
-              <label for="size-col" class="form-label">Column</label>
-              <select id="size-col" class="form-control-sm size-update"></select>
-            </div>
-            <%- include('partial/sizeScaleControl', {item: 'size'}); %>
-          </div>
-          </div>
-        </div>
-
-        <!-- Node label control -->
-
-        <div class="card">
-          <div class="card-header">
-            <input id="label-visible" class="form-check-inline" type="checkbox"/>
-            <a href="#collapse-label" data-toggle="collapse" data-parent="#accordion">Node label</a>
-          </div>
-          <div id="collapse-label" class="collapse in">
-          <div id="label-control" class="card-block">
-            <div class="form-group">
-              <label for="label-text" class="form-label">Label text</label>
-              <select id="label-text" class="form-control-sm label-update"></select>
-            </div>
-            <div class="form-group">
-              <label for="label-size" class="form-label">Label size</label>
-              <input type="number" id="label-size" class="form-control-sm label-update" name="label-size" value="12" min="4" max="100" step="1" />
-            </div>
-            <%- include('partial/colorScaleControl', {item: 'label'}); %>
-          </div>
-          </div>
-        </div>
-
-        <!-- Edge control -->
-
-        <div class="card">
-          <div class="card-header">
-            <input id="edge-visible" class="form-check-inline" type="checkbox"/>
-            <a href="#collapse-edge" data-toggle="collapse" data-parent="#accordion">Edge</a>
-          </div>
-          <div id="collapse-edge" class="collapse">
-          <div id="edge-control" class="card-block">
-            <div class="form-check">
-              <label class="form-check-label"><input id="edge-label-visible" class="form-check-input edge-update" type="checkbox"/>Edge weight label</label>
-            </div>
-            <div class="form-group">
-              <label for="edge-label-size" class="form-label">Label size</label>
-              <input type="number" id="edge-label-size" class="form-control-sm edge-update" name="edge-label-size" value="10" min="4" max="100" step="1" />
-            </div>
-            <%- include('partial/sizeScaleControl', {item: 'edge'}); %>
-          </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
+    <div id="nw-control" class="col-sm-3 p-2"></div>
     <div id="nw-frame" class="col-sm-9 px-0"></div>
   </div>
 </div>
 <div id="dialogs">
-  <%- include('dialog/dialogBase', {id: 'graphconfig', title: 'Graph config'}); %>
   <%- include('dialog/dialogBase', {id: 'community', title: 'Community detection'}); %>
   <%- include('dialog/dialogBase', {id: 'prompt', title: ''}); %>
   <%- include('dialog/confirmDialog'); %>

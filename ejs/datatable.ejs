@@ -7,8 +7,10 @@
 <div class="container-fluid">
   <img id="loading-icon" src="./assets/loading2.gif"/>
   <div class="btn-toolbar">
+
+    <!-- Fetch compounds -->
     <div id="new-data" class="btn-group">
-      <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">+ Fetch compounds</button>
+      <button type="button" class="btn btn-primary btn-sm mr-1 dropdown-toggle" data-toggle="dropdown">+ Fetch compounds</button>
       <div class="dropdown-menu">
         <a class="dropdown-item online-command" data-toggle="modal" data-target="#pick-dialog">Search by compound ID</a>
         <a class="dropdown-item online-command" data-toggle="modal" data-target="#struct-dialog">Search by structure</a>
@@ -20,8 +22,10 @@
         <a id="import-json" class="dropdown-item">Import JSON table</a>
       </div>
     </div>
+
+    <!-- Table control -->
     <div id="data-control" class="btn-group">
-      <button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-toggle="dropdown">Table control</button>
+      <button class="btn btn-primary btn-sm mr-1 dropdown-toggle" type="button" data-toggle="dropdown">Table control</button>
       <div class="dropdown-menu">
         <a class="dropdown-item" data-toggle="modal" data-target="#column-dialog">Select columns to show</a>
         <!--
@@ -35,9 +39,10 @@
         <a id="sdfile" href="#" class="dropdown-item online-command">Export to SDFile</a>
       </div>
     </div>
-    <a role="button" class="btn btn-secondary btn-sm" href="control.html" target="_blank">Open control panel</a>
-    <a role="button" id="refresh" class="btn btn-secondary btn-sm">Refresh</a>
-    <a role="button" id="abort" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#confirm-dialog">Abort server job</a>
+
+    <a role="button" class="btn btn-outline-secondary btn-sm mr-1" href="control.html" target="_blank">Open control panel</a>
+    <a role="button" id="refresh" class="btn btn-outline-secondary btn-sm mr-1">Refresh</a>
+    <a role="button" id="abort" class="btn btn-warning btn-sm mr-1" data-toggle="modal" data-target="#confirm-dialog">Abort server job</a>
   </div>
   <span class="status">
     <span id="title"></span>

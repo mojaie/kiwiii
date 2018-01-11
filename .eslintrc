@@ -4,7 +4,7 @@ env:
   node: true
   es6: true
 rules:
-  no-undef: 2
+  no-undef: 1
   semi: 1
   no-console: ["error", {"allow": ["warn", "error", "info"]}]
 parserOptions:

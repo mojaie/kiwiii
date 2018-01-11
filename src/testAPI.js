@@ -21,7 +21,7 @@ testCases.push(() =>
 );
 
 testCases.push(() =>
-  fetcher.get('chemsearch', {
+  fetcher.get('search', {
     targets: ['drugbankfda'],
     key: 'compound_id',
     values: ['DB00189', 'DB00193', 'DB00203', 'DB00865', 'DB01143']
@@ -77,7 +77,7 @@ testCases.push(() =>
 
 testCases.push(() =>
   new Promise(r => {
-    fetcher.get('chemprop', {
+    fetcher.get('filter', {
       targets: ['drugbankfda'],
       key: '_mw',
       value: 1000,
@@ -94,7 +94,7 @@ testCases.push(() =>
 );
 
 testCases.push(() =>
-  fetcher.get('chemsearch', {
+  fetcher.get('search', {
     targets: ['drugbankfda'],
     key: 'compound_id',
     values: ['DB00186', 'DB00189', 'DB00193', 'DB00203', 'DB00764', 'DB00863',

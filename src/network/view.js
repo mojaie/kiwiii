@@ -1,7 +1,28 @@
 
 /** @module network/view */
 
-import {default as component} from './component.js';
+import {default as component} from './graphComponent.js';
+
+
+function networkViewFrame(selection, state) {
+  selection
+    .style('width', '100%')
+    .style('height', '100%');
+  if (selection.select('.nw-view').size()) {
+    selection.select('.nw-view').remove();
+  }
+  selection.append('svg')
+    .classed('nw-view', true);
+  selection.call(resize, state);
+}
+
+
+function resize(selection, state) {
+  const area = selection.node();
+  state.setViewBox(area.offsetWidth, area.offsetHeight);
+  selection.select('.nw-view')
+    .call(component.resizeViewBox, area.offsetWidth, area.offsetHeight);
+}
 
 
 function networkView(selection, state) {
@@ -20,7 +41,9 @@ function networkView(selection, state) {
       .attr('y', 0)
       .attr('width', state.viewBox.right)
       .attr('height', state.viewBox.bottom)
-      .attr('fill', '#ffffee');
+      .attr('fill', '#ffffff')
+      .attr('stroke-width', 1)
+      .attr('stroke', '#cccccc');
   if (selection.select('.nw-field').size()) {
     selection.select('.nw-field').remove();
   }
@@ -32,11 +55,32 @@ function networkView(selection, state) {
       .style('opacity', 1);
   nwField.append('g').classed('nw-edges', true);
   nwField.append('g').classed('nw-nodes', true);
+  // Set notifiers
+  state.updateComponentNotifier = () => {
+    selection.call(component.updateComponents, state);
+  };
+  state.updateNodeNotifier = () => {
+    selection.select('.nw-nodes')
+      .call(component.updateNodes, state.nodesToRender());
+  };
+  state.updateEdgeNotifier = () => {
+    selection.select('.nw-edges')
+      .call(component.updateEdges, state.edgesToRender());
+  };
+  state.updateNodeAttrNotifier = () => {
+    selection.select('.nw-nodes')
+      .call(component.updateNodeAttrs, state);
+  };
+  state.updateEdgeAttrNotifier = () => {
+    selection.select('.nw-edges')
+      .call(component.updateEdgeAttrs, state);
+  };
+  // Update graph components
   selection
     .call(component.updateComponents, state);
 }
 
 
 export default {
-  networkView
+  networkViewFrame, resize, networkView
 };

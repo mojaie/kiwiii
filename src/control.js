@@ -64,7 +64,7 @@ function renderGraphStatus(data) {
   const records = data.map(e => {
     e.nodes = e.reference.nodes;
     e.resultCount = e.records.length;
-    e.action = (s) => tableAction(s, e, 'graph.html');
+    e.action = (s) => tableAction(s, e, 'network.html');
     return e;
   });
   d3.select('#local-graphs').call(cmp.createTable, table)

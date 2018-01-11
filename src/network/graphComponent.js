@@ -3,11 +3,15 @@
 
 import d3 from 'd3';
 
-import {default as d3scale} from '../helper/d3Scale.js';
+import {default as scale} from '../helper/scale.js';
 import {default as fmt} from '../helper/formatValue.js';
 
 
-function updateNodes(selection, records) {
+const svgWidth = 180;  //TODO
+const svgHeight = 180;  //TODO
+
+
+function updateNodes(selection, records, showStruct) {
   const nodes = selection.selectAll('.node')
     .data(records, d => d.index);
   nodes.exit().remove();
@@ -15,18 +19,21 @@ function updateNodes(selection, records) {
     .append('g')
       .attr('class', 'node')
       .call(updateNodeCoords);
-  entered
-    .append('circle')
+  entered.append('circle')
       .attr('class', 'node-symbol');
-  entered
-    .append('g')
-      .attr('class', 'node-struct')
-      .html(d => d.structure);
-  entered
-    .append('text')
+  entered.append('g')
+      .attr('class', 'node-content')
+      .attr('transform', `translate(${-svgWidth / 2},${-svgHeight / 2})`);
+  entered.append('text')
       .attr('class', 'node-label')
       .attr('x', 0)
       .attr('text-anchor', 'middle');
+  const merged = entered.merge(nodes);
+  if (showStruct) {
+    merged.select('.node-content').html(d => d.structure);
+  } else {
+    merged.select('.node-content').select('svg').remove();
+  }
 }
 
 
@@ -37,13 +44,11 @@ function updateEdges(selection, records) {
   const entered = edges.enter()
     .append('g')
       .attr('class', 'link');
-  entered
-    .append('line')
+  entered.append('line')
       .attr('class', 'edge-line')
       .style('stroke', '#999')
       .style('stroke-opacity', 0.6);
-  entered
-    .append('text')
+  entered.append('text')
       .attr('class', 'edge-label')
       .attr('text-anchor', 'middle')
       .text(d => d.weight);
@@ -53,44 +58,34 @@ function updateEdges(selection, records) {
 
 
 function updateNodeAttrs(selection, state) {
-  const nodes = selection.selectAll('.node');
-  nodes.select('.node-symbol')
-    .attr('r', d =>
-      d3scale.scaleFunction(state.nodeSize.scale)(
-        state.nodeSize.field ? d[state.nodeSize.field.key] : null)
-    )
-    .style('fill', d =>
-      d3scale.scaleFunction(state.nodeColor.scale)(
-        state.nodeColor.field ? d[state.nodeColor.field.key] : null)
-    );
-  nodes.select('.node-label')
-    .text(d => {
-      if (state.nodeLabel.text === null) return '';
-      if (!d.hasOwnProperty(state.nodeLabel.text.key)) return '';
-      if (state.nodeLabel.text.format === 'd3_format') {
-        return fmt.formatNum(d[state.nodeLabel.text.key], state.nodeLabel.text.d3_format);
-      }
-      return d[state.nodeLabel.text.key];
-    })
-    .attr('font-size', state.nodeLabel.size)
-    .attr('y', 90) // TODO: derived from structure size or node circle radius
-    .attr('visibility', state.nodeLabel.visible ? 'inherit' : 'hidden')
-    .style('fill', d =>
-      d3scale.scaleFunction(state.nodeLabel.scale)(
-        state.nodeLabel.field ? d[state.nodeLabel.field.key] : null));
-  nodes.select('.node-struct')
-    .attr('visibility', state.nodeContent.structure.visible ? 'inherit' : 'hidden')
-    .each((d, i, nds) => {
-      const w = d3.select(nds[i]).select('svg').attr('width');
-      const h = d3.select(nds[i]).select('svg').attr('height');
-      d3.select(nds[i]).attr('transform', `translate(${-w / 2},${-h / 2})`);
+  selection.selectAll('.node')
+    .each(function (d) {
+      const color = scale.scaleFunction(state.nodeColor)(d[state.nodeColor.field]);
+      const size = scale.scaleFunction(state.nodeSize)(d[state.nodeSize.field]);
+      const labelColor = scale.scaleFunction(state.nodeLabelColor)(d[state.nodeLabelColor.field]);
+      d3.select(this).select('.node-symbol')
+          .attr('r', size)
+          .style('fill', color);
+      d3.select(this).select('.node-label')
+          .text(d => {
+            if (state.nodeLabel.text === null) return '';
+            const field = state.nodeFields.find(e => e.key === state.nodeLabel.text);
+            if (field.format === 'd3_format') {
+              return fmt.formatNum(d[state.nodeLabel.text], field.d3_format);
+            }
+            return d[state.nodeLabel.text];
+          })
+          .attr('font-size', state.nodeLabel.size)
+          .attr('y', size + state.nodeLabel.size)
+          .attr('visibility', state.nodeLabel.visible ? 'inherit' : 'hidden')
+          .style('fill', labelColor);
     });
 }
 
 
 function updateEdgeAttrs(selection, state) {
   selection.selectAll('.link').select('.edge-line')
-    .style('stroke-width', d => d3scale.scaleFunction(state.edgeWidth.scale)(d.weight));
+    .style('stroke-width', d => scale.scaleFunction(state.edgeWidth)(d.weight));
   selection.selectAll('.link').select('.edge-label')
     .attr('visibility', state.edgeLabel.visible ? 'inherit' : 'hidden')
     .attr('font-size', state.edgeLabel.size);
@@ -122,9 +117,21 @@ function updateAttrs(selection, state) {
 
 
 function updateComponents(selection, state) {
-  selection.select('.nw-nodes').call(updateNodes, state.nodesToRender());
-  selection.select('.nw-edges').call(updateEdges, state.edgesToRender());
+  const nodesToRender = state.nodesToRender();
+  const numNodes = nodesToRender.length;
+  if (state.enableFocusedView) {
+    state.focusedView = numNodes < state.focusedViewThreshold;
+  }
+  if (state.enableOverlookView) {
+    state.overlookView = numNodes > state.overlookViewThreshold;
+  }
+  const edgesToRender = state.overlookView ? [] : state.edgesToRender();
+  selection.select('.nw-nodes')
+    .call(updateNodes, nodesToRender, state.focusedView);
+  selection.select('.nw-edges')
+    .call(updateEdges, edgesToRender);
   selection.call(updateAttrs, state);
+  // Rebind event listeners
   if (state.zoomListener) {
     selection.call(state.zoomListener);
   }
@@ -155,19 +162,16 @@ function moveEdge(selection, sx, sy, tx, ty) {
 
 function move(selection, node, x, y) {
   const n = d3.select(node).call(moveNode, x, y).datum();
-  n.adjacency.forEach(adj => {
-    const nbr = adj[0];
-    const edge = adj[1];
-    selection.select('.nw-edges').selectAll(".link")
-      .filter((_, i) => i === edge)
-      .each(function(d) {
-        if (n.index < nbr) {
-          d3.select(this).call(moveEdge, x, y, d.tx, d.ty);
-        } else {
-          d3.select(this).call(moveEdge, d.sx, d.sy, x, y);
-        }
+  selection.select('.nw-edges')
+    .selectAll(".link")
+    .filter(d => n.adjacency.map(e => e[1]).includes(d.num))
+    .each(function (d) {
+      if (n.index === d.source.index) {
+        d3.select(this).call(moveEdge, x, y, d.tx, d.ty);
+      } else if (n.index === d.target.index) {
+        d3.select(this).call(moveEdge, d.sx, d.sy, x, y);
+      }
     });
-  });
 }
 
 
@@ -186,7 +190,7 @@ function resizeViewBox(selection, width, height) {
 
 
 export default {
-  updateNodes, updateEdges, updateNodeCoords,
-  updateAttrs, updateComponents,
+  updateNodes, updateEdges, updateNodeCoords, updateEdgeCoords,
+  updateNodeAttrs, updateEdgeAttrs, updateAttrs, updateComponents,
   move, transform, resizeViewBox
 };

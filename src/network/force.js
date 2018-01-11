@@ -3,7 +3,7 @@
 
 import d3 from 'd3';
 
-import {default as component} from './component.js';
+import {default as component} from './graphComponent.js';
 import {default as interaction} from './interaction.js';
 
 
@@ -37,11 +37,12 @@ function showTemperature(simulation) {
   const alpha = simulation.alpha();
   const isStopped = alpha <= simulation.alphaMin();
   // TODO: select temperature indicator
+  const progress = parseInt(isStopped ? 0 : alpha * 100);
   d3.select('#temperature')
-    .classed('progress-success', isStopped)
-    .classed('progress-warning', !isStopped)
-    .attr('value', isStopped ? 1 : 1 - alpha)
-    .text(isStopped ? 1 : 1 - alpha);
+    .classed('bg-success', isStopped)
+    .classed('bg-warning', !isStopped)
+    .style('width', `${progress}%`)
+    .attr('aria-valuenow', progress);
 }
 
 
@@ -62,28 +63,6 @@ function forceDragListener(selection, simulation, state) {
 }
 
 
-function forceZoomListener(selection, simulation, state) {
-  return d3.zoom()
-    .on('zoom', function() {
-      selection.call(
-        component.transform,
-        d3.event.transform.x, d3.event.transform.y, d3.event.transform.k
-      );
-    })
-    .on('end', function() {
-      const alpha = simulation.alpha();
-      const isStopped = alpha <= simulation.alphaMin();
-      if (isStopped) {
-        state.setTransform(
-          d3.event.transform.x, d3.event.transform.y, d3.event.transform.k
-        );
-        selection
-          .call(component.updateComponents, state);
-      }
-    });
-}
-
-
 function end(selection, simulation, state) {
   const coords = state.nodes.map(e => ({x: e.x, y: e.y}));
   state.setAllCoords(coords);
@@ -100,7 +79,6 @@ function stick(selection, simulation, state) {
       d.fx = d.x;
       d.fy = d.y;
     });
-  state.zoomListener = interaction.zoomListener(selection, state);
   state.dragListener = interaction.dragListener(selection, state);
   selection.call(end, simulation, state);
 }
@@ -112,24 +90,19 @@ function unstick(selection, simulation, state) {
       d.fx = null;
       d.fy = null;
     });
-  state.zoomListener = forceZoomListener(selection, simulation, state);
   state.dragListener = forceDragListener(selection, simulation, state);
   // Render all nodes and do not render edges
   // TODO: edge rendering behavior should be changed by data size or setting
-  selection.select('.nw-nodes')
-    .call(component.updateNodes, state.nodes);
-  selection.select('.nw-edges')
-    .call(component.updateEdges, []);
-  selection.call(component.updateAttrs, state);
-  selection.call(state.zoomListener);
-  selection.select('.nw-nodes').selectAll('.node')
-    .call(state.dragListener);
+  const coords = state.nodes.map(e => ({x: e.x, y: e.y}));
+  state.setAllCoords(coords);
+  selection
+    .call(component.updateComponents, state);
 }
 
 
 function relax(selection, simulation, state) {
   selection.call(unstick, simulation, state);
-  simulation.alphaTarget(0.1).restart();
+  simulation.alpha(0.1).restart();
 }
 
 
@@ -139,16 +112,38 @@ function restart(selection, simulation, state) {
 }
 
 
-function activate(selection, simulation, state) {
+function setForce(selection, simulation, state) {
+  const forceEdges = state.edges
+    .filter(e => e.weight >= state.networkThreshold);
   simulation.nodes(state.nodes)
-    .force('link').links(state.edges);
+    .force('link').links(forceEdges);
+}
+
+function activate(selection, simulation, state) {
+  selection.call(setForce, simulation, state);
   simulation
     .on('tick', () => {
       selection.select('.nw-nodes').selectAll(".node")
         .call(component.updateNodeCoords);
+      const coords = state.nodes.map(e => ({x: e.x, y: e.y}));
+      state.setAllCoords(coords);
+      selection.select('.nw-edges').selectAll(".link")
+        .call(component.updateEdgeCoords);
       showTemperature(simulation);
     })
     .on('end', () => selection.call(end, simulation, state));
+  state.setForceNotifier = () => {
+    selection.call(setForce, simulation, state);
+  };
+  state.stickNotifier = () => {
+    selection.call(stick, simulation, state);
+  };
+  state.relaxNotifier = () => {
+    selection.call(relax, simulation, state);
+  };
+  state.restartNotifier = () => {
+    selection.call(restart, simulation, state);
+  };
   if (state.simulationOnLoad) {
     selection.call(restart, simulation, state);
   } else {

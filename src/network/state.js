@@ -2,49 +2,144 @@
 /** @module network/state */
 
 import d3 from 'd3';
+import {default as legacy} from '../helper/legacySchema.js';
 
 
 export default class NetworkState {
   constructor(data, width, height) {
-    // TODO: v0.8 compatibility
-    // TODO: nodes and edges working copy
+    // View modes
+
+    // Focused view mode (num of nodes displayed are less than the thld)
+    // Show node contents
+    // Disable smooth transition
+    this.focusedViewThreshold = 100;
+    this.enableFocusedView = true;
+    this.focusedView = false;
+    // Overlook view mode (num of nodes displayed are less than the thld)
+    // Hide edges
+    this.overlookViewThreshold = 500;
+    this.enableOverlookView = true;
+    this.overlookView = false;
+
+
+    // Import from legacy format data
+    data = legacy.convertNetwork(data);
+
     this.nodes = data.nodes.records;
-    this.edges = data.edges.records;
-    this.transform = data.edges.snapshot.fieldTransform;
-    this.nodeColor= data.edges.snapshot.nodeColor;
-    this.nodeSize = data.edges.snapshot.nodeSize;
-    this.nodeContent = data.edges.snapshot.nodeContent;
-    this.nodeLabel = data.edges.snapshot.nodeLabel;
-    this.edgeVisible = data.edges.snapshot.edge.visible;
-    this.edgeWidth = data.edges.snapshot.edge;
-    this.edgeLabel = data.edges.snapshot.edge.label;
-    this.networkThreshold = data.edges.networkThreshold;
+    this.edges = JSON.parse(JSON.stringify(data.edges.records));  // deep copy
 
-    this.simulationOnLoad = false;  // debug
-
-    // Event listener
-    this.zoomListener = null;
-    this.dragListener = null;
-
-    // Working memory
-    this.forceField = {top: 0, right: width, bottom: height, left: 0};
-    this.viewBox = {top: 0, right: width, bottom: height, left: 0};
-    this.focusArea = {};
-    this.boundary = {};
+    // Adjacency
     // Assuming that the network is undirected graph and
     // source index < target index
     this.nodes.forEach(n => {
       n.adjacency = [];
     });
     this.edges.forEach((e, i) => {
+      e.num = i;  // e.index will be overwritten by d3-force
       this.nodes[e.source].adjacency.push([e.target, i]);
       this.nodes[e.target].adjacency.push([e.source, i]);
     });
 
-    // Set default state
-    this.setAllCoords(data.edges.snapshot.nodePositions);
-    this.setFocusArea();
-    this.setBoundary();
+    // Fields
+    this.nodeFields = data.nodes.fields;
+
+    // Snapshot
+    const snp = data.edges.snapshot || {
+      nodeColor: {}, nodeSize: {}, nodeLabel: {}, nodeLabelColor: {},
+      edgeWidth: {}, edgeLabel: {}
+    };
+
+    // Node attributes
+    // this.nodeContentVisible = snp.nodeContentVisible || true;
+
+    // nodeColor
+    this.nodeColor = {};
+    this.nodeColor.field = snp.nodeColor.field || null;
+    this.nodeColor.scale = snp.nodeColor.scale || 'linear';
+    this.nodeColor.domain = snp.nodeColor.domain || [0, 1];
+    this.nodeColor.range = snp.nodeColor.range || ['#7fffd4', '#7fffd4'];
+    this.nodeColor.unknown = snp.nodeColor.unknown || ['#7fffd4'];
+
+    // nodeSize
+    this.nodeSize = {};
+    this.nodeSize.field = snp.nodeSize.field || null;
+    this.nodeSize.scale = snp.nodeSize.scale || 'linear';
+    this.nodeSize.domain = snp.nodeSize.domain || [1, 1];
+    this.nodeSize.range = snp.nodeSize.range || [40, 40];
+    this.nodeSize.unknown = snp.nodeSize.unknown || 40;
+
+    // nodeLabel
+    this.nodeLabel = {};
+    this.nodeLabel.text = snp.nodeLabel.text || null;
+    this.nodeLabel.size = snp.nodeLabel.size || 12;
+    this.nodeLabel.visible = snp.nodeLabel.visible || false;
+
+    // nodeLabelColor
+    this.nodeLabelColor = {};
+    this.nodeLabelColor.field = snp.nodeLabelColor.field || null;
+    this.nodeLabelColor.scale = snp.nodeLabelColor.scale || 'linear';
+    this.nodeLabelColor.domain = snp.nodeLabelColor.domain || [1, 1];
+    this.nodeLabelColor.range = snp.nodeLabelColor.range || ['#7fffd4', '#7fffd4'];
+    this.nodeLabelColor.unknown = snp.nodeLabelColor.unknown || ['#333333'];
+
+    // Edge attributes
+    // this.edgeVisible = snp.edgeVisible || true;
+    this.networkThresholdCutoff = data.edges.query.params.threshold;
+    this.networkThreshold = snp.networkThreshold || data.edges.query.params.threshold;
+
+    // edgeWidth
+    this.edgeWidth = {};
+    this.edgeWidth.scale = snp.edgeWidth.scale || 'linear';
+    this.edgeWidth.domain = snp.edgeWidth.domain || [0.5, 1];
+    this.edgeWidth.range = snp.edgeWidth.range || [1, 5];
+    this.edgeWidth.unknown = snp.edgeWidth.unknown || 1;
+
+    // edgeLabel
+    this.edgeLabel = {};
+    this.edgeLabel.size = snp.edgeLabel.size || 12;
+    this.edgeLabel.visible = snp.edgeLabel.visible || false;
+
+    // Transform
+    this.transform = snp.fieldTransform || {x: 0, y: 0, k: 1};
+
+    // Event listener
+    this.zoomListener = null;
+    this.dragListener = null;
+
+    // Update notifier
+    this.updateComponentNotifier = null;
+    this.updateNodeNotifier = null;
+    this.updateEdgeNotifier = null;
+    this.updateNodeAttrNotifier = null;
+    this.updateEdgeAttrNotifier = null;
+    // Snapshot
+    this.snapShotNotifier = null;
+    // Zoom control
+    this.fitNotifier = null;
+    // Force control
+    this.setForceNotifier = null;
+    this.stickNotifier = null;
+    this.relaxNotifier = null;
+    this.restartNotifier = null;
+
+    // Working memory
+    this.forceField = {top: 0, right: width, bottom: height, left: 0};
+    this.viewBox = {top: 0, right: width, bottom: height, left: 0};
+    this.focusArea = {};
+    this.boundary = {};
+    this.prevTransform = {
+      x: this.transform.x, y: this.transform.y, k: this.transform.k
+    };
+
+    if (snp.coords) {
+      this.simulationOnLoad = false;
+      // Set default state
+      this.setAllCoords(snp.coords);
+      this.setFocusArea();
+      this.setBoundary();
+    } else {
+      this.simulationOnLoad = true;
+    }
   }
 
   setBoundary() {
@@ -129,7 +224,6 @@ export default class NetworkState {
   }
 
   edgesToRender() {
-    if (!this.edgeVisible) return [];
     return this.edges.filter(
       e => e.weight >= this.networkThreshold
         && this.focusArea.top < Math.max(e.sy, e.ty)
@@ -142,7 +236,15 @@ export default class NetworkState {
   snapshot() {
     return {
       nodeColor: this.nodeColor,
-      nodeSize: this.nodeSize
+      nodeSize: this.nodeSize,
+      nodeLabel: this.nodeLabel,
+      nodeLabelColor: this.nodeLabelColor,
+      edgeWidth: this.edgeWidth,
+      edgeLabel: this.edgeLabel,
+      networkThreshold: this.networkThreshold,
+      networkThresholdCutoff: this.networkThresholdCutoff,
+      fieldTransform: this.transform,
+      coords: this.nodes.map(e => ({x: e.x, y: e.y}))
     };
   }
 

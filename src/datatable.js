@@ -12,7 +12,6 @@ import {default as store} from './store/StoreConnection.js';
 import {default as dialog} from './component/Dialog.js';
 import {default as header} from './component/Header.js';
 import {default as grid} from './component/DataGrid.js';
-import {default as nwapp} from './network/defaultAppearance.js';
 
 
 function render() {
@@ -54,12 +53,10 @@ function render() {
         });
       });
       dialog.graphDialog(data, graph => {
-        graph.networkThreshold = graph.query.params.threshold;
-        graph.snapshot = nwapp.defaultAppearance;
         return common.interactiveInsert(graph)
           .then(id => {
             d3.select('#loading-circle').style('display', 'none');
-            window.open(`graph.html?id=${id}`, '_blank');
+            window.open(`network.html?id=${id}`, '_blank');
           });
       });
       d3.select('#export')
