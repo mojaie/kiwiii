@@ -15,39 +15,7 @@
   </div>
   -->
 
-  <div id="toolbar" class="btn-toolbar" role="toolbar">
-
-    <!-- New graph -->
-    <div id="new-data" class="btn-group mr-1">
-      <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">+ New graph</button>
-      <div class="dropdown-menu">
-        <form action="open" method="post" enctype="multipart/form-data" style="display: none">
-          <input id="select-file" type="file" name="file" accept=".gfc,.gfr,.json,.gz"/>
-        </form>
-        <a id="import-json" class="dropdown-item">Import JSON graph</a>
-      </div>
-    </div>
-
-    <!-- Graph control -->
-    <div id="data-control" class="btn-group mr-1">
-      <button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-toggle="dropdown">Graph control</button>
-      <div class="dropdown-menu">
-        <a class="dropdown-item" data-toggle="modal" data-target="#community-dialog">Community detection</a>
-        <a id="rename" class="dropdown-item" data-toggle="modal" data-target="#prompt-dialog">Rename graph</a>
-        <a id="export" class="dropdown-item">Export snapshot to JSON</a>
-      </div>
-    </div>
-
-    <a role="button" id="nodetable" class="btn btn-outline-secondary btn-sm mr-1" target="_blank">Node datatable</a>
-    <a role="button" class="btn btn-outline-secondary btn-sm mr-1" href="control.html" target="_blank">Open control panel</a>
-    <a role="button" id="refresh" class="btn btn-outline-secondary btn-sm mr-1">Refresh</a>
-    <a role="button" id="abort" class="btn btn-warning btn-sm mr-1" data-toggle="modal" data-target="#confirm-dialog">Abort server job</a>
-    <span class="status">
-      <span id="title"></span>
-      <span id="progress"></span>
-    </span>
-
-  </div>
+  <div id="toolbar" class="btn-toolbar" role="toolbar"></div>
   <div id="contents" class="row">
     <div id="nw-control" class="col-sm-3 p-2"></div>
     <div id="nw-frame" class="col-sm-9 px-0"></div>

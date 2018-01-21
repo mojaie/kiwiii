@@ -68,7 +68,7 @@ function updateNumberBox(selection, value) {
 }
 
 function numberBoxValue(selection) {
-  return parseFloat(selection.select('input').property('value'));
+  return selection.select('input').property('value');
 }
 
 

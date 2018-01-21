@@ -76,7 +76,7 @@ function updateNodeAttrs(selection, state) {
             return d[state.nodeLabel.text];
           })
           .attr('font-size', state.nodeLabel.size)
-          .attr('y', size + state.nodeLabel.size)
+          .attr('y', parseFloat(size) + parseInt(state.nodeLabel.size))
           .attr('visibility', state.nodeLabel.visible ? 'inherit' : 'hidden')
           .style('fill', labelColor);
     });

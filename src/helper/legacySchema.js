@@ -237,6 +237,7 @@ function v10_edges(json) {
   snapshot.edgeLabel.visible = json.snapshot.edge.label.visible;
   snapshot.networkThreshold = json.networkThreshold || json.query.threshold;
   snapshot.coords = json.snapshot.nodePositions;
+  // TODO: when created date is lost
   return {
     id: json.id,
     name: json.name,
@@ -250,7 +251,8 @@ function v10_edges(json) {
     progress: json.progress,
     execTime: json.execTime,
     created: json.created,
-    snapshot: snapshot
+    snapshot: snapshot,
+    reference: json.reference
   };
 }
 
