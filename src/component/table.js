@@ -1,70 +1,17 @@
 
-/** @module component/Component */
+/** @module component/table */
 
-// TODO: deprecated. use listItems.js and table.js
+// Simple tables
+// use dataGrid.js for interactive and smooth datatable
+
 
 import d3 from 'd3';
 import {default as def} from '../helper/definition.js';
 import {default as fmt} from '../helper/formatValue.js';
 
 
-function selectOptions(selection, data, key, text) {
-  const options = selection.selectAll('option')
-    .data(data, key);
-  options.exit().remove();
-  options.enter().append('option')
-    .merge(options)
-      .attr('value', key)
-      .text(text);
-}
-
-
-function checkboxList(selection, data, name, key, text) {
-  const items = selection.selectAll('li').data(data, key);
-  items.exit().remove();
-  const entered = items.enter().append('li')
-    .attr('class', 'form-check')
-    .append('label');
-  entered.append('input');
-  entered.append('span');
-  const updated = entered.merge(items.select('label'))
-    .attr('class', 'form-check-label');
-  updated.select('input')
-    .attr('type', 'checkbox')
-    .attr('class', 'form-check-input')
-    .attr('name', name)
-    .attr('value', key);
-  updated.select('span')
-    .text(text);
-}
-
-
-// checkbox list with tooltip
-// call $('[data-toggle="tooltip"]').tooltip() after this function
-function checkboxListT(selection, data, name, key, text) {
-  const items = selection.selectAll('li').data(data, key);
-  items.exit().remove();
-  const entered = items.enter().append('li')
-    .attr('class', 'form-check')
-    .append('label');
-  entered.append('input');
-  entered.append('a');
-  const updated = entered.merge(items.select('label'))
-    .attr('class', 'form-check-label');
-  updated.select('input')
-    .attr('type', 'checkbox')
-    .attr('class', 'form-check-input')
-    .attr('name', name)
-    .attr('value', key);
-  updated.select('a')
-    .attr('data-toggle', 'tooltip')
-    .attr('data-placement', 'bottom')
-    .attr('title', d => d.description || 'No')
-    .text(text);
-}
-
-
-function createTable(selection, data) {
+function table(selection, data) {
+  // TODO: deprecated. use dataGrid.js
   // Header
   if (selection.select('thead').size()) selection.select('thead').remove();
   selection.append('thead').append('tr');
@@ -113,6 +60,7 @@ function updateTableRecords(selection, rcds, keyFunc) {
 
 
 function appendTableRows(selection, rcds, keyFunc) {
+  // TODO: deprecated. use dataGrid.js
   const newRcds = selection.select('tbody').selectAll('tr').data();
   Array.prototype.push.apply(newRcds, rcds);
   updateTableRecords(selection, newRcds, keyFunc);
@@ -120,6 +68,7 @@ function appendTableRows(selection, rcds, keyFunc) {
 
 
 function addSort(selection) {
+  // TODO: deprecated. use dataGrid.js
   selection.select('thead tr').selectAll('th')
     .filter(d => def.sortType(d.format) !== 'none')
     .append('span').append('a')
@@ -142,21 +91,8 @@ function addSort(selection) {
 }
 
 
-function formatNumbers(selection) {
-  // DEPRECATED: no longer used
-  selection.select('thead tr').selectAll('th')
-    .each((col, colIdx) => {
-      if (col.digit === 'raw') return;
-      selection.select('tbody').selectAll('tr')
-        .selectAll('td')
-          .filter((d, i) => i === colIdx)
-          .text(d => fmt.formatNum(d, col.digit));
-    });
-}
-
-
 export default {
   selectOptions, checkboxList, checkboxListT,
   createTable, updateTableRecords,
-  appendTableRows, addSort, formatNumbers
+  appendTableRows, addSort
 };

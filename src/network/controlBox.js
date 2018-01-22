@@ -2,24 +2,19 @@
 import d3 from 'd3';
 
 import {default as box} from '../component/formBox.js';
+import {default as button} from '../component/button.js';
 import {default as group} from '../component/formBoxGroup.js';
 import {default as def} from '../helper/definition.js';
 import {default as scaledef} from '../helper/scale.js';
 
 
 function mainControlBox(selection, state) {
-  // Snapshot
-  selection.append('div')
-      .classed('mb-3', true)
-    .append('div')
-      .classed('snapshot', true)
-      .call(box.buttonBox, 'snapshot', 'Save snapshot', 'primary');
   // Zoom
   selection.append('div')
       .classed('mb-3', true)
     .append('div')
       .classed('fit', true)
-      .call(box.buttonBox, 'fit-to-screen', 'Fit to screen', 'primary');
+      .call(button.buttonBox, 'fit-to-screen', 'Fit to screen', 'primary');
   // Focused view
   selection.append('div')
       .classed('mb-3', true)
@@ -77,7 +72,7 @@ function mainControlBox(selection, state) {
       .classed('col-12', true)
     .append('div')
       .classed('restart', true)
-      .call(box.buttonBox, 'restart-force', 'Activate', 'warning');
+      .call(button.buttonBox, 'restart-force', 'Activate', 'warning');
 
   selection.call(updateMainControlBox, state);
 }

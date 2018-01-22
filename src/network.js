@@ -8,8 +8,9 @@ import {default as def} from './helper/definition.js';
 import {default as hfile} from './helper/file.js';
 import {default as win} from './helper/window.js';
 import {default as store} from './store/StoreConnection.js';
-import {default as dialog} from './component/Dialog.js';
+import {default as box} from './component/formBox.js';
 import {default as button} from './component/button.js';
+import {default as modal} from './component/modal.js';
 import {default as view} from './network/view.js';
 import {default as control} from './network/controlBox.js';
 import {default as interaction} from './network/interaction.js';
@@ -78,21 +79,7 @@ function render(data) {
     // Rename
     menu.append('a')
         .call(button.dropdownMenuModal,
-              'rename', 'Rename view', 'prompt-dialog')
-        .on('click', () => {
-          d3.select('#prompt-title').text('Rename table');
-          d3.select('#prompt-label').text('New name');
-          d3.select('#prompt-input').property('value', data.edges.name);
-          d3.select('#prompt-submit')
-            .on('click', () => {
-              const name = d3.select('#prompt-input').property('value');
-              return store.updateTableAttribute(win.URLQuery().id, 'name', name)
-                .then(() => {
-                  d3.select('title').text(name);
-                  d3.select('#title').text(name);
-                });
-            });
-        });
+              'rename', 'Rename view', 'rename-dialog');
     // Export
     menu.append('a')
         .call(button.dropdownMenuItem, null, 'Export to JSON')
@@ -124,18 +111,7 @@ function render(data) {
     d3.select('#toolbar').append('a')
         .call(button.menuButton, null, 'Abort server job', 'warning')
         .attr('data-toggle', 'modal')
-        .attr('data-target', '#confirm-dialog')
-        .on('click', function () {
-          d3.select('#confirm-message')
-              .text('Are you sure you want to abort this calculation job?');
-          d3.select('#confirm-submit')
-              .classed('btn-primary', false)
-              .classed('btn-warning', true)
-              .on('click', function () {
-                // TODO: renderStatus
-                common.fetchResults('abort').then(getGraph).then(render);
-              });
-        });
+        .attr('data-target', '#confirm-dialog');
   }
   // Progress
   d3.select('#toolbar').append('span')
@@ -147,35 +123,77 @@ function render(data) {
         .attr('value', data.edges.progress)
         .text(`${data.edges.progress}%`);
   }
-
-  dialog.communityDialog(query => {
-    const nodeIds = data.nodes.records.map(e => e.index);
-    const edges = data.edges.records
-      .filter(e => e.weight >= state.networkThreshold);
-    const comm = community.communityDetection(
-      nodeIds, edges, {nulliso: query.nulliso}
-    );
-    const mapping = {
-      key: 'index',
-      field: def.defaultFieldProperties(
-        [{key: query.name, format: 'd3_format', d3_format: 'd'}]
-      )[0],
-      mapping: comm
-    };
-    store.joinFields(data.nodes.id, mapping)
-      .then(() => {
-        state.nodeColor.field = query.name;
-        state.nodeColor.scale = 'ordinal';
-        state.nodeColor.range = d3.schemeCategory20b.concat(d3.schemeCategory20c);
-        state.nodeColor.unknown = '#fefefe';
-      })
-      .then(() => {
-        return store.updateTableAttribute(
-          win.URLQuery().id, 'snapshot', state.snapshot());
-      })
-      .then(getGraph)
-      .then(render);
-  });
+  // Dialogs
+  if (d3.select('#dialogs').selectAll('div').size()) {
+    d3.select('#dialogs').selectAll('div').remove();
+  }
+  if (storeID) {
+    if (def.ongoing(data.edges)) {
+      // Abort dialog
+      const abort = d3.select('#dialogs').append('div')
+          .call(
+            modal.confirmDialog, 'confirm-dialog',
+            'Are you sure you want to abort this calculation job?'
+          );
+      abort.select('.ok')
+          .on('click', function () {
+            // TODO: renderStatus
+            common.fetchResults('abort').then(getGraph).then(render);
+          });
+    }
+    // Rename dialog
+    const rename = d3.select('#dialogs').append('div')
+        .call(modal.submitDialog, 'rename-dialog', 'Rename view');
+    const renameBox = rename.select('.modal-body').append('div')
+        .call(box.textBox, 'rename', 'New name', 40, data.edges.name);
+    rename.select('.submit')
+        .on('click', function () {
+          const name = box.textBoxValue(renameBox);
+          return store.updateTableAttribute(win.URLQuery().id, 'name', name)
+            .then(() => {
+              d3.select('title').text(name);
+              d3.select('#title').text(name);
+            });
+        });
+    // Community dialog
+    const comm = d3.select('#dialogs').append('div')
+      .call(modal.submitDialog, 'community-dialog', 'Community detection');
+    const nameBox = comm.select('.modal-body').append('div')
+      .call(box.textBox, 'comm-name', 'New name', 40, 'comm_');
+    const nullisoBox = comm.select('.modal-body').append('div')
+      .call(box.checkBox, 'nulliso', 'Assign null to isolated nodes', true);
+    comm.select('.submit')
+        .on('click', function () {
+          const name = box.textBoxValue(nameBox);
+          const nulliso = box.checkBoxValue(nullisoBox);
+          const nodeIds = data.nodes.records.map(e => e.index);
+          const edges = data.edges.records
+            .filter(e => e.weight >= state.networkThreshold);
+          const comm = community.communityDetection(
+            nodeIds, edges, {nulliso: nulliso}
+          );
+          const mapping = {
+            key: 'index',
+            field: def.defaultFieldProperties(
+              [{key: name, format: 'd3_format', d3_format: 'd'}]
+            )[0],
+            mapping: comm
+          };
+          store.joinFields(data.nodes.id, mapping)
+            .then(() => {
+              state.nodeColor.field = name;
+              state.nodeColor.scale = 'ordinal';
+              state.nodeColor.range = d3.schemeCategory20b.concat(d3.schemeCategory20c);
+              state.nodeColor.unknown = '#fefefe';
+            })
+            .then(() => {
+              return store.updateTableAttribute(
+                win.URLQuery().id, 'snapshot', state.snapshot());
+            })
+            .then(getGraph)
+            .then(render);
+        });
+  }
 }
 
 

@@ -6,17 +6,29 @@ import d3 from 'd3';
 import {default as item} from './listItems.js';
 
 
-function buttonBox(selection, id, label, type) {
+function textBox(selection, id, label, size, value) {
   selection
       .classed('form-group', true)
-      .classed('mb-1', true)
-    .append('button')
-      .classed('btn', true)
-      .classed(`btn-outline-${type}`, true)
-      .classed('btn-sm', true)
-      .attr('type', 'button')
-      .attr('id', id)
+      .classed('mb-1', true);
+  selection.append('label')
+      .classed('form-label', true)
+      .classed('col-sm-3', true)
+      .attr('for', id)
       .text(label);
+  selection.append('input')
+      .classed('form-control-sm', true)
+      .attr('id', id)
+      .attr('type', 'text')
+      .attr('size', size);
+  selection.call(updateTextBox, value);
+}
+
+function updateTextBox(selection, value) {
+  selection.select('input').property('value', value);
+}
+
+function textBoxValue(selection) {
+  return selection.select('input').property('value');
 }
 
 
@@ -240,7 +252,8 @@ function colorScaleBoxValue(selection) {
 
 
 export default {
-  buttonBox, checkBox, updateCheckBox, checkBoxValue,
+  textBox, updateTextBox, textBoxValue,
+  checkBox, updateCheckBox, checkBoxValue,
   numberBox, updateNumberBox, numberBoxValue,
   selectBox, updateSelectBoxItems, updateSelectBox, selectBoxValue,
   rangeBox, updateRangeBox, rangeBoxValue,
