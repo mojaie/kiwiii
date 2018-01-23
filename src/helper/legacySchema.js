@@ -203,29 +203,37 @@ function v10_edges(json) {
   };
   snapshot.nodeContentVisible = json.snapshot.nodeContent.structure.visible;
   snapshot.nodeColor = json.snapshot.nodeColor.scale || {};
-  snapshot.nodeColor.field = json.snapshot.nodeColor.field.key;
-  if (snapshot.nodeColor.field === '_index') {
-    snapshot.nodeColor.field = 'index';
+  if (snapshot.nodeColor.field) {
+    snapshot.nodeColor.field = json.snapshot.nodeColor.field.key;
+    if (snapshot.nodeColor.field === '_index') {
+      snapshot.nodeColor.field = 'index';
+    }
   }
   if (snapshot.nodeColor.scale === 'ordinal') {
     snapshot.nodeColor.range = d3.schemeCategory20;
   }
   snapshot.nodeSize = json.snapshot.nodeSize.scale || {};
-  snapshot.nodeSize.field = json.snapshot.nodeSize.field.key;
-  if (snapshot.nodeSize.field === '_index') {
-    snapshot.nodeSize.field = 'index';
+  if (json.snapshot.nodeSize.field) {
+    snapshot.nodeSize.field = json.snapshot.nodeSize.field.key;
+    if (snapshot.nodeSize.field === '_index') {
+      snapshot.nodeSize.field = 'index';
+    }
   }
   snapshot.nodeLabel = {};
-  snapshot.nodeLabel.text = json.snapshot.nodeLabel.text.key;
-  if (snapshot.nodeLabel.text === '_index') {
-    snapshot.nodeLabel.text = 'index';
+  if (json.snapshot.nodeLabel.text) {
+    snapshot.nodeLabel.text = json.snapshot.nodeLabel.text.key;
+    if (snapshot.nodeLabel.text === '_index') {
+      snapshot.nodeLabel.text = 'index';
+    }
   }
   snapshot.nodeLabel.size = json.snapshot.nodeLabel.size;
   snapshot.nodeLabel.visible = json.snapshot.nodeLabel.visible;
   snapshot.nodeLabelColor = json.snapshot.nodeLabel.scale || {};
-  snapshot.nodeLabelColor.field = json.snapshot.nodeLabel.field.key;
-  if (snapshot.nodeLabelColor.field === '_index') {
-    snapshot.nodeLabelColor.field = 'index';
+  if (json.snapshot.nodeLabel.field) {
+    snapshot.nodeLabelColor.field = json.snapshot.nodeLabel.field.key;
+    if (snapshot.nodeLabelColor.field === '_index') {
+      snapshot.nodeLabelColor.field = 'index';
+    }
   }
   if (snapshot.nodeLabelColor.scale === 'ordinal') {
     snapshot.nodeLabelColor.range = d3.schemeCategory20;
@@ -274,7 +282,7 @@ function convertNetwork(json) {
     data.nodes = v07_to_v08_nodes(data.nodes);
     data.edges = v07_to_v08_edges(data.edges, data.nodes.fields);
   }
-  if (data.edges.schemaVersion == '0.8') {
+  if (data.edges.schemaVersion == '0.8' || data.edges.schemaVersion === 0.1) {  // wrong conversion of '0.10'
     data = v08_graph(data);
     data.nodes = v10_nodes(data.nodes);
     data.edges = v10_edges(data.edges);
