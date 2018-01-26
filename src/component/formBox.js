@@ -9,14 +9,18 @@ import {default as item} from './listItems.js';
 function textBox(selection, id, label, size, value) {
   selection
       .classed('form-group', true)
-      .classed('mb-1', true);
+      .classed('form-row', true)
+      .classed('align-items-center', true);
   selection.append('label')
-      .classed('form-label', true)
-      .classed('col-sm-3', true)
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
       .attr('for', id)
       .text(label);
   selection.append('input')
+      .classed('form-control', true)
       .classed('form-control-sm', true)
+      .classed('col-8', true)
       .attr('id', id)
       .attr('type', 'text')
       .attr('size', size);
@@ -32,24 +36,81 @@ function textBoxValue(selection) {
 }
 
 
+function readonlyBox(selection, id, label, value) {
+  selection
+      .classed('form-group', true)
+      .classed('form-row', true)
+      .classed('align-items-center', true);
+  selection.append('label')
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
+      .attr('for', id)
+      .text(label);
+  selection.append('input')
+      .classed('form-control-plaintext', true)
+      .classed('form-control-sm', true)
+      .classed('col-8', true)
+      .attr('id', id)
+      .attr('type', 'text')
+      .property('readonly', true);
+  selection.call(updateTextBox, value);
+}
+
+
+function textareaBox(selection, id, label, rows, placeholder, value) {
+  selection
+      .classed('form-group', true)
+      .classed('form-row', true);
+  selection.append('label')
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
+      .attr('for', id)
+      .text(label);
+  selection.append('textarea')
+      .classed('form-control', true)
+      .classed('form-control-sm', true)
+      .classed('col-8', true)
+      .attr('rows', rows)
+      .attr('placeholder', placeholder)
+      .attr('id', id);
+  selection.call(updateTextareaBox, value);
+}
+
+function updateTextareaBox(selection, value) {
+  selection.select('textarea').text(value);
+}
+
+function textareaBoxValue(selection) {
+  const value = selection.select('textarea').text();
+  if (value === '') {
+    return selection.select('textarea').attr('placeholder');
+  } else {
+    return value;
+  }
+}
+
+
 function checkBox(selection, id, label, checked) {
   const box = selection
       .classed('form-group', true)
-      .classed('mb-1', true)
+      .classed('form-row', true)
       .classed('form-check', true)
     .append('label')
-      .classed('form-check-label', true);
+      .classed('form-check-label', true)
+      .classed('col-form-label-sm', true);
   box.append('input')
       .classed('form-check-input', true)
       .attr('type', 'checkbox')
-      .attr('id', id)
-      .property('checked', checked);
+      .attr('id', id);
   box.append('span')
       .text(label);
+  selection.call(updateCheckBox, checked);
 }
 
 function updateCheckBox(selection, checked) {
-  selection.select('input').text(checked);
+  selection.select('input').property('checked', checked);
 }
 
 function checkBoxValue(selection) {
@@ -60,14 +121,19 @@ function checkBoxValue(selection) {
 function numberBox(selection, id, label, min, max, step, value) {
   selection
       .classed('form-group', true)
-      .classed('mb-1', true);
+      .classed('form-row', true)
+      .classed('align-items-center', true);
   selection.append('label')
-      .classed('form-label', true)
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
       .attr('for', id)
       .text(label);
   selection.append('input')
+      .classed('form-control', true)
       .classed('form-control-sm', true)
-      .attr('id', 'thld')
+      .classed('col-8', true)
+      .attr('id', id)
       .attr('type', 'number')
       .attr('min', min)
       .attr('max', max)
@@ -91,13 +157,18 @@ function numberBoxValue(selection) {
 function selectBox(selection, id, label, fields, value) {
   selection
       .classed('form-group', true)
-      .classed('mb-1', true);
+      .classed('form-row', true)
+      .classed('align-items-center', true);
   selection.append('label')
-      .classed('form-label', true)
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
       .attr('for', id)
       .text(label);
   selection.append('select')
+      .classed('form-control', true)
       .classed('form-control-sm', true)
+      .classed('col-8', true)
       .attr('id', id);
   selection.call(updateSelectBoxItems, fields);
   selection.call(updateSelectBox, value);
@@ -119,33 +190,50 @@ function selectBoxValue(selection) {
 
 function rangeBox(selection, id, label, range) {
   selection
-      .classed('form-group', true)
-      .classed('row', true)
-      .classed('mb-1', true)
+      .classed('form-row', true)
+      .classed('align-items-center', true)
       .attr('id', id);
   selection.append('div')
-      .classed('col-6', true)
-    .append('label')
-      .classed('form-label', true)
+      .classed('form-group', true)
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
       .classed('mb-1', true)
-      .attr('for', id)
       .text(label);
-  const form = selection.append('div')
-      .classed('col-12', true)
-      .classed('range', true);
-  form.append('input')
+  const f = selection.append('div')
+      .classed('form-group', true)
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
+      .classed('mb-1', true);
+  f.append('label')
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('py-0', true)
+      .attr('for', `${id}-from`)
+      .text('min');
+  f.append('input')
+      .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('min', true)
       .attr('type', 'text')
-      .attr('size', 8);
-  form.append('span')
-      .style('margin', '0 6px')
-      .text(' - ');
-  form.append('input')
+      .attr('id', `${id}-from`);
+  const t = selection.append('div')
+      .classed('form-group', true)
+      .classed('col-4', true)
+      .classed('mb-1', true);
+  t.append('label')
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('py-0', true)
+      .attr('for', `${id}-to`)
+      .text('max');
+  t.append('input')
+      .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('max', true)
       .attr('type', 'text')
-      .attr('size', 8);
+      .attr('id', `${id}-to`);
   // TODO: validation
   // not null, undef, text
   // min <= max
@@ -172,37 +260,70 @@ function rangeBoxValue(selection) {
 
 function colorScaleBox(selection, id, label, range) {
   selection
-      .classed('form-group', true)
-      .classed('row', true)
-      .classed('mb-1', true)
+      .classed('form-row', true)
+      .classed('align-items-center', true)
       .attr('id', id);
   selection.append('div')
-      .classed('col-6', true)
-    .append('label')
-      .classed('form-label', true)
+      .classed('form-group', true)
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-3', true)
       .classed('mb-1', true)
-      .attr('for', id)
       .text(label);
-  const form = selection.append('div')
-      .classed('col-12', true);
-  form.append('input')
+  const f = selection.append('div')
+      .classed('form-group', true)
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-3', true)
+      .classed('mb-1', true);
+  f.append('label')
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('py-0', true)
+      .attr('for', `${id}-from`)
+      .text('min');
+  f.append('input')
+      .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('min', true)
-      .attr('type', 'color');
-  form.append('span')
-      .style('margin', '0 6px')
-      .text(' - ');
-  form.append('input')
+      .attr('type', 'color')
+      .attr('id', `${id}-from`);
+  const m = selection.append('div')
+      .classed('form-group', true)
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-3', true)
+      .classed('mb-1', true);
+  m.append('label')
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('py-0', true)
+      .attr('for', `${id}-mid`)
+      .text('mid');
+  m.append('input')
+      .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('mid', true)
-      .attr('type', 'color');
-  form.append('span')
-      .style('margin', '0 6px')
-      .text(' - ');
-  form.append('input')
+      .attr('type', 'color')
+      .attr('id', `${id}-mid`);
+  const t = selection.append('div')
+      .classed('form-group', true)
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-3', true)
+      .classed('mb-1', true);
+  t.append('label')
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('py-0', true)
+      .attr('for', `${id}-to`)
+      .text('max');
+  t.append('input')
+      .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('max', true)
-      .attr('type', 'color');
+      .attr('type', 'color')
+      .attr('id', `${id}-to`);
   selection
       .call(updateColorScaleBox, range)
       .on('change', () => {
@@ -252,7 +373,8 @@ function colorScaleBoxValue(selection) {
 
 
 export default {
-  textBox, updateTextBox, textBoxValue,
+  textBox, updateTextBox, textBoxValue, readonlyBox,
+  textareaBox, updateTextareaBox, textareaBoxValue,
   checkBox, updateCheckBox, checkBoxValue,
   numberBox, updateNumberBox, numberBoxValue,
   selectBox, updateSelectBoxItems, updateSelectBox, selectBoxValue,

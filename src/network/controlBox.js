@@ -15,41 +15,38 @@ function mainControlBox(selection, state) {
     .append('div')
       .classed('fit', true)
       .call(button.buttonBox, 'fit-to-screen', 'Fit to screen', 'primary');
-  // Focused view
-  selection.append('div')
-      .classed('mb-3', true)
-    .append('div')
+  // View modes
+  const viewModes = selection.append('div')
+      .classed('mb-3', true);
+    viewModes.append('div')
       .classed('focused', true)
+      .classed('mb-1', true)
       .call(box.checkBox, 'focused', 'Enable focused view', state.enableFocusedView);
-  // Overlook view
-  selection.append('div')
-      .classed('mb-3', true)
-    .append('div')
+    viewModes.append('div')
       .classed('overlook', true)
+      .classed('mb-1', true)
       .call(box.checkBox, 'overlook', 'Enable overlook view', state.enableOverlookView);
   // Network threshold
   const thldGroup = selection.append('div')
       .classed('mb-3', true);
   thldGroup.append('div')
       .classed('thld', true)
+      .classed('mb-1', true)
       .call(box.numberBox, 'thld', 'Network threshold',
             state.networkThresholdCutoff, 1.000, 0.01, state.networkThreshold);
-  const logdBox = thldGroup.append('div')
-      .classed('col-12', true);
-  logdBox.append('span')
-      .classed('form-label', true)
-      .text('logD');
-  logdBox.append('span')
-      .classed('form-control-sm', true)
-      .classed('logd', true);
+  thldGroup.append('div')
+      .classed('logd', true)
+      .classed('mb-1', true)
+      .call(box.readonlyBox, 'logd', 'logD', null);
   // Force layout
   const forceBox = selection.append('div')
       .classed('form-group', true)
-      .classed('row', true);
+      .classed('form-row', true);
   forceBox.append('div')
       .classed('col-6', true)
     .append('span')
-      .classed('form-label', true)
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
       .classed('mb-1', true)
       .text('Temperature');
   forceBox.append('div')
@@ -67,11 +64,13 @@ function mainControlBox(selection, state) {
       .classed('col-12', true)
     .append('div')
       .classed('stick', true)
+      .classed('mb-1', true)
       .call(box.checkBox, 'stick-nodes', 'Stick nodes', !state.simulationOnLoad);
   forceBox.append('div')
       .classed('col-12', true)
     .append('div')
       .classed('restart', true)
+      .classed('mb-1', true)
       .call(button.buttonBox, 'restart-force', 'Activate', 'warning');
 
   selection.call(updateMainControlBox, state);
@@ -113,7 +112,7 @@ function updateMainControlBox(selection, state) {
         const n = state.nodes.length;
         const combinations = n * (n - 1) / 2;
         const logD = d3.format('.2f')(Math.log10(numEdges / combinations));
-        selection.select('.logd').text(logD);
+        selection.select('.logd').call(box.updateTextBox, logD);
       })
       .dispatch('change');
   // Force layout
@@ -139,7 +138,6 @@ function updateMainControlBox(selection, state) {
 
 function nodeColorControlBox(selection, state) {
   selection.append('div')
-      .classed('mb-3', true)
       .classed('field', true)
       .call(
         box.selectBox, 'color-field', 'Field',
@@ -203,7 +201,6 @@ function updateNodeColorControlBox(selection, state) {
 
 function nodeSizeControlBox(selection, state) {
   selection.append('div')
-    .classed('mb-3', true)
     .classed('field', true)
     .call(
       box.selectBox, 'size-field', 'Field',
@@ -212,6 +209,7 @@ function nodeSizeControlBox(selection, state) {
     );
   selection.append('div')
     .classed('range', true)
+    .classed('mb-3', true)
     .call(box.rangeBox, 'size-range', 'Range', state.nodeSize.range);
   selection.append('div')
     .classed('scale', true)
@@ -253,7 +251,6 @@ function updateNodeSizeControlBox(selection, state) {
 function nodeLabelControlBox(selection, state) {
   // nodeLabel.visible
   selection.append('div')
-      .classed('mb-3', true)
     .append('div')
       .classed('visible', true)
       .call(box.checkBox, 'label-visible', 'Show node labels', state.nodeLabel.visible);
@@ -262,6 +259,7 @@ function nodeLabelControlBox(selection, state) {
       .classed('mb-3', true);
   labelGroup.append('div')
       .classed('text', true)
+      .classed('mb-1', true)
       .call(
         box.selectBox, 'label-text', 'Text field',
         state.nodeFields.filter(e => def.sortType(e.format) !== 'none'),
@@ -269,12 +267,12 @@ function nodeLabelControlBox(selection, state) {
       );
   labelGroup.append('div')
       .classed('size', true)
+      .classed('mb-1', true)
       .call(
         box.numberBox, 'label-size', 'Font size', 6, 100, 1, state.nodeLabel.size
       );
   // nodeLabelColor
   selection.append('div')
-      .classed('mb-3', true)
       .classed('field', true)
       .call(
         box.selectBox, 'label-field', 'Color field',
@@ -365,12 +363,14 @@ function edgeControlBox(selection, state) {
       .classed('mb-3', true);
   labelGroup.append('div')
       .classed('label', true)
+      .classed('mb-1', true)
       .call(
         box.checkBox, 'edge-label-visible', 'Show edge weight label',
         state.edgeLabel.visible
       );
   labelGroup.append('div')
       .classed('size', true)
+      .classed('mb-1', true)
       .call(
         box.numberBox, 'edge-label-size', 'Weight label font size',
         6, 100, 1, state.edgeLabel.size
@@ -380,15 +380,18 @@ function edgeControlBox(selection, state) {
       .classed('mb-3', true);
   widthGroup.append('div')
       .classed('range', true)
+      .classed('mb-3', true)
       .call(box.rangeBox, 'edge-width-range', 'Range', state.edgeWidth.range);
   widthGroup.append('div')
       .classed('scale', true)
+      .classed('mb-1', true)
       .call(
         box.selectBox, 'edge-width-scale', 'Scale type',
         scaledef.types.filter(e => e.key !== 'ordinal'), state.edgeWidth.scale
       );
   widthGroup.append('div')
       .classed('domain', true)
+      .classed('mb-1', true)
       .call(box.rangeBox, 'edge-width-domain', 'Domain', state.edgeWidth.domain);
 }
 
@@ -461,6 +464,8 @@ function controlBoxItem(selection, id) {
   selection
       .classed('tab-pane', true)
       .classed('fade', true)
+      .classed('container', true)
+      .classed('px-0', true)
       .attr('id', id)
       .attr('role', 'tabpanel')
       .attr('aria-labelledby', `${id}-tab`);

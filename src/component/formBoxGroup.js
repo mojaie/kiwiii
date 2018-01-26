@@ -13,18 +13,21 @@ import {default as scaledef} from '../helper/scale.js';
  */
 function colorRangeGroup(selection, id, palettes, rangeTypes, range) {
   selection
-      .classed('mb-4', true);
+      .classed('mb-3', true);
   selection.append('div')
       .classed('palette', true)
+      .classed('mb-1', true)
       .call(box.selectBox, `${id}-palette`, 'Color palette', palettes, 'hoge');
   selection.append('div')
       .classed('rangetype', true)
+      .classed('mb-1', true)
       .call(
         box.selectBox, `${id}-rangetype`, 'Range type', rangeTypes,
         scaledef.colorRangeTypes.find(e => e.size === range.length).key
       );
   selection.append('div')
       .classed('range', true)
+      .classed('mb-1', true)
       .call(box.colorScaleBox, `${id}-range`, 'Range', range);
   selection.call(updateColorRangeGroup, range);
 }
@@ -82,15 +85,18 @@ function colorRangeGroupValue(selection) {
  */
 function scaleBoxGroup(selection, id, presets, scaleTypes, scale, domain) {
   selection
-      .classed('mb-4', true);
+      .classed('mb-3', true);
   selection.append('div')
       .classed('preset', true)
+      .classed('mb-1', true)
       .call(box.selectBox, `${id}-preset`, 'Scale preset', presets, '');
   selection.append('div')
       .classed('scale', true)
+      .classed('mb-1', true)
       .call(box.selectBox, `${id}-scale`, 'Scale type', scaleTypes, scale);
   selection.append('div')
       .classed('domain', true)
+      .classed('mb-1', true)
       .call(box.rangeBox, `${id}-domain`, 'Domain', domain);
   selection.call(updateScaleBoxGroup, scale, domain);
 }
