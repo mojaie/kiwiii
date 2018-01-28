@@ -10,7 +10,7 @@ function buttonBox(selection, id, label, type) {
       .classed('mb-1', true)
     .append('button')
       .classed('btn', true)
-      .classed(`btn-outline-${type}`, true)
+      .classed(`btn-${type}`, true)
       .classed('btn-sm', true)
       .attr('type', 'button')
       .attr('id', id)

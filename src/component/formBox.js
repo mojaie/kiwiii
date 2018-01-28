@@ -79,15 +79,25 @@ function textareaBox(selection, id, label, rows, placeholder, value) {
 }
 
 function updateTextareaBox(selection, value) {
-  selection.select('textarea').text(value);
+  selection.select('textarea').property('value', value);
 }
 
 function textareaBoxValue(selection) {
-  const value = selection.select('textarea').text();
+  const value = selection.select('textarea').property('value');
   if (value === '') {
     return selection.select('textarea').attr('placeholder');
   } else {
     return value;
+  }
+}
+
+function textareaBoxLines(selection) {
+  const value = selection.select('textarea').property('value');
+  if (value === '') {
+    return selection.select('textarea').attr('placeholder')
+        .split('\n').filter(e => e.length > 0);
+  } else {
+    return value.split('\n').filter(e => e.length > 0);
   }
 }
 
@@ -170,8 +180,10 @@ function selectBox(selection, id, label, fields, value) {
       .classed('form-control-sm', true)
       .classed('col-8', true)
       .attr('id', id);
-  selection.call(updateSelectBoxItems, fields);
-  selection.call(updateSelectBox, value);
+  if (fields) {
+    selection.call(updateSelectBoxItems, fields);
+    selection.call(updateSelectBox, value);
+  }
 }
 
 function updateSelectBoxItems(selection, items) {
@@ -188,6 +200,50 @@ function selectBoxValue(selection) {
 }
 
 
+/**
+ * Render select box components
+ * @param {d3.selection} selection - selection of box container (div element)
+ */
+function checklistBox(selection, id, label, fields, value) {
+  selection
+      .classed('form-group', true)
+      .classed('form-row', true)
+      .classed('align-items-center', true);
+  selection.append('label')
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
+      .attr('for', id)
+      .text(label);
+  selection.append('ul')
+      .classed('form-control', true)
+      .classed('form-control-sm', true)
+      .classed('col-8', true)
+      .attr('id', id);
+  if (fields) {
+    selection.call(updateSelectBoxItems, fields);
+    selection.call(updateSelectBox, value);
+  }
+}
+
+function updateChecklistBoxItems(selection, items) {
+  selection.select('select')
+      .call(item.selectOptions, items, d => d.key, d => d.name);
+}
+
+function updateChecklistBox(selection, value) {
+  selection.select('select').property('value', value);
+}
+
+function checklistBoxValue(selection) {
+  return selection.select('select').property('value');
+}
+
+
+/**
+ * Render range box components
+ * @param {d3.selection} selection - selection of box container (div element)
+ */
 function rangeBox(selection, id, label, range) {
   selection
       .classed('form-row', true)
@@ -258,6 +314,10 @@ function rangeBoxValue(selection) {
 }
 
 
+/**
+ * Render color scale box components
+ * @param {d3.selection} selection - selection of box container (div element)
+ */
 function colorScaleBox(selection, id, label, range) {
   selection
       .classed('form-row', true)
@@ -374,10 +434,11 @@ function colorScaleBoxValue(selection) {
 
 export default {
   textBox, updateTextBox, textBoxValue, readonlyBox,
-  textareaBox, updateTextareaBox, textareaBoxValue,
+  textareaBox, updateTextareaBox, textareaBoxValue, textareaBoxLines,
   checkBox, updateCheckBox, checkBoxValue,
   numberBox, updateNumberBox, numberBoxValue,
   selectBox, updateSelectBoxItems, updateSelectBox, selectBoxValue,
+  checklistBox, updateChecklistBoxItems, updateChecklistBox, checklistBoxValue,
   rangeBox, updateRangeBox, rangeBoxValue,
   colorScaleBox, updateColorScaleBox, colorScaleBoxValue
 };
