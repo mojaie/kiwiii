@@ -3,34 +3,8 @@
 <% include partial/header %>
 <script src="kwprofile.js"></script>
 <div class="container-fluid">
-  <div class="btn-toolbar">
-    <a role="button" class="btn btn-outline-secondary btn-sm" href="control.html" target="_blank">Open control panel</a>
-  </div>
-  <div class="row">
-    <div class="col-sm-4">
-      <h5>Compound ID</h5>
-      <div id="compoundid" class="mb-2"></div>
-      <h5>Database</h5>
-      <div id="compounddb" class="mb-2"></div>
-      <h5>Structure</h5>
-      <div id="structure"></div>
-    </div>
-    <div class="col-sm-4">
-      <h5>Compound properties</h5>
-      <table id="properties"  class="table table-striped table-hover" style="display:inline-block"></table>
-    </div>
-    <div class="col-sm-4">
-      <h5>Compound structure aliases</h5>
-      <table id="aliases"  class="table table-striped table-hover" style="display:inline-block"></table>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm-12">
-      <h5>Assay results and annotations</h5>
-      <input class="form-control" type="text" placeholder="Search" id="search"/>
-      <table id="results" class="table table-striped table-hover"></table>
-    </div>
-  </div>
+  <div id="menubar" class="btn-toolbar" role="toolbar"></div>
+  <div id="contents"></div>
 </div>
 <script type="text/javascript">
   kwprofile.run();

@@ -1,4 +1,6 @@
 
+/** @module network/communityDetection */
+
 import jLouvain from 'jLouvain';
 
 

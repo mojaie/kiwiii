@@ -3,11 +3,12 @@
 
 import d3 from 'd3';
 
-import {default as fmt} from '../helper/formatValue.js';
-import {default as img} from '../helper/image.js';
+import {default as misc} from '../common/misc.js';
+import {default as img} from '../common/image.js';
 
 
 function updateHeader(selection, state) {
+  selection.style('width', `${state.contentWidth}px`);
   const header = selection.select('.dg-header')
     .selectAll('.dg-hcell')
       .data(state.visibleFields, d => d.key);
@@ -43,7 +44,7 @@ function updateRows(selection, state) {
   const cData = state.visibleFields;
   const rowSelection = selection.select('.dg-body')
     .selectAll('.dg-row')
-      .data(state.recordsToRender(), state.keyFunc)
+      .data(state.recordsToShow(), state.keyFunc)
       .style('height', `${state.rowHeight}px`);
   rowSelection.exit().remove();
   const rowEntered = rowSelection.enter().append('div')
@@ -70,7 +71,7 @@ function updateRows(selection, state) {
             const value = d[cData[i].key];
             if (value === undefined) return '';
             if (cData[i].format === 'd3_format') {
-              return fmt.formatNum(value, cData[i].d3_format);
+              return misc.formatNum(value, cData[i].d3_format);
             }
             if (cData[i].format === 'plot') return '';
             if (cData[i].format === 'compound_id') {

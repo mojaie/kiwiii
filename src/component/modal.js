@@ -1,6 +1,7 @@
 
 /** @module component/modal */
 
+
 function dialogBase(selection, id) {
   if (selection.select('.modal-dialog').size()) {
     selection.select('.modal-dialog').remove();
@@ -27,6 +28,7 @@ function confirmDialog(selection, id, message) {
   base.append('div')
       .classed('modal-body', true)
     .append('div')
+      .classed('message', true)
       .text(message);
   // footer
   const footer = base.append('div')
@@ -46,6 +48,7 @@ function confirmDialog(selection, id, message) {
       .attr('data-dismiss', 'modal')
       .attr('data-target', `${id}-submit`)
       .text('OK');
+  // TODO: dispatch submit event on click
 }
 
 
@@ -80,45 +83,10 @@ function submitDialog(selection, id, title) {
       .attr('data-dismiss', 'modal')
       .attr('data-target', `${id}-submit`)
       .text('Submit');
-}
-
-
-function overwriteDialog(selection, id) {
-  const base = selection.call(dialogBase, id)
-      .select('.modal-content');
-  // body
-  base.append('div')
-      .classed('modal-body', true)
-    .append('div')
-      .text('Another revision of the data was found in the local storage. Do you want to overwrite it or keep both of them?');
-  // footer
-  const footer = base.append('div')
-      .classed('modal-footer', true);
-  footer.append('button')
-      .classed('btn', true)
-      .classed('btn-outline-secondary', true)
-      .classed('cancel', true)
-      .attr('type', 'button')
-      .attr('data-dismiss', 'modal')
-      .text('Cancel');
-  footer.append('button')
-      .classed('btn', true)
-      .classed('btn-outline-warning', true)
-      .classed('overwrite', true)
-      .attr('type', 'button')
-      .attr('data-dismiss', 'modal')
-      .text('Overwrite');
-  footer.append('button')
-      .classed('btn', true)
-      .classed('btn-primary', true)
-      .classed('keepboth', true)
-      .attr('type', 'button')
-      .attr('data-dismiss', 'modal')
-      .attr('data-target', `${id}-submit`)
-      .text('Keep both');
+  // TODO: dispatch submit event on click
 }
 
 
 export default {
-  confirmDialog, submitDialog, overwriteDialog
+  confirmDialog, submitDialog
 };

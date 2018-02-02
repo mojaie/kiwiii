@@ -20,6 +20,8 @@ tape("extend", function(t) {
   const result = new KArray([1, 2], [3, 4]).extend();
   t.equal(result instanceof KArray, true);
   t.deepEqual(result, [1, 2, 3, 4]);
+  const result2 = new KArray([1, 2]).extend();
+  t.deepEqual(result2, [1, 2]);
   t.end();
 });
 

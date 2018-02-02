@@ -1,10 +1,11 @@
 
-/** @module component/controlBoxGroup */
+/** @module component/formBoxGroup */
 
 import d3 from 'd3';
 
-import {default as box} from '../component/formBox.js';
-import {default as scaledef} from '../helper/scale.js';
+import {default as lbox} from '../component/formListBox.js';
+import {default as rbox} from '../component/formRangeBox.js';
+import {default as scaledef} from '../common/scale.js';
 
 
 /**
@@ -17,18 +18,18 @@ function colorRangeGroup(selection, id, palettes, rangeTypes, range) {
   selection.append('div')
       .classed('palette', true)
       .classed('mb-1', true)
-      .call(box.selectBox, `${id}-palette`, 'Color palette', palettes, 'hoge');
+      .call(lbox.selectBox, `${id}-palette`, 'Color palette', palettes, 'hoge');
   selection.append('div')
       .classed('rangetype', true)
       .classed('mb-1', true)
       .call(
-        box.selectBox, `${id}-rangetype`, 'Range type', rangeTypes,
+        lbox.selectBox, `${id}-rangetype`, 'Range type', rangeTypes,
         scaledef.colorRangeTypes.find(e => e.size === range.length).key
       );
   selection.append('div')
       .classed('range', true)
       .classed('mb-1', true)
-      .call(box.colorScaleBox, `${id}-range`, 'Range', range);
+      .call(rbox.colorScaleBox, `${id}-range`, 'Range', range);
   selection.call(updateColorRangeGroup, range);
 }
 
@@ -36,19 +37,19 @@ function colorRangeGroup(selection, id, palettes, rangeTypes, range) {
 function updateColorRangeGroup(selection, range) {
   selection.select('.palette')
       .call(
-        box.updateSelectBox,
+        lbox.updateSelectBox,
         scaledef.colorRangeTypes.find(e => e.size === range.length).key
       )
       .on('change', function () {
-        const value = box.selectBoxValue(d3.select(this));
+        const value = lbox.selectBoxValue(d3.select(this));
         const p = scaledef.colorPalettes.find(e => e.key === value);
         const t = scaledef.colorRangeTypes.find(e => e.size === p.range.length);
-        selection.select('.rangetype').call(box.updateSelectBox, t.key);
-        selection.select('.range').call(box.updateColorScaleBox, p.range);
+        selection.select('.rangetype').call(lbox.updateSelectBox, t.key);
+        selection.select('.range').call(rbox.updateColorScaleBox, p.range);
       });
   selection.select('.rangetype')
       .on('change', function () {
-        const value = box.selectBoxValue(d3.select(this));
+        const value = lbox.selectBoxValue(d3.select(this));
         const size = scaledef.colorRangeTypes.find(e => e.key === value).size;
         selection.select('.range').select('.min')
             .property('disabled', size > 3)
@@ -61,7 +62,7 @@ function updateColorRangeGroup(selection, range) {
             .style('opacity', size <= 3 ? null : 0.3);
       });
   selection.select('.range')
-      .call(box.updateColorScaleBox, range)
+      .call(rbox.updateColorScaleBox, range)
       .on('focusin', () => {
         selection.dispatch('change');
       });
@@ -69,8 +70,8 @@ function updateColorRangeGroup(selection, range) {
 
 
 function colorRangeGroupValue(selection) {
-  const type = box.selectBoxValue(selection.select('.rangetype'));
-  const values = box.colorScaleBoxValue(selection.select('.range'));
+  const type = lbox.selectBoxValue(selection.select('.rangetype'));
+  const values = rbox.colorScaleBoxValue(selection.select('.range'));
   if (!values.length) {
     return scaledef.colorRangeTypes.find(e => e.key === type).range;
   } else {
@@ -89,15 +90,15 @@ function scaleBoxGroup(selection, id, presets, scaleTypes, scale, domain) {
   selection.append('div')
       .classed('preset', true)
       .classed('mb-1', true)
-      .call(box.selectBox, `${id}-preset`, 'Scale preset', presets, '');
+      .call(lbox.selectBox, `${id}-preset`, 'Scale preset', presets, '');
   selection.append('div')
       .classed('scale', true)
       .classed('mb-1', true)
-      .call(box.selectBox, `${id}-scale`, 'Scale type', scaleTypes, scale);
+      .call(lbox.selectBox, `${id}-scale`, 'Scale type', scaleTypes, scale);
   selection.append('div')
       .classed('domain', true)
       .classed('mb-1', true)
-      .call(box.rangeBox, `${id}-domain`, 'Domain', domain);
+      .call(rbox.rangeBox, `${id}-domain`, 'Domain', domain);
   selection.call(updateScaleBoxGroup, scale, domain);
 }
 
@@ -105,21 +106,21 @@ function scaleBoxGroup(selection, id, presets, scaleTypes, scale, domain) {
 function updateScaleBoxGroup(selection, scale, domain) {
   selection.select('.preset')
     .on('change', function () {
-      const value = box.selectBoxValue(d3.select(this));
+      const value = lbox.selectBoxValue(d3.select(this));
       const p = scaledef.presets.find(e => e.key == value);
-      selection.select('.scale').call(box.updateSelectBox, p.scale);
-      selection.select('.domain').call(box.updateRangeBox, p.domain);
+      selection.select('.scale').call(lbox.updateSelectBox, p.scale);
+      selection.select('.domain').call(rbox.updateRangeBox, p.domain);
     });
   selection.select('.scale')
-      .call(box.updateSelectBox, scale)
+      .call(lbox.updateSelectBox, scale)
       .on('change', () => {
         selection.select('.domain').dispatch('change');
       });
   selection.select('.domain')
-      .call(box.updateRangeBox, domain)
+      .call(rbox.updateRangeBox, domain)
       .on('change', function () {
-        const isLog = box.selectBoxValue(selection.select('.scale')) === 'log';
-        const domain = box.rangeBoxValue(d3.select(this));
+        const isLog = lbox.selectBoxValue(selection.select('.scale')) === 'log';
+        const domain = rbox.rangeBoxValue(d3.select(this));
         const invalid = d => isNaN(d) || (isLog && d <= 0);
         d3.select(this).select('.min')
             .style('background-color', invalid(domain[0]) ? '#ffcccc' : '#ffffff');
@@ -130,8 +131,8 @@ function updateScaleBoxGroup(selection, scale, domain) {
 
 
 function scaleBoxGroupValue(selection) {
-  const scale = box.selectBoxValue(selection.select('.scale'));
-  const domain = box.rangeBoxValue(selection.select('.domain'));
+  const scale = lbox.selectBoxValue(selection.select('.scale'));
+  const domain = rbox.rangeBoxValue(selection.select('.domain'));
   return {scale: scale, domain: domain};
 }
 

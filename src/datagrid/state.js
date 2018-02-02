@@ -1,18 +1,18 @@
 
 /** @module datagrid/state */
 
-import {default as def} from '../helper/definition.js';
-import {default as legacy} from '../helper/legacySchema.js';
+import {default as legacy} from '../common/legacySchema.js';
+import {default as mapper} from '../common/mapper.js';
+import {default as misc} from '../common/misc.js';
+import KArray from '../common/KArray.js';
 
 
 export default class DatagridState {
   constructor(data) {
 
     // Import from legacy format data
-    data = legacy.convertTable(data);
-
-    this.records = JSON.parse(JSON.stringify(data.records));  // deep copy
-    this.fields = JSON.parse(JSON.stringify(data.fields));  // deep copy
+    this.data = legacy.convertTable(data);
+    this.fields = null;  // Working copy (set by setFields method)
 
     this.defaultColumnWidth = {
       numeric: 120,
@@ -26,19 +26,12 @@ export default class DatagridState {
     };
     this.scrollBarSpace = 20;
 
-    this.visibleFields = this.fields.filter(e => e.visible)
-      .map(e => {
-        e.width = this.defaultColumnWidth[def.sortType(e.format)];
-        e.height = this.defaultColumnHeight[def.sortType(e.format)];
-        return e;
-      });
-    this.rowHeight = this.visibleFields
-      .reduce((a, b) => a.height > b.height ? a : b).height;
-    this.contentWidth = this.visibleFields
-      .reduce((a, b) => ({width: a.width + b.width})).width + this.scrollBarSpace;
     this.keyFunc = d => d.index;
 
-    this.bodyHeight = this.records.length * this.rowHeight;
+    this.visibleFields = null;
+    this.rowHeight = null;
+    this.contentWidth = null;
+    this.bodyHeight = null;
 
     this.vieportTop = null;
     this.previousVieportTop = null;
@@ -46,24 +39,46 @@ export default class DatagridState {
 
     this.numViewportRows = null;
     this.previousNumViewportRows = null;
+
+    this.updateHeaderNotifier = null;
+
+    // Initialize
+    this.setFields(this.data.fields);
   }
 
   setScrollPosition(position) {
     this.previousVieportTop = this.viewportTop;
     this.viewportTop = position;
     this.viewportBottom = Math.min(
-      this.viewportTop + this.numViewportRows, this.records.length);
+      this.viewportTop + this.numViewportRows, this.data.records.length);
   }
 
-  recordsToRender() {
-    return this.records.slice(this.viewportTop, this.viewportBottom);
+  recordsToShow() {
+    return this.data.records.slice(this.viewportTop, this.viewportBottom);
   }
 
-
-  snapshot() {
-    return {
-    };
+  setFields(fields) {
+    this.fields = fields.map(e => {
+      e.width = this.defaultColumnWidth[misc.sortType(e.format)];
+      e.height = this.defaultColumnHeight[misc.sortType(e.format)];
+      return e;
+    });
+    this.visibleFields = this.fields.filter(e => e.visible);
+    this.rowHeight = this.visibleFields
+      .reduce((a, b) => a.height > b.height ? a : b).height;
+    this.contentWidth = this.visibleFields
+      .reduce((a, b) => ({width: a.width + b.width})).width + this.scrollBarSpace;
+    this.bodyHeight = this.data.records.length * this.rowHeight;
   }
 
+  joinFields(mapping) {
+    mapper.apply(this.data, mapping);
+    this.setFields(this.data.fields);
+  }
+
+  export() {
+    this.data.id = misc.uuidv4();
+    return this.data;
+  }
 
 }
