@@ -1,9 +1,12 @@
 
+/** @module testAPI */
+
 import d3 from 'd3';
 
-import {default as cmp} from './component/Component.js';
-import {default as def} from './helper/definition.js';
-import {default as fetcher} from './fetcher.js';
+import {default as misc} from './common/misc.js';
+import {default as fetcher} from './common/fetcher.js';
+
+import {default as table} from './component/table.js';
 
 
 const testCases = [];
@@ -124,14 +127,12 @@ testCases.push(() =>
 );
 
 function run() {
-  const tbl = {
-      fields: def.defaultFieldProperties([
-        {key: 'test'},
-        {key: 'result'}
-      ]),
-      records: []
-  };
-  d3.select('#test').call(cmp.createTable, tbl);
+  const fields = misc.defaultFieldProperties([
+    {key: 'test'},
+    {key: 'result'}
+  ]);
+  const records = [];
+  d3.select('#test').call(table.render, fields, records);
   testCases.reduce((ps, curr) => {
     return () => ps()
       .then(curr)
@@ -139,8 +140,8 @@ function run() {
         console.info(res.test);
         console.info(res.output);
         const pass = res.pass ? 'OK' : '<span class="text-danger">NG<span>';
-        const row = [{'test': res.test, 'result': pass}];
-        cmp.appendTableRows(d3.select('#test'), row, d => d.key);
+        records.push({'test': res.test, 'result': pass});
+        d3.select('#test').call(table.updateRecords, records);
       })
       ;
   }, () => Promise.resolve())();

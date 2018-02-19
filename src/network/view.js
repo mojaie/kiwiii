@@ -1,16 +1,14 @@
 
 /** @module network/view */
 
-import {default as component} from './graphComponent.js';
+import {default as component} from './component.js';
 
 
 function networkViewFrame(selection, state) {
   selection
     .style('width', '100%')
     .style('height', '100%');
-  if (selection.select('.nw-view').size()) {
-    selection.select('.nw-view').remove();
-  }
+  selection.select('.nw-view').remove(); // Clean up
   selection.append('svg')
     .classed('nw-view', true);
   selection.call(resize, state);
@@ -32,9 +30,12 @@ function networkView(selection, state) {
     .attr('viewBox', `0 0 ${state.viewBox.right} ${state.viewBox.bottom}`)
     .style('width', '100%')
     .style('height', '100%');
-  if (selection.select('.nw-view-boundary').size()) {
-    selection.select('.nw-view-boundary').remove();
-  }
+
+  // Clean up
+  selection.select('.nw-view-boundary').remove();
+  selection.select('.nw-field').remove();
+
+  // Render
   selection.append('rect')
       .classed('nw-view-boundary', true)
       .attr('x', 0)
@@ -44,40 +45,34 @@ function networkView(selection, state) {
       .attr('fill', '#ffffff')
       .attr('stroke-width', 1)
       .attr('stroke', '#cccccc');
-  if (selection.select('.nw-field').size()) {
-    selection.select('.nw-field').remove();
-  }
-  const nwField = selection.append('g')
+  const field = selection.append('g')
       .classed('nw-field', true)
       .style('opacity', 1e-6);
-  nwField.transition()
+  field.transition()
       .duration(1000)
       .style('opacity', 1);
-  nwField.append('g').classed('nw-edges', true);
-  nwField.append('g').classed('nw-nodes', true);
+  const edges = field.append('g').classed('nw-edges', true);
+  const nodes = field.append('g').classed('nw-nodes', true);
+
   // Set notifiers
   state.updateComponentNotifier = () => {
     selection.call(component.updateComponents, state);
   };
   state.updateNodeNotifier = () => {
-    selection.select('.nw-nodes')
-      .call(component.updateNodes, state.nodesToRender());
+    nodes.call(component.updateNodes, state.nodesToRender());
   };
   state.updateEdgeNotifier = () => {
-    selection.select('.nw-edges')
-      .call(component.updateEdges, state.edgesToRender());
+    edges.call(component.updateEdges, state.edgesToRender());
   };
   state.updateNodeAttrNotifier = () => {
-    selection.select('.nw-nodes')
-      .call(component.updateNodeAttrs, state);
+    nodes.call(component.updateNodeAttrs, state);
   };
   state.updateEdgeAttrNotifier = () => {
-    selection.select('.nw-edges')
-      .call(component.updateEdgeAttrs, state);
+    edges.call(component.updateEdgeAttrs, state);
   };
+
   // Update graph components
-  selection
-    .call(component.updateComponents, state);
+  selection.call(component.updateComponents, state);
 }
 
 

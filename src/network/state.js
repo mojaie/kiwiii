@@ -2,7 +2,9 @@
 /** @module network/state */
 
 import d3 from 'd3';
-import {default as legacy} from '../helper/legacySchema.js';
+
+import {default as legacy} from '../common/legacySchema.js';
+import {default as misc} from '../common/misc.js';
 
 
 export default class NetworkState {
@@ -21,12 +23,11 @@ export default class NetworkState {
     this.enableOverlookView = true;
     this.overlookView = false;
 
-
     // Import from legacy format data
-    data = legacy.convertNetwork(data);
+    this.data = legacy.convertNetwork(data);
 
-    this.nodes = data.nodes.records;
-    this.edges = JSON.parse(JSON.stringify(data.edges.records));  // deep copy
+    this.nodes = JSON.parse(JSON.stringify(this.data.nodes.records));  // Working copy
+    this.edges = JSON.parse(JSON.stringify(this.data.edges.records));  // Working copy
 
     // Adjacency
     // Assuming that the network is undirected graph and
@@ -40,11 +41,8 @@ export default class NetworkState {
       this.nodes[e.target].adjacency.push([e.source, i]);
     });
 
-    // Fields
-    this.nodeFields = data.nodes.fields;
-
     // Snapshot
-    const snp = data.edges.snapshot || {
+    const snp = this.data.edges.snapshot || {
       nodeColor: {}, nodeSize: {}, nodeLabel: {}, nodeLabelColor: {},
       edgeWidth: {}, edgeLabel: {}
     };
@@ -246,6 +244,12 @@ export default class NetworkState {
       fieldTransform: this.transform,
       coords: this.nodes.map(e => ({x: e.x, y: e.y}))
     };
+  }
+
+  export() {
+    this.data.edges.id = misc.uuidv4();
+    this.data.edges.snapshot = this.snapshot();
+    return JSON.parse(JSON.stringify(this.data));
   }
 
   showTransform() {

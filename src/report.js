@@ -1,10 +1,12 @@
 
+
+// TODO: redesign
+
 import d3 from 'd3';
+
 import {default as d3form} from './helper/d3Form.js';
 import {default as hfile} from './helper/file.js';
-import {default as fetcher} from './fetcher.js';
-import {default as common} from './common.js';
-import {default as store} from './store/StoreConnection.js';
+import {default as fetcher} from './helper/fetcher.js';
 import {default as cmp} from './component/Component.js';
 
 
@@ -102,14 +104,14 @@ d3.select('#refids-submit').attr('disabled',
 
 
 function run() {
-  return common.loader().then(() => {
-    return store.getAppSetting('templates').then(tmpls => {
-      d3.select('#templates')
-        .call(cmp.selectOptions, [{ name: '<No template>' }].concat(tmpls),
-              d => d.sourceFile, d => d.name);
-    });
-  });
-
+  return fetcher.get('schema')
+    .then(fetcher.json)
+    .then(res => {
+        d3.select('#templates')
+          .call(cmp.selectOptions,
+                [{ name: '<No template>' }].concat(res.templates),
+                d => d.sourceFile, d => d.name);
+    }, () => {});
 }
 
 

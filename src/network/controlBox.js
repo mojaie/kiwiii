@@ -1,60 +1,57 @@
 
+/** @module network/controlBox */
+
 import d3 from 'd3';
 
+import {default as misc} from '../common/misc.js';
+import {default as scaledef} from '../common/scale.js';
+
 import {default as box} from '../component/formBox.js';
+import {default as lbox} from '../component/formListBox.js';
+import {default as rbox} from '../component/formRangeBox.js';
+import {default as button} from '../component/button.js';
 import {default as group} from '../component/formBoxGroup.js';
-import {default as def} from '../helper/definition.js';
-import {default as scaledef} from '../helper/scale.js';
 
 
 function mainControlBox(selection, state) {
-  // Snapshot
-  selection.append('div')
-      .classed('mb-3', true)
-    .append('div')
-      .classed('snapshot', true)
-      .call(box.buttonBox, 'snapshot', 'Save snapshot', 'primary');
   // Zoom
   selection.append('div')
       .classed('mb-3', true)
     .append('div')
       .classed('fit', true)
-      .call(box.buttonBox, 'fit-to-screen', 'Fit to screen', 'primary');
-  // Focused view
-  selection.append('div')
-      .classed('mb-3', true)
-    .append('div')
+      .call(button.buttonBox, 'fit-to-screen', 'Fit to screen', 'primary');
+  // View modes
+  const viewModes = selection.append('div')
+      .classed('mb-3', true);
+    viewModes.append('div')
       .classed('focused', true)
+      .classed('mb-1', true)
       .call(box.checkBox, 'focused', 'Enable focused view', state.enableFocusedView);
-  // Overlook view
-  selection.append('div')
-      .classed('mb-3', true)
-    .append('div')
+    viewModes.append('div')
       .classed('overlook', true)
+      .classed('mb-1', true)
       .call(box.checkBox, 'overlook', 'Enable overlook view', state.enableOverlookView);
   // Network threshold
   const thldGroup = selection.append('div')
       .classed('mb-3', true);
   thldGroup.append('div')
       .classed('thld', true)
+      .classed('mb-1', true)
       .call(box.numberBox, 'thld', 'Network threshold',
             state.networkThresholdCutoff, 1.000, 0.01, state.networkThreshold);
-  const logdBox = thldGroup.append('div')
-      .classed('col-12', true);
-  logdBox.append('span')
-      .classed('form-label', true)
-      .text('logD');
-  logdBox.append('span')
-      .classed('form-control-sm', true)
-      .classed('logd', true);
+  thldGroup.append('div')
+      .classed('logd', true)
+      .classed('mb-1', true)
+      .call(box.readonlyBox, 'logd', 'logD', null);
   // Force layout
   const forceBox = selection.append('div')
       .classed('form-group', true)
-      .classed('row', true);
+      .classed('form-row', true);
   forceBox.append('div')
       .classed('col-6', true)
     .append('span')
-      .classed('form-label', true)
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
       .classed('mb-1', true)
       .text('Temperature');
   forceBox.append('div')
@@ -72,12 +69,14 @@ function mainControlBox(selection, state) {
       .classed('col-12', true)
     .append('div')
       .classed('stick', true)
+      .classed('mb-1', true)
       .call(box.checkBox, 'stick-nodes', 'Stick nodes', !state.simulationOnLoad);
   forceBox.append('div')
       .classed('col-12', true)
     .append('div')
       .classed('restart', true)
-      .call(box.buttonBox, 'restart-force', 'Activate', 'warning');
+      .classed('mb-1', true)
+      .call(button.buttonBox, 'restart-force', 'Activate', 'warning');
 
   selection.call(updateMainControlBox, state);
 }
@@ -118,7 +117,7 @@ function updateMainControlBox(selection, state) {
         const n = state.nodes.length;
         const combinations = n * (n - 1) / 2;
         const logD = d3.format('.2f')(Math.log10(numEdges / combinations));
-        selection.select('.logd').text(logD);
+        selection.select('.logd').call(box.updateTextBox, logD);
       })
       .dispatch('change');
   // Force layout
@@ -144,11 +143,10 @@ function updateMainControlBox(selection, state) {
 
 function nodeColorControlBox(selection, state) {
   selection.append('div')
-      .classed('mb-3', true)
       .classed('field', true)
       .call(
-        box.selectBox, 'color-field', 'Field',
-        state.nodeFields.filter(e => def.sortType(e.format) !== 'none'),
+        lbox.selectBox, 'color-field', 'Field',
+        state.data.nodes.fields.filter(e => misc.sortType(e.format) !== 'none'),
         state.nodeColor.field || ''
       );
   selection.append('div')
@@ -171,9 +169,9 @@ function nodeColorControlBox(selection, state) {
 
 function updateNodeColorControlBox(selection, state) {
   selection.select('.field')
-    .call(box.updateSelectBox, state.nodeColor.field)
+    .call(lbox.updateSelectBox, state.nodeColor.field)
     .on('change', function () {
-      state.nodeColor.field = box.selectBoxValue(d3.select(this));
+      state.nodeColor.field = lbox.selectBoxValue(d3.select(this));
       state.updateNodeAttrNotifier();
     });
   selection.select('.range')
@@ -208,16 +206,16 @@ function updateNodeColorControlBox(selection, state) {
 
 function nodeSizeControlBox(selection, state) {
   selection.append('div')
-    .classed('mb-3', true)
     .classed('field', true)
     .call(
-      box.selectBox, 'size-field', 'Field',
-      state.nodeFields.filter(e => def.sortType(e.format) === 'numeric'),
+      lbox.selectBox, 'size-field', 'Field',
+      state.data.nodes.fields.filter(e => misc.sortType(e.format) === 'numeric'),
       state.nodeSize.field || ''
     );
   selection.append('div')
     .classed('range', true)
-    .call(box.rangeBox, 'size-range', 'Range', state.nodeSize.range);
+    .classed('mb-3', true)
+    .call(rbox.rangeBox, 'size-range', 'Range', state.nodeSize.range);
   selection.append('div')
     .classed('scale', true)
     .call(
@@ -232,15 +230,15 @@ function nodeSizeControlBox(selection, state) {
 
 function updateNodeSizeControlBox(selection, state) {
   selection.select('.field')
-    .call(box.updateSelectBox, state.nodeSize.field)
+    .call(lbox.updateSelectBox, state.nodeSize.field)
     .on('change', function () {
-      state.nodeSize.field = box.selectBoxValue(d3.select(this));
+      state.nodeSize.field = lbox.selectBoxValue(d3.select(this));
       state.updateNodeAttrNotifier();
     });
   selection.select('.range')
-    .call(box.updateRangeBox, state.nodeSize.range)
+    .call(rbox.updateRangeBox, state.nodeSize.range)
     .on('change', function () {
-      state.nodeSize.range = box.rangeBoxValue(d3.select(this));
+      state.nodeSize.range = rbox.rangeBoxValue(d3.select(this));
       state.updateNodeAttrNotifier();
     });
   selection.select('.scale')
@@ -258,7 +256,6 @@ function updateNodeSizeControlBox(selection, state) {
 function nodeLabelControlBox(selection, state) {
   // nodeLabel.visible
   selection.append('div')
-      .classed('mb-3', true)
     .append('div')
       .classed('visible', true)
       .call(box.checkBox, 'label-visible', 'Show node labels', state.nodeLabel.visible);
@@ -267,23 +264,24 @@ function nodeLabelControlBox(selection, state) {
       .classed('mb-3', true);
   labelGroup.append('div')
       .classed('text', true)
+      .classed('mb-1', true)
       .call(
-        box.selectBox, 'label-text', 'Text field',
-        state.nodeFields.filter(e => def.sortType(e.format) !== 'none'),
+        lbox.selectBox, 'label-text', 'Text field',
+        state.data.nodes.fields.filter(e => misc.sortType(e.format) !== 'none'),
         state.nodeLabel.text || ''
       );
   labelGroup.append('div')
       .classed('size', true)
+      .classed('mb-1', true)
       .call(
         box.numberBox, 'label-size', 'Font size', 6, 100, 1, state.nodeLabel.size
       );
   // nodeLabelColor
   selection.append('div')
-      .classed('mb-3', true)
       .classed('field', true)
       .call(
-        box.selectBox, 'label-field', 'Color field',
-        state.nodeFields.filter(e => def.sortType(e.format) !== 'none'),
+        lbox.selectBox, 'label-field', 'Color field',
+        state.data.nodes.fields.filter(e => misc.sortType(e.format) !== 'none'),
         state.nodeLabelColor.field || ''
       );
   selection.append('div')
@@ -313,9 +311,9 @@ function updateNodeLabelControlBox(selection, state) {
       });
   // nodeLabel
   selection.select('.text')
-      .call(box.updateSelectBox, state.nodeLabel.text)
+      .call(lbox.updateSelectBox, state.nodeLabel.text)
       .on('change', function () {
-        state.nodeLabel.text = box.selectBoxValue(d3.select(this));
+        state.nodeLabel.text = lbox.selectBoxValue(d3.select(this));
         state.updateNodeAttrNotifier();
       });
   selection.select('.size')
@@ -326,9 +324,9 @@ function updateNodeLabelControlBox(selection, state) {
       });
   // nodeLabelColor
   selection.select('.field')
-      .call(box.updateSelectBox, state.nodeLabelColor.field)
+      .call(lbox.updateSelectBox, state.nodeLabelColor.field)
       .on('change', function () {
-        state.nodeLabelColor.field = box.selectBoxValue(d3.select(this));
+        state.nodeLabelColor.field = lbox.selectBoxValue(d3.select(this));
         state.updateNodeAttrNotifier();
       });
   selection.select('.range')
@@ -342,7 +340,7 @@ function updateNodeLabelControlBox(selection, state) {
             .property('disabled', true)
             .style('opacity', 0.3);
         } else {
-          state.nodeLabelColor.scale = box.selectBoxValue(selection.select('.range'));
+          state.nodeLabelColor.scale = lbox.selectBoxValue(selection.select('.range'));
           selection.select('.scale').selectAll('select,input')
             .property('disabled', false)
             .style('opacity', null);
@@ -370,12 +368,14 @@ function edgeControlBox(selection, state) {
       .classed('mb-3', true);
   labelGroup.append('div')
       .classed('label', true)
+      .classed('mb-1', true)
       .call(
         box.checkBox, 'edge-label-visible', 'Show edge weight label',
         state.edgeLabel.visible
       );
   labelGroup.append('div')
       .classed('size', true)
+      .classed('mb-1', true)
       .call(
         box.numberBox, 'edge-label-size', 'Weight label font size',
         6, 100, 1, state.edgeLabel.size
@@ -385,16 +385,19 @@ function edgeControlBox(selection, state) {
       .classed('mb-3', true);
   widthGroup.append('div')
       .classed('range', true)
-      .call(box.rangeBox, 'edge-width-range', 'Range', state.edgeWidth.range);
+      .classed('mb-3', true)
+      .call(rbox.rangeBox, 'edge-width-range', 'Range', state.edgeWidth.range);
   widthGroup.append('div')
       .classed('scale', true)
+      .classed('mb-1', true)
       .call(
-        box.selectBox, 'edge-width-scale', 'Scale type',
+        lbox.selectBox, 'edge-width-scale', 'Scale type',
         scaledef.types.filter(e => e.key !== 'ordinal'), state.edgeWidth.scale
       );
   widthGroup.append('div')
       .classed('domain', true)
-      .call(box.rangeBox, 'edge-width-domain', 'Domain', state.edgeWidth.domain);
+      .classed('mb-1', true)
+      .call(rbox.rangeBox, 'edge-width-domain', 'Domain', state.edgeWidth.domain);
 }
 
 function updateEdgeControlBox(selection, state) {
@@ -413,21 +416,21 @@ function updateEdgeControlBox(selection, state) {
       });
   // edgeWidth
   selection.select('.range')
-      .call(box.updateRangeBox, state.edgeWidth.range)
+      .call(rbox.updateRangeBox, state.edgeWidth.range)
       .on('change', function () {
-        state.edgeWidth.range = box.rangeBoxValue(d3.select(this));
+        state.edgeWidth.range = rbox.rangeBoxValue(d3.select(this));
         state.updateEdgeAttrNotifier();
       });
   selection.select('.scale')
-      .call(box.updateSelectBox, state.edgeWidth.scale)
+      .call(lbox.updateSelectBox, state.edgeWidth.scale)
       .on('change', function () {
-        state.edgeWidth.scale = box.selectBoxValue(d3.select(this));
+        state.edgeWidth.scale = lbox.selectBoxValue(d3.select(this));
         state.updateEdgeAttrNotifier();
       });
   selection.select('.domain')
-      .call(box.updateRangeBox, state.edgeWidth.domain)
+      .call(rbox.updateRangeBox, state.edgeWidth.domain)
       .on('change', function () {
-        state.edgeWidth.domain = box.rangeBoxValue(d3.select(this));
+        state.edgeWidth.domain = rbox.rangeBoxValue(d3.select(this));
         state.updateEdgeAttrNotifier();
       });
 }
@@ -466,6 +469,8 @@ function controlBoxItem(selection, id) {
   selection
       .classed('tab-pane', true)
       .classed('fade', true)
+      .classed('container', true)
+      .classed('px-0', true)
       .attr('id', id)
       .attr('role', 'tabpanel')
       .attr('aria-labelledby', `${id}-tab`);
@@ -473,12 +478,10 @@ function controlBoxItem(selection, id) {
 
 
 function controlBox(selection, state) {
-  if (selection.select('nav').size()) {
-    selection.select('nav').remove();
-  }
-  if (selection.select('.tab-content').size()) {
-    selection.select('.tab-content').remove();
-  }
+  // Clean up
+  selection.select('nav').remove();
+  selection.select('.tab-content').remove();
+
   selection.call(
     controlBoxFrame, 'control-frame-nav', 'control-frame-content');
   const tabs = selection.select('.nav-tabs');
@@ -547,5 +550,5 @@ function updateControlBox(selection, state) {
 
 
 export default {
-  controlBox
+  controlBox, updateControlBox
 };

@@ -1,23 +1,22 @@
 
+/** @module profile */
+
 import d3 from 'd3';
-import {default as d3form} from './helper/d3Form.js';
-import {default as def} from './helper/definition.js';
-import {default as fmt} from './helper/formatValue.js';
-import {default as win} from './helper/window.js';
-import {default as fetcher} from './fetcher.js';
-import {default as common} from './common.js';
-import {default as store} from './store/StoreConnection.js';
-import {default as cmp} from './component/Component.js';
+
+import {default as misc} from './common/misc.js';
+import {default as fetcher} from './common/fetcher.js';
+
+import {default as button} from './component/button.js';
+import {default as table} from './component/table.js';
 
 
-function updateChem(resources) {
-  const compound = win.URLQuery().compound;
-  d3.select('title').text(compound);
+function updateChem(compoundID, resources) {
+  d3.select('title').text(compoundID);
   const query = {
     workflow: 'search',
     targets: resources.filter(e => e.domain === 'chemical').map(e => e.id),
     key: 'compound_id',
-    values: [compound]
+    values: [compoundID]
   };
   return fetcher.get(query.workflow, query)
     .then(fetcher.json)
@@ -27,16 +26,14 @@ function updateChem(resources) {
       d3.select('#compounddb').html(
         resources.find(e => e.id === rcd.__source).name);
       d3.select('#structure').html(rcd.structure);
+      const fields = misc.defaultFieldProperties([
+        {key: 'key'}, {key: 'value'}
+      ]);
       const records = res.fields
         .filter(e => !['structure', 'index', 'compound_id'].includes(e.key))
         .map(e => ({ key: e.name, value: rcd[e.key] }));
-      const data = {
-        fields: def.defaultFieldProperties([
-          {key: 'key'}, {key: 'value'}
-        ])
-      };
-      d3.select('#properties').call(cmp.createTable, data)
-        .call(cmp.updateTableRecords, records, d => d.key);
+      d3.select('#properties')
+        .call(table.render, null, null, fields, records);
       return rcd;
     }, fetcher.error);
 }
@@ -56,6 +53,9 @@ function updateChemAliases(resources, qrcd) {
   return fetcher.get(query.workflow, query)
     .then(fetcher.json)
     .then(res => {
+      const fields = misc.defaultFieldProperties([
+        {key: 'compound_id'}, {key: 'database'}
+      ]);
       const records = res.records
         .filter(rcd => rcd.compound_id !== qrcd.compound_id ||
                 rcd.__source !== qrcd.__source)
@@ -65,20 +65,15 @@ function updateChemAliases(resources, qrcd) {
             database: resources.find(e => e.id === rcd.__source).name
           };
         });
-      const data = {
-        fields: def.defaultFieldProperties([
-          {key: 'compound_id'}, {key: 'database'}
-        ])
-      };
-      d3.select('#aliases').call(cmp.createTable, data)
-        .call(cmp.updateTableRecords, records, d => d.compound_id);
+      d3.select('#aliases')
+        .call(table.render, fields, records);
     }, fetcher.error);
 }
 
 
-function updateActivities(resources) {
-  const compound = win.URLQuery().compound;
+function updateActivities(compoundID, resources) {
   // Prevent implicit submission
+  /* TODO: instant search component
   document.getElementById('search')
     .addEventListener('keypress', event => {
       if (event.keyCode === 13) event.preventDefault();
@@ -90,35 +85,96 @@ function updateActivities(resources) {
       .style('visibility', d => match(d) ? null : 'hidden')
       .style('position', d => match(d) ? null : 'absolute');
   });
+  */
   const query = {
     workflow: 'profile',
-    compound_id: compound,
+    compound_id: compoundID,
     targets: resources.filter(e => e.domain === 'activity').map(e => e.id),
   };
   return fetcher.get(query.workflow, query)
     .then(fetcher.json)
     .then(res => {
-      const table = {
-        fields: def.defaultFieldProperties([
-          {key: 'assay_id', name: 'Assay ID', format: 'text'},
-          {key: 'value_type', name: 'Value type', format: 'text'},
-          {key: 'value', name: 'Value', format: 'numeric'}
-        ])
-      };
-      d3.select('#results').call(cmp.createTable, table)
-        .call(cmp.updateTableRecords, res.records, d => d.index)
-        .call(cmp.addSort);
+      const fields= misc.defaultFieldProperties([
+        {key: 'assay_id', name: 'Assay ID', format: 'text'},
+        {key: 'value_type', name: 'Value type', format: 'text'},
+        {key: 'value', name: 'Value', format: 'numeric'}
+      ]);
+      // TODO: use datagrid?
+      d3.select('#results').call(table.render, null, null, fields, res.records);
     }, fetcher.error);
 }
 
 
 function run() {
-  return common.loader()
-    .then(() => store.getResources())
-    .then(rsrcs => Promise.all([
-      updateChem(rsrcs).then(qrcd => updateChemAliases(rsrcs, qrcd)),
-      updateActivities(rsrcs)
-    ]));
+  // Menubar
+  const menubar = d3.select('#menubar');
+  menubar.append('a')
+      .call(button.menuButton, null, 'Control panel', 'outline-secondary')
+      .attr('href', 'control.html')
+      .attr('target', '_blank');
+
+  // Compound row
+  const chemDataRow = d3.select('#contents')
+    .append('div')
+      .classed('row', true);
+  const firstCol = chemDataRow.append('div')
+      .classed('col-sm-4', true);
+  firstCol.append('h5').text('Compound ID');
+  firstCol.append('div')
+      .attr('id', 'compoundid')
+      .classed('mb-2');
+  firstCol.append('h5').text('Database');
+  firstCol.append('div')
+      .attr('id', 'compounddb')
+      .classed('mb-2');
+  firstCol.append('h5').text('Structure');
+  firstCol.append('div')
+      .attr('id', 'structure')
+      .classed('mb-2');
+  const propCol = chemDataRow.append('div')
+      .classed('col-sm-4', true);
+  propCol.append('h5').text('Compound properties');
+  propCol.append('table')
+      .attr('id', 'properties')
+      .style('display', 'inline-block');
+  const aliaseCol = chemDataRow.append('div')
+      .classed('col-sm-4', true);
+  aliaseCol.append('h5').text('Compound structure aliases');
+  aliaseCol.append('table')
+      .attr('id', 'aliases')
+      .style('display', 'inline-block');
+  const compoundID = misc.URLQuery().compound || null;
+
+  // Result row
+  const resultRow = d3.select('#contents')
+    .append('div')
+      .classed('row', true);
+  const results = resultRow.append('div')
+      .classed('col-sm-12', true);
+  results.append('h5').text('Assay results and annotations');
+  results.append('input')
+      .classed('form-control', true)
+      .attr('type', 'text')
+      .attr('placeholder', 'Search')
+      .attr('id', 'search');
+  results.append('table')
+      .attr('id', 'results');
+
+  if (!compoundID) return;
+  // TODO: offline mode flags
+  const localFile = document.location.protocol !== "file:";
+  const offLine = 'onLine' in navigator && !navigator.onLine;
+  return fetcher.get('schema')
+    .then(fetcher.json)
+    .catch(() => {})
+    .then(schema => {
+      console.info('Off-line mode is disabled for debugging');
+      return Promise.all([
+        updateChem(compoundID, schema.resources)
+          .then(qrcd => updateChemAliases(schema.resources, qrcd)),
+        updateActivities(compoundID, schema.resources)
+      ]);
+    });
 }
 
 

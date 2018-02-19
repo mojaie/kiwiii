@@ -3,7 +3,7 @@
 
 import d3 from 'd3';
 
-import {default as component} from './graphComponent.js';
+import {default as component} from './component.js';
 import {default as interaction} from './interaction.js';
 
 
