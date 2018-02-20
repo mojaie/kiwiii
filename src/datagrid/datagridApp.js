@@ -10,12 +10,12 @@ import {default as hfile} from '../common/file.js';
 import {default as misc} from '../common/misc.js';
 
 import {default as button} from '../component/button.js';
-import {default as box} from '../component/formBox.js';
 import {default as modal} from '../component/modal.js';
 
 import {default as fieldConfigDialog} from '../dialog/fieldConfig.js';
 import {default as fieldFileDialog} from '../dialog/fieldFile.js';
 import {default as networkgenDialog} from '../dialog/networkgen.js';
+import {default as renameDialog} from '../dialog/rename.js';
 
 import {default as view} from './view.js';
 import {default as sort} from './sort.js';
@@ -24,6 +24,7 @@ import DatagridState from './state.js';
 
 function app(data, serverStatus) {
   const state = new DatagridState(data);
+  state.serverStatus = serverStatus;
   d3.select('#datagrid')
     .call(view.datagrid, state)
     .call(sort.setSort, state);
@@ -46,8 +47,7 @@ function app(data, serverStatus) {
   menu.append('a')
       .call(networkgenDialog.menuLink);
   menu.append('a')
-      .call(button.dropdownMenuModal,
-            'rename', 'Rename', 'rename-dialog');
+      .call(renameDialog.menuLink);
   menu.append('a')
       .classed('saveview', true)
       .call(button.dropdownMenuItem, null, 'Save to local storage')
@@ -99,7 +99,7 @@ function app(data, serverStatus) {
       .on('click', function () {
         return core.fetchProgress(state.data.storeID)
           .then(() => idb.getItemByID(state.data.storeID))
-          .then(item => app(item, serverStatus));
+          .then(item => app(item, state.serverStatus));
       });
   menubar.append('a')
       .call(button.menuButtonLink, null, 'Abort server job', 'warning')
@@ -133,47 +133,44 @@ function app(data, serverStatus) {
       .call(networkgenDialog.body, serverStatus.rdkit);
   dialogs.append('div')
       .classed('renamed', true)
-      .call(modal.submitDialog, 'rename-dialog', 'Rename view')
-    .select('.modal-body').append('div')
-      .classed('rename', true);
+      .call(renameDialog.body, state.data.name);
+  dialogs.append('div')
+      .classed('abortd', true)
+      .call(
+        modal.confirmDialog, 'abort-dialog',
+        'Are you sure you want to abort this calculation job?'
+      );
   updateApp(state);
 }
 
 
 function updateApp(state) {
+  d3.select('#loading-icon').style('display', 'none');
   // Title
   d3.select('title').text(state.data.name);
   d3.select('#menubar').select('.title').text(state.data.name);
   // Dialogs
   const dialogs = d3.select('#dialogs');
-  const fieldconfd = dialogs.select('.fieldconfd')
-      .call(fieldConfigDialog.updateBody, state);
-  fieldconfd.select('.submit')
-      .on('click', () => {
-        d3.select('#loading-icon').style('display', 'inline');
-        state.setFields(fieldConfigDialog.value(fieldconfd));
+  dialogs.select('.fieldconfd')
+      .call(fieldConfigDialog.updateBody, state)
+      .on('submit', function () {
+        state.setFields(fieldConfigDialog.value(d3.select(this)));
         state.updateHeaderNotifier();
         updateApp(state);
-        d3.select('#loading-icon').style('display', 'none');
       });
-  const fieldfiled = dialogs.select('.fieldfiled');
-  fieldfiled.select('.submit')
-      .on('click', () => {
-        d3.select('#loading-icon').style('display', 'inline');
-        return fieldFileDialog.readFile(fieldfiled)
+  dialogs.select('.fieldfiled')
+      .on('submit', function () {
+        return fieldFileDialog.readFile(d3.select(this))
           .then(data => {
             state.joinFields(data);
             state.updateHeaderNotifier();
             updateApp(state);
-            d3.select('#loading-icon').style('display', 'none');
           });
       });
-  const netgend = dialogs.select('.netgend');
-  netgend.select('.submit')
-      .on('click', () => {
-        d3.select('#loading-icon').style('display', 'inline');
+  dialogs.select('.netgend')
+      .on('submit', function () {
         const formData = new FormData();
-        const params = networkgenDialog.queryParams(netgend);
+        const params = networkgenDialog.queryParams(d3.select(this));
         formData.append('params', JSON.stringify(params));
         formData.append('contents', new Blob([JSON.stringify(state.export())]));
         return fetcher.post(`${params.measure}net`, formData)
@@ -189,13 +186,17 @@ function updateApp(state) {
             window.open(`network.html?id=${storeID}`, '_blank');
           });
       });
-  const renamed = dialogs.select('.renamed');
-  const rename = renamed.select('.rename')
-      .call(box.textBox, 'rename', 'New name', 40, state.data.name);
-  renamed.select('.submit')
-      .on('click', function () {
-        state.data.name = box.textBoxValue(rename);
+  dialogs.select('.renamed')
+      .call(renameDialog.updateBody, state)
+      .on('submit', function () {
+        state.data.name = renameDialog.value(d3.select(this));
         updateApp(state);
+  });
+  dialogs.select('.abortd')
+      .on('submit', function () {
+        core.fetchProgress(state.data.storeID, 'abort')
+          .then(() => idb.getItemByID(state.data.storeID))
+          .then(item => app(item, state.serverStatus));
       });
 }
 

@@ -9,11 +9,11 @@ import {default as idb} from '../common/idb.js';
 import {default as mapper} from '../common/mapper.js';
 import {default as misc} from '../common/misc.js';
 
-import {default as box} from '../component/formBox.js';
 import {default as button} from '../component/button.js';
 import {default as modal} from '../component/modal.js';
 
 import {default as communityDialog} from '../dialog/community.js';
+import {default as renameDialog} from '../dialog/rename.js';
 
 import {default as view} from './view.js';
 import {default as control} from './controlBox.js';
@@ -35,7 +35,6 @@ function getGraph(storeID) {
 
 
 function app(data) {
-  console.log(data)
   // TODO: define field size according to the data size
   const width = 1200;
   const height = 1200;
@@ -66,7 +65,7 @@ function app(data) {
       .call(communityDialog.menuLink);
   menu.append('a')
       .classed('renamed', true)
-      .call(button.dropdownMenuModal, null, 'Rename', 'rename-dialog');
+      .call(renameDialog.menuLink);
   menu.append('a')
       .classed('saveview', true)
       .call(button.dropdownMenuItem, null, 'Save to local storage')
@@ -74,6 +73,7 @@ function app(data) {
         if (state.data.edges.storeID) {
           return idb.updateItem(state.data.edges.storeID, item => {
             item.id = misc.uuidv4();
+            item.name = state.data.edges.name;
             item.snapshot = state.snapshot();
           })
           .then(() => console.info('Snapshot saved'));
@@ -134,7 +134,7 @@ function app(data) {
   }
   menubar.append('span')
     .classed('title', true)
-    .text(state.data.name);
+    .text(state.data.edges.name);
   menubar.append('span')
       .classed('status', true)
       .text(`(${state.data.edges.status} - ${state.data.edges.records.length} connections created in ${state.data.edges.execTime} sec.)`);
@@ -143,13 +143,11 @@ function app(data) {
   const dialogs = d3.select('#dialogs');
   dialogs.selectAll('div').remove();  // Clean up
   dialogs.append('div')
-    .classed('communityd', true)
-    .call(communityDialog.body);
+      .classed('communityd', true)
+      .call(communityDialog.body);
   dialogs.append('div')
       .classed('renamed', true)
-      .call(modal.submitDialog, 'rename-dialog', 'Rename view')
-    .select('.modal-body').append('div')
-      .classed('rename', true);
+      .call(renameDialog.body, state.data.edges.name);
   dialogs.append('div')
       .classed('abortd', true)
       .call(
@@ -167,27 +165,23 @@ function updateApp(state) {
   // Dialogs
   const dialogs = d3.select('#dialogs');
   // Rename dialog
-  const renamed = dialogs.select('.renamed');
-  const rename = renamed.select('.rename')
-      .call(box.textBox, 'rename', 'New name', 40, state.data.edges.name);
-  renamed.select('.submit')
-      .on('click', function () {
-        state.data.edges.name = box.textBoxValue(rename);
+  dialogs.select('.renamed')
+      .call(renameDialog.updateBody, state)
+      .on('submit', function () {
+        state.data.edges.name = renameDialog.value(d3.select(this));
         updateApp(state);
       });
-  // TODO: Abort dialog
+  // Abort dialog
   dialogs.select('.abortd')
-    .select('.ok')
-      .on('click', function () {
+      .on('submit', function () {
         core.fetchProgress(state.data.edges.storeID, 'abort')
           .then(() => getGraph(state.data.edges.storeID))
           .then(app);
       });
   // Community dialog
-  const communityd = dialogs.select('.communityd');
-  communityd.select('.submit')
-      .on('click', () => {
-        const value = communityDialog.value(communityd);
+  dialogs.select('.communityd')
+      .on('submit', function () {
+        const value = communityDialog.value(d3.select(this));
         const nodeIds = state.data.nodes.records.map(e => e.index);
         const edges = state.data.edges.records
           .filter(e => e.weight >= state.networkThreshold);
@@ -207,6 +201,7 @@ function updateApp(state) {
           range: d3.schemeCategory10, unknown: '#cccccc'
         };
         $('#community-dialog').modal('hide');  // TODO:
+        d3.select('#loading-icon').style('display', 'none');
         app(state.export());
       });
 }

@@ -75,43 +75,35 @@ function app(serverStatus, schema) {
   }
   const chemrsrc = schema.resources.filter(e => e.domain === 'chemical');
   // ID search
-  const searchd = dialogs.append('div')
-      .call(searchDialog.body, schema.compoundIDPlaceholder);
-  searchd.select('.submit')
-      .on('click', function () {
-        d3.select('#loading-icon').style('display', 'inline');
+  dialogs.append('div')
+      .call(searchDialog.body, schema.compoundIDPlaceholder)
+      .on('submit', function () {
         const targets = chemrsrc.map(e => e.id);
-        const query = searchDialog.query(searchd, targets);
+        const query = searchDialog.query(d3.select(this), targets);
         return fetcher.get(query.workflow, query)
           .then(registerWorkflow);  // TODO: if err -> show err img
       });
   // Structure search
-  const structd = dialogs.append('div')
-      .call(structDialog.body, chemrsrc, serverStatus.rdkit);
-  structd.select('.submit')
-      .on('click', function () {
-        d3.select('#loading-icon').style('display', 'inline');
-        const query = structDialog.query(structd);
+  dialogs.append('div')
+      .call(structDialog.body, chemrsrc, serverStatus.rdkit)
+      .on('submit', function () {
+        const query = structDialog.query(d3.select(this));
         return fetcher.get(query.workflow, query)
           .then(registerWorkflow);
       });
   // Filter
-  const filterd = dialogs.append('div')
-      .call(filterDialog.body, chemrsrc);
-  filterd.select('.submit')
-      .on('click', function () {
-        d3.select('#loading-icon').style('display', 'inline');
-        const query = filterDialog.query(filterd);
+  dialogs.append('div')
+      .call(filterDialog.body, chemrsrc)
+      .on('submit', function () {
+        const query = filterDialog.query(d3.select(this));
         return fetcher.get(query.workflow, query)
           .then(registerWorkflow);
       });
   // Import SDFile
-  const sdfd = dialogs.append('div')
-      .call(sdfDialog.body, chemrsrc);
-  sdfd.select('.submit')
-      .on('click', () => {
-        d3.select('#loading-icon').style('display', 'inline');
-        const formData = sdfDialog.queryFormData(sdfd);
+  dialogs.append('div')
+      .call(sdfDialog.body, chemrsrc)
+      .on('submit', function () {
+        const formData = sdfDialog.queryFormData(d3.select(this));
         return fetcher.post('sdfin', formData)
           .then(registerWorkflow);
       });

@@ -1,19 +1,19 @@
 
 /** @module component/modal */
 
+import d3 from 'd3';
+
 
 function dialogBase(selection, id) {
-  if (selection.select('.modal-dialog').size()) {
-    selection.select('.modal-dialog').remove();
-  }
   selection
       .classed('modal', true)
       .attr('tabindex', -1)
       .attr('role', 'dialog')
       .attr('aria-labelledby', '')
       .attr('aria-hidden', true)
-      .attr('id', id)
-    .append('div')
+      .attr('id', id);
+  selection.select('.modal-dialog').remove();  // Clean up
+  selection.append('div')
       .classed('modal-dialog', true)
       .attr('role', 'document')
     .append('div')
@@ -47,8 +47,11 @@ function confirmDialog(selection, id, message) {
       .attr('type', 'button')
       .attr('data-dismiss', 'modal')
       .attr('data-target', `${id}-submit`)
-      .text('OK');
-  // TODO: dispatch submit event on click
+      .text('OK')
+      .on('click', () => {
+        d3.select('#loading-icon').style('display', 'inline');
+        selection.dispatch('submit');
+      });
 }
 
 
@@ -82,8 +85,11 @@ function submitDialog(selection, id, title) {
       .attr('type', 'button')
       .attr('data-dismiss', 'modal')
       .attr('data-target', `${id}-submit`)
-      .text('Submit');
-  // TODO: dispatch submit event on click
+      .text('Submit')
+      .on('click', () => {
+        d3.select('#loading-icon').style('display', 'inline');
+        selection.dispatch('submit');
+      });
 }
 
 
