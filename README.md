@@ -5,15 +5,6 @@ Kiwiii
 Kiwiii is a web application package for chemical data analysis and visualization.
 
 
-
-Supported browsers
---------------------
-
-- Google Chrome 57+
-- Mozilla Firefox 50+ (may have some layout issues)
-
-
-
 Screen shots
 --------------
 
@@ -23,44 +14,65 @@ Screen shots
 
 
 
-Bl.ocks samples
------------------
+Embedded view examples (Bl.ocks)
+---------------------------------
 
 [![thumbnail](https://gist.github.com/mojaie/a89c7ba0ba1ee5c91a387e3fd1e8ae4e/raw/7a8f8a11ce12674fe3b1e975e98e68a443a78c93/thumbnail.png)](https://bl.ocks.org/mojaie/a89c7ba0ba1ee5c91a387e3fd1e8ae4e)
 [![thumbnail](https://gist.github.com/mojaie/89293ef2f946ecb43dd3cdd73fdd64ac/raw/396f5ca5969dce3812c4ecff17d3c923350dfbab/thumbnail.png)](https://bl.ocks.org/mojaie/89293ef2f946ecb43dd3cdd73fdd64ac)
 
 
+Supported browsers
+--------------------
 
-Application
----------------
+- Google Chrome 57+
+- Mozilla Firefox 50+ (may have some layout issues)
 
 
-- [Table view demo (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii/datatable.html?location=resources/ApprovedFiltered.ndc)
-  - Sortable chemical structure table
+Features
+--------------
+
+- Datagrid view
+  - SlickGrid-like smooth scroll datatable
+  - Sortable
+  - PNG, SVG image column (ex. chemical structure column)
+  - Plot column (Vega format plot data)
+  - Export to SDFile and Excel (requires Flashflood server)
+- Network view
+  - Visualized network of chemical structure nodes connected with structure similarity relationship (known as Chemical Space Network)
+  - Force-directed layout implemented with d3-force
+  - Interactive zoom
+  - Community detection (jLouvain)
+- Profile view
+- Control panel
+
+
+Web application
+-----------------
+
+
+- [Datagrid view demo (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii/datatable.html?location=resources/ApprovedFiltered.ndc)
 
 
 - [Network view demo (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii/graph.html?location=resources/ApprovedFiltered_GLS10.gfc)
-  - Network of chemical structure nodes connected with structure similarity relationship (known as Chemical Space Network)
-  - Force-directed layout implemented with d3-force
 
 
-- [Control panel](https://mojaie.github.io/kiwiii-client/control.html)
+- [Control panel](https://mojaie.github.io/kiwiii/control.html)
   - This shows the list of dataset stored in the web browser. Click "Reset local datastore" button to clean up it.
   - The web application uses IndexedDB for the persistent storage. The dataset will remain in the browser local storage until it is deleted via control panel. Be careful not to leave confidential data on public access PC.
 
 
 If you already have a table data file (.ndc, .ndr) or a network data file(.gfc, .gfr), use the following link and then load the data.
 
-- [Load new table view](https://mojaie.github.io/kiwiii-client/datatable.html)
+- [Load new datagrid view](https://mojaie.github.io/kiwiii/datagrid.html)
 
-- [Load new network view](https://mojaie.github.io/kiwiii-client/graph.html)
+- [Load new network view](https://mojaie.github.io/kiwiii/network.html)
 
 
 
 API Documentation (WIP)
 ------------------------
 
-https://mojaie.github.io/kiwiii-client/docs
+https://mojaie.github.io/kiwiii/docs
 
 
 

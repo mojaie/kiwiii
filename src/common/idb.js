@@ -14,6 +14,10 @@ let idb = new Dexie('Store');
 idb.version(1).stores(schema);
 
 
+/**
+ * Returns all data store items
+ * @return {array} data store objects
+ */
 function getAllItems() {
   return idb.items
     .orderBy('created')
@@ -22,6 +26,11 @@ function getAllItems() {
 }
 
 
+/**
+ * Get data store items by data type
+ * @param {string} type - 'nodes' or 'edges'
+ * @return {array} data store objects
+ */
 function getItemsByDataType(type) {
   return idb.items
     .where('dataType')
@@ -34,6 +43,11 @@ function getItemsByDataType(type) {
 }
 
 
+/**
+ * Get data store items by store ID
+ * @param {string} storeID - store ID
+ * @return {array} data store object
+ */
 function getItemByID(storeID) {
   return idb.items
     .where('storeID')
@@ -45,7 +59,12 @@ function getItemByID(storeID) {
 }
 
 
-function deleteItem(storeID) { // returns num of deleted items
+/**
+ * Delete a data object from the store
+ * @param {string} storeID - store ID
+ * @return {integer} - number of deleted items
+ */
+function deleteItem(storeID) {
   return idb.items
     .where('storeID')
     .equals(storeID)
@@ -53,7 +72,12 @@ function deleteItem(storeID) { // returns num of deleted items
 }
 
 
-function putItem(data) { // returns id in success
+/**
+ * Insert a data object to the store
+ * @param {object} data - data
+ * @return {string} - storeID if sucessfully added
+ */
+function putItem(data) {
   if (!data.storeID) {
     data.storeID = misc.uuidv4();
   }
@@ -61,7 +85,13 @@ function putItem(data) { // returns id in success
 }
 
 
-function updateItem(storeID, updateFunc) {  // returns num of updated items
+/**
+ * Update data object in the store
+ * @param {string} storeID - store ID
+ * @param {function} updateFunc - update function
+ * @return {integer} - number of updated items
+ */
+function updateItem(storeID, updateFunc) {
   return idb.items
     .where('storeID')
     .equals(storeID)
@@ -72,8 +102,11 @@ function updateItem(storeID, updateFunc) {  // returns num of updated items
 }
 
 
+/**
+ * Delete all data store
+ * Try this before dealing with local db issues
+ */
 function reset() {
-  // Try this before tackling with local db troubles
   return idb.delete().then(() => {
     idb = new Dexie('Store');
     idb.version(1).stores(schema);
