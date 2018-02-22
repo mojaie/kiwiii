@@ -100,10 +100,10 @@ function app(data) {
         hfile.downloadJSON(data, data.edges.name);
       });
   if (state.data.nodes.storeID) {
-    // Node datatable link
+    // Node datagrid link
     menubar.append('a')
-        .call(button.menuButtonLink, null, 'Node datatable', 'outline-secondary')
-        .attr('href', `datatable.html?id=${state.data.nodes.storeID}`)
+        .call(button.menuButtonLink, null, 'Node datagrid', 'outline-secondary')
+        .attr('href', `datagrid.html?id=${state.data.nodes.storeID}`)
         .attr('target', '_blank');
   }
   // Control panel

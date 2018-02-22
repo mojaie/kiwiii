@@ -7,8 +7,9 @@ import {default as hfile} from './common/file.js';
 import {default as idb} from './common/idb.js';
 import {default as misc} from './common/misc.js';
 
-import {default as view} from './datagrid/view.js';
+import DatagridState from './datagrid/state.js';
 import {default as sort} from './datagrid/sort.js';
+import {default as view} from './datagrid/view.js';
 import {default as datagridApp} from './datagrid/datagridApp.js';
 import {default as newDatagrid} from './datagrid/newDatagrid.js';
 
@@ -61,5 +62,5 @@ function run() {
 
 
 export default {
-  run, view, sort
+  DatagridState, sort, view, run
 };

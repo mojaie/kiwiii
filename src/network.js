@@ -9,7 +9,10 @@ import {default as misc} from './common/misc.js';
 
 import {default as button} from './component/button.js';
 
+import NetworkState from './network/state.js';
 import {default as view} from './network/view.js';
+import {default as force} from './network/force.js';
+import {default as interaction} from './network/interaction.js';
 import {default as networkApp} from './network/networkApp.js';
 
 
@@ -50,5 +53,5 @@ function run() {
 
 
 export default {
-  view, run
+  NetworkState, view, force, interaction, run
 };

@@ -50,10 +50,10 @@ Web application
 -----------------
 
 
-- [Datagrid view demo (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii/datatable.html?location=resources/ApprovedFiltered.ndc)
+- [Datagrid view demo (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii/datagrid.html?location=resources/DrugBank5.0.5_FDA_Approved.ndc)
 
 
-- [Network view demo (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii/graph.html?location=resources/ApprovedFiltered_GLS10.gfc)
+- [Network view demo (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii/network.html?location=resources/DrugBank5.0.5_FDA_Approved_GLS08.gfc)
 
 
 - [Control panel](https://mojaie.github.io/kiwiii/control.html)
