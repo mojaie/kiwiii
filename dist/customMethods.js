@@ -1,3 +1,0 @@
-// https://github.com/mojaie/kiwiii-client Version 0.7.0. Copyright 2017 Seiji Matsuoka.
-!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t():"function"==typeof define&&define.amd?define(t):t()}(0,function(){"use strict";String.prototype.capitalize=function(){return this.replace(/(?:^|\s)\S/g,e=>e.toUpperCase())},Array.prototype.unique=function(e){return this.reduce((t,r)=>(void 0===t.find(t=>t[e]===r[e])&&t.push(r),t),[])},Array.prototype.extend=function(){return this.reduce((e,t)=>(Array.prototype.push.apply(e,t),e),[])},Array.prototype.extendAsync=function(){return Promise.all(this).then(e=>e.reduce((e,t)=>(Array.prototype.push.apply(e,t),e),[]))}});
-//# sourceMappingURL=customMethods.js.map

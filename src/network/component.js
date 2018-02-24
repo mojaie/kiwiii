@@ -166,9 +166,9 @@ function move(selection, node, x, y) {
     .selectAll(".link")
     .filter(d => n.adjacency.map(e => e[1]).includes(d.num))
     .each(function (d) {
-      if (n.index === d.source.index) {
+      if (n.index === d.source.index || n.index === d.source) {
         d3.select(this).call(moveEdge, x, y, d.tx, d.ty);
-      } else if (n.index === d.target.index) {
+      } else if (n.index === d.target.index || n.index === d.target) {
         d3.select(this).call(moveEdge, d.sx, d.sy, x, y);
       }
     });

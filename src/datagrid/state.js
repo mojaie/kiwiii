@@ -4,7 +4,6 @@
 import {default as legacy} from '../common/legacySchema.js';
 import {default as mapper} from '../common/mapper.js';
 import {default as misc} from '../common/misc.js';
-import KArray from '../common/KArray.js';
 
 
 export default class DatagridState {

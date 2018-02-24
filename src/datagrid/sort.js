@@ -47,7 +47,7 @@ function setSort(selection, state) {
       const cmp = isAsc
         ? (isNum ? numericAsc : textAsc)
         : (isNum ? numericDesc : textDesc);
-      state.records = state.records.sort((a, b) => cmp(a[d.key], b[d.key]));
+      state.data.records = state.data.records.sort((a, b) => cmp(a[d.key], b[d.key]));
       selection.call(component.updateRows, state);
     });
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<title>Compound</title>
+<title>New network view</title>
 <meta charset="utf-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -15,11 +15,27 @@
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
 <script src="https://vega.github.io/vega/vega-core.min.js"></script>
 
-<script src="kwprofile.js"></script>
-<div class="container-fluid">
+<script src="https://cdn.rawgit.com/upphiminn/jLouvain/76b19313/jLouvain.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.5/pako.min.js"></script>
+<script src="kwnetwork.js"></script>
+<div class="container-fluid" style="background-color: #fffff9">
+
+  <!--
+  <div id="debugbar">
+    <div>state.transform: <span id="debug-transform"></span></div>
+    <div>state.boundary: <span id="debug-boundary"></span></div>
+    <div>state.focusArea: <span id="debug-focusarea"></span></div>
+    <div>state.viewBox: <span id="debug-viewbox"></span></div>
+  </div>
+  -->
+
   <div id="menubar" class="btn-toolbar" role="toolbar"></div>
-  <div id="contents"></div>
+  <div id="contents" class="row">
+    <div id="nw-control" class="col-sm-3 p-2"></div>
+    <div id="nw-frame" class="col-sm-9 px-0"></div>
+  </div>
 </div>
+<div id="dialogs"></div>
 <script type="text/javascript">
-  kwprofile.run();
+  kwnetwork.run();
 </script>
