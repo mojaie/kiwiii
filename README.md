@@ -10,6 +10,7 @@ Screen shots
 
 [<img src="img/table-view.png" width="260" height="160" alt="Table view" style="margin: 5px"/>](img/table-view.png)
 [<img src="img/network-view.png" width="260" height="160" alt="Network view" style="margin: 5px"/>](img/network-view.png)
+[<img src="img/profile-view.png" width="260" height="160" alt="Profile view" style="margin: 5px"/>](img/profile-view.png)
 [<img src="img/control-panel.png" width="260" height="160" alt="Control panel" style="margin: 5px"/>](img/control-panel.png)
 
 
@@ -37,14 +38,15 @@ Features
   - Sortable
   - PNG, SVG image column (ex. chemical structure column)
   - Plot column ([Vega version 3![ext](./img/external_link.svg)](https://vega.github.io/vega/) plot data)
+  - Chemical structure similarity network generation (requires [Flashflood![ext](./img/external_link.svg)](https://github.com/mojaie/flashflood) server)
   - Export to SDFile and Excel (requires [Flashflood![ext](./img/external_link.svg)](https://github.com/mojaie/flashflood) server)
 - Network view
   - Visualized network of chemical structure nodes connected with structure similarity relationship (known as [Chemical Space Network![ext](./img/external_link.svg)](https://doi.org/10.1007/s10822-014-9760-0))
-
   - Force-directed layout implemented with d3-force
-  - Interactive zoom
+  - Interactive zoom and drag
   - Community detection ([jLouvain![ext](./img/external_link.svg)](https://github.com/upphiminn/jLouvain))
-- Profile view
+- Profile view (requires [Flashflood![ext](./img/external_link.svg)](https://github.com/mojaie/flashflood) server)
+  - An overview of the chemical data entry (chemical structure, properties, aliases and related assay results)
 - Control panel
 
 
@@ -54,9 +56,7 @@ Web application demo
 
 - [Datagrid view (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii/datagrid.html?location=resources/DrugBank5.0.5_FDA_Approved.ndc)
 
-
 - [Network view (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii/network.html?location=resources/DrugBank5.0.5_FDA_Approved_GLS08.gfc)
-
 
 - [Control panel](https://mojaie.github.io/kiwiii/control.html)
   - You can save your data view into Indexed DB local storage by clicking "Save view" in the control menu. Control panel shows the list of dataset stored in the web browser. Click "Reset local datastore" button to clean up it. Be careful not to leave confidential data on public access PC.
@@ -81,7 +81,7 @@ https://mojaie.github.io/kiwiii/docs
 License
 --------------
 
-[MIT license](http://opensource.org/licenses/MIT)
+[MIT license![ext](./img/external_link.svg)](http://opensource.org/licenses/MIT)
 
 
 
