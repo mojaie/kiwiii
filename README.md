@@ -17,8 +17,8 @@ Screen shots
 Embedded view examples (Bl.ocks)
 ---------------------------------
 
-[![thumbnail](https://gist.github.com/mojaie/a89c7ba0ba1ee5c91a387e3fd1e8ae4e/raw/7a8f8a11ce12674fe3b1e975e98e68a443a78c93/thumbnail.png)](https://bl.ocks.org/mojaie/a89c7ba0ba1ee5c91a387e3fd1e8ae4e)
-[![thumbnail](https://gist.github.com/mojaie/89293ef2f946ecb43dd3cdd73fdd64ac/raw/396f5ca5969dce3812c4ecff17d3c923350dfbab/thumbnail.png)](https://bl.ocks.org/mojaie/89293ef2f946ecb43dd3cdd73fdd64ac)
+[![thumbnail](https://gist.githubusercontent.com/mojaie/dee158bd95a6e3f9e871c7cf112a335c/raw/c25ee931fead003248f7770f69b51fa28424063f/thumbnail.png)](https://bl.ocks.org/mojaie/dee158bd95a6e3f9e871c7cf112a335c)
+[![thumbnail](https://gist.githubusercontent.com/mojaie/fe6db9906cd3c4ccc38463f177e4a6a7/raw/91517ccdc20a925ee2a1e1bce1116636ea2a627d/thumbnail.png)](https://bl.ocks.org/mojaie/fe6db9906cd3c4ccc38463f177e4a6a7)
 
 
 Supported browsers
@@ -31,34 +31,35 @@ Supported browsers
 Features
 --------------
 
+
 - Datagrid view
-  - SlickGrid-like smooth scroll datatable
+  - [SlickGrid](https://github.com/mleibman/SlickGrid)![ext](./img/external_link.svg)-like smooth scroll datatable
   - Sortable
   - PNG, SVG image column (ex. chemical structure column)
-  - Plot column (Vega format plot data)
-  - Export to SDFile and Excel (requires Flashflood server)
+  - Plot column ([Vega version 3](https://vega.github.io/vega/)![ext](./img/external_link.svg) plot data)
+  - Export to SDFile and Excel (requires [Flashflood](https://github.com/mojaie/flashflood)![ext](./img/external_link.svg) server)
 - Network view
-  - Visualized network of chemical structure nodes connected with structure similarity relationship (known as Chemical Space Network)
+  - Visualized network of chemical structure nodes connected with structure similarity relationship (known as [Chemical Space Network](https://doi.org/10.1007/s10822-014-9760-0)![ext](./img/external_link.svg))
+
   - Force-directed layout implemented with d3-force
   - Interactive zoom
-  - Community detection (jLouvain)
+  - Community detection ([jLouvain](https://github.com/upphiminn/jLouvain)![ext](./img/external_link.svg))
 - Profile view
 - Control panel
 
 
-Web application
------------------
+Web application demo
+---------------------
 
 
-- [Datagrid view demo (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii/datagrid.html?location=resources/DrugBank5.0.5_FDA_Approved.ndc)
+- [Datagrid view (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii/datagrid.html?location=resources/DrugBank5.0.5_FDA_Approved.ndc)
 
 
-- [Network view demo (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii/network.html?location=resources/DrugBank5.0.5_FDA_Approved_GLS08.gfc)
+- [Network view (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii/network.html?location=resources/DrugBank5.0.5_FDA_Approved_GLS08.gfc)
 
 
 - [Control panel](https://mojaie.github.io/kiwiii/control.html)
-  - This shows the list of dataset stored in the web browser. Click "Reset local datastore" button to clean up it.
-  - The web application uses IndexedDB for the persistent storage. The dataset will remain in the browser local storage until it is deleted via control panel. Be careful not to leave confidential data on public access PC.
+  - You can save your data view into Indexed DB local storage by clicking "Save view" in the control menu. Control panel shows the list of dataset stored in the web browser. Click "Reset local datastore" button to clean up it. Be careful not to leave confidential data on public access PC.
 
 
 If you already have a table data file (.ndc, .ndr) or a network data file(.gfc, .gfr), use the following link and then load the data.
@@ -87,4 +88,4 @@ License
 Copyright
 --------------
 
-(C) 2014-2017 Seiji Matsuoka
+(C) 2014-2018 Seiji Matsuoka
