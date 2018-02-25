@@ -33,17 +33,17 @@ Features
 
 
 - Datagrid view
-  - [SlickGrid](https://github.com/mleibman/SlickGrid)![ext](./img/external_link.svg)-like smooth scroll datatable
+  - [SlickGrid![ext](./img/external_link.svg)](https://github.com/mleibman/SlickGrid)-like smooth scroll datatable
   - Sortable
   - PNG, SVG image column (ex. chemical structure column)
-  - Plot column ([Vega version 3](https://vega.github.io/vega/)![ext](./img/external_link.svg) plot data)
-  - Export to SDFile and Excel (requires [Flashflood](https://github.com/mojaie/flashflood)![ext](./img/external_link.svg) server)
+  - Plot column ([Vega version 3![ext](./img/external_link.svg)](https://vega.github.io/vega/) plot data)
+  - Export to SDFile and Excel (requires [Flashflood![ext](./img/external_link.svg)](https://github.com/mojaie/flashflood) server)
 - Network view
-  - Visualized network of chemical structure nodes connected with structure similarity relationship (known as [Chemical Space Network](https://doi.org/10.1007/s10822-014-9760-0)![ext](./img/external_link.svg))
+  - Visualized network of chemical structure nodes connected with structure similarity relationship (known as [Chemical Space Network![ext](./img/external_link.svg)](https://doi.org/10.1007/s10822-014-9760-0))
 
   - Force-directed layout implemented with d3-force
   - Interactive zoom
-  - Community detection ([jLouvain](https://github.com/upphiminn/jLouvain)![ext](./img/external_link.svg))
+  - Community detection ([jLouvain![ext](./img/external_link.svg)](https://github.com/upphiminn/jLouvain))
 - Profile view
 - Control panel
 
