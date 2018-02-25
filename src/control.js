@@ -50,9 +50,11 @@ function update() {
   // Server status
   fetcher.get('server')
     .then(fetcher.json)
-    .catch()
+    .catch(() => {
+      console.info('Server did not respond');
+      return {calc: []};
+    })
     .then(res => {
-      if (!res) return;
       // Server calculation jobs
       const calcFields = misc.defaultFieldProperties([
         {key: 'id', name: 'Workflow ID', format: 'text'},

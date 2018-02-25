@@ -30,8 +30,11 @@ function run() {
       response.schema = res;
     })
     .catch(() => {
+      console.info('Server did not respond');
       response.server = {};
-      response.schema = {};
+      response.schema = {
+        resources: [], templates: [], compoundIDPlaceholder: null
+      };
     })
     .then(() => {
       console.info('Off-line mode is disabled for debugging');

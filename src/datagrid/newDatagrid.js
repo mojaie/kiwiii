@@ -32,9 +32,11 @@ function registerWorkflow(fetched) {
 
 
 function app(serverStatus, schema) {
-  // Menubar
   const menubar = d3.select('#menubar');
   menubar.selectAll('div,span,a').remove();  // Clean up
+  const dialogs = d3.select('#dialogs');
+  dialogs.selectAll('div').remove();  // Clean up
+
   // New datagrid menu
   const menu = menubar.append('div')
       .call(button.dropdownMenuButton, null, '+ New datagrid', 'primary')
@@ -65,14 +67,14 @@ function app(serverStatus, schema) {
       .attr('href', 'control.html')
       .attr('target', '_blank');
 
-  // Dialogs
-  const dialogs = d3.select('#dialogs');
-  dialogs.selectAll('div').remove();  // Clean up
-  if (!schema) {
+  // disable on-line commands
+  if (!serverStatus.instance) {
     menu.selectAll('.searchd, .structd, .filterd, .sdfd')
-      .property('disabled', true);
-    return;
+      .attr('data-target', null)
+      .classed('disabled', true);
   }
+
+  // Dialogs
   const chemrsrc = schema.resources.filter(e => e.domain === 'chemical');
   // ID search
   dialogs.append('div')

@@ -23,6 +23,11 @@ import DatagridState from './state.js';
 
 
 function app(data, serverStatus) {
+  const menubar = d3.select('#menubar');
+  menubar.selectAll('div,span,a').remove();  // Clean up
+  const dialogs = d3.select('#dialogs');
+  dialogs.selectAll('div').remove();  // Clean up
+
   const state = new DatagridState(data);
   state.serverStatus = serverStatus;
   d3.select('#datagrid')
@@ -33,9 +38,6 @@ function app(data, serverStatus) {
   window.onresize = () =>
     d3.select('#datagrid').call(view.resize, state);
 
-  // Menubar
-  const menubar = d3.select('#menubar');
-  menubar.selectAll('div,span,a').remove();  // Clean up
   // Datagrid view control
   const menu = menubar.append('div')
       .call(button.dropdownMenuButton, null, 'View control', 'primary')
@@ -45,6 +47,7 @@ function app(data, serverStatus) {
   menu.append('a')
       .call(fieldFileDialog.menuLink);
   menu.append('a')
+      .classed('networkgend', true)
       .call(networkgenDialog.menuLink);
   menu.append('a')
       .call(renameDialog.menuLink);
@@ -72,6 +75,8 @@ function app(data, serverStatus) {
       .call(button.dropdownMenuItem, null, 'Export to JSON')
       .on('click', () => {
         const data = state.export();
+        // Delete local store information
+        delete data.storeID;
         hfile.downloadJSON(data, data.name);
       });
   menu.append('a')
@@ -119,9 +124,15 @@ function app(data, serverStatus) {
       .classed('status', true)
       .text(`(${state.data.status} - ${state.data.records.length} records found in ${state.data.execTime} sec.)`);
 
+  // disable on-line commands
+  if (!serverStatus.instance) {
+    menu.selectAll('.networkgend, .exportexcel')
+      .attr('data-target', null)
+      .classed('disabled', true)
+      .on('click', null);
+  }
+
   // Dialogs
-  const dialogs = d3.select('#dialogs');
-  dialogs.selectAll('div').remove();  // Clean up
   dialogs.append('div')
       .classed('fieldconfd', true)
       .call(fieldConfigDialog.body);

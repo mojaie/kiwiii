@@ -166,7 +166,6 @@ function run() {
   const offLine = 'onLine' in navigator && !navigator.onLine;
   return fetcher.get('schema')
     .then(fetcher.json)
-    .catch(() => {})
     .then(schema => {
       console.info('Off-line mode is disabled for debugging');
       return Promise.all([
@@ -174,6 +173,8 @@ function run() {
           .then(qrcd => updateChemAliases(schema.resources, qrcd)),
         updateActivities(compoundID, schema.resources)
       ]);
+    }, () => {
+      console.info('Server did not respond');
     });
 }
 
