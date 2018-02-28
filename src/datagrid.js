@@ -55,7 +55,7 @@ function run() {
       } else if (dataURL) {
         // Fetch via HTTP
         hfile.fetchJSON(dataURL)
-          .then(item => datagridApp.app(item, response.server));
+          .then(item => datagridApp.app(item, response.server, response.schema));
       } else {
         // New datagrid
         newDatagrid.app(response.server, response.schema);

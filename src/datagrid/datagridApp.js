@@ -7,6 +7,7 @@ import {default as core} from '../common/core.js';
 import {default as idb} from '../common/idb.js';
 import {default as fetcher} from '../common/fetcher.js';
 import {default as hfile} from '../common/file.js';
+import {default as mapper} from '../common/mapper.js';
 import {default as misc} from '../common/misc.js';
 
 import {default as button} from '../component/button.js';
@@ -23,7 +24,7 @@ import {default as sort} from './sort.js';
 import DatagridState from './state.js';
 
 
-function app(data, serverStatus) {
+function app(data, serverStatus, schema) {
   const menubar = d3.select('#menubar');
   menubar.selectAll('div,span,a').remove();  // Clean up
   const dialogs = d3.select('#dialogs');
@@ -140,6 +141,9 @@ function app(data, serverStatus) {
       .classed('fieldconfd', true)
       .call(fieldConfigDialog.body);
   dialogs.append('div')
+      .classed('fieldfetchd', true)
+      .call(fieldFetchDialog.body, schema);
+  dialogs.append('div')
       .classed('fieldfiled', true)
       .call(fieldFileDialog.body);
   dialogs.append('div')
@@ -171,6 +175,18 @@ function updateApp(state) {
         state.setFields(fieldConfigDialog.value(d3.select(this)));
         state.updateContentsNotifier();
         updateApp(state);
+      });
+  dialogs.select('.fieldfetchd')
+      .call(fieldFetchDialog.updateBody, state)
+      .on('submit', function () {
+        const query = fieldFetchDialog.query(d3.select(this));
+        return fetcher.get(query.workflow, query)
+          .then(data => {
+            const mapping = mapper.tableToMapping(data, 'compound_id');
+            state.joinFields(mapping);
+            state.updateContentsNotifier();
+            updateApp(state);
+          });
       });
   dialogs.select('.fieldfiled')
       .on('submit', function () {
