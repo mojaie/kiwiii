@@ -24,12 +24,10 @@ function datagrid(selection, state) {
     .append('div')
       .classed('dg-body', true);
   selection.call(resize, state);
-  state.updateHeaderNotifier = () => {
-    selection.call(component.updateHeader, state);
-    selection.call(component.updateViewport, state);
+  state.updateContentsNotifier = () => {
+    selection.call(component.updateContents, state);
   };
-  selection.call(component.updateHeader, state);
-  selection.call(component.updateViewport, state);
+  selection.call(component.updateContents, state);
 
 }
 

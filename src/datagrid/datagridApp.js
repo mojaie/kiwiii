@@ -166,7 +166,7 @@ function updateApp(state) {
       .call(fieldConfigDialog.updateBody, state)
       .on('submit', function () {
         state.setFields(fieldConfigDialog.value(d3.select(this)));
-        state.updateHeaderNotifier();
+        state.updateContentsNotifier();
         updateApp(state);
       });
   dialogs.select('.fieldfiled')
@@ -174,7 +174,7 @@ function updateApp(state) {
         return fieldFileDialog.readFile(d3.select(this))
           .then(data => {
             state.joinFields(data);
-            state.updateHeaderNotifier();
+            state.updateContentsNotifier();
             updateApp(state);
           });
       });

@@ -7,8 +7,7 @@ import {default as misc} from '../common/misc.js';
 import {default as img} from '../common/image.js';
 
 
-function updateHeader(selection, state) {
-  selection.style('width', `${state.contentWidth}px`);
+function updateContents(selection, state) {
   const header = selection.select('.dg-header')
     .selectAll('.dg-hcell')
       .data(state.visibleFields, d => d.key);
@@ -19,10 +18,12 @@ function updateHeader(selection, state) {
     .merge(header)
       .style('width', d => `${d.width}px`)
       .text(d => d.name);
+  selection.call(updateViewport, state);
 }
 
 
 function updateViewport(selection, state) {
+  selection.style('width', `${state.contentWidth}px`);
   selection.select('.dg-body')
     .style('height', `${state.bodyHeight}px`)
     .style('position', "relative");
@@ -33,69 +34,77 @@ function updateViewport(selection, state) {
       const pos = Math.floor(scrollTop / state.rowHeight);
       if (pos !== state.previousViewportTop) {
         state.setScrollPosition(pos);
-        selection.call(updateRows, state);
+        selection.call(updateRows, state, updateRowFunc(state.visibleFields));
       }
     })
     .dispatch('scroll');
 }
 
 
-function updateRows(selection, state) {
-  const cData = state.visibleFields;
-  const rowSelection = selection.select('.dg-body')
+function updateRowFunc(fields) {
+  return (selection, record) => {
+    fields.forEach(field => {
+      const value = record[field.key];
+      const cell = selection.append('div')
+        .classed('dg-cell', true)
+        .classed('align-middle', true)
+        .style('display', 'inline-block')
+        .style('width', `${field.width}px`);
+      if (value === undefined) return;
+      if (field.format === 'd3_format') {
+        cell.text(misc.formatNum(value, field.d3_format));
+      } else if (['numeric', 'text', 'raw'].includes(field.format)) {
+        cell.text(value);
+      } else if (field.format === 'compound_id') {
+        cell.append('a')
+            .attr('href',`profile.html?compound=${value}`)
+            .attr('target', '_blank')
+            .text(value);
+      } else if (field.format === 'plot') {
+        cell.call(img.plotCell, value);  // TODO:
+      } else if (field.format === 'image') {
+        cell.append('img')
+            .attr('width', 180)
+            .attr('height', 180)
+            .attr('src', value);
+      } else if (field.format === 'control') {
+        cell.call(value);
+      } else {
+        cell.html(value);
+      }
+    });
+  };
+}
+
+
+function updateRows(selection, state, rowFactory) {
+  const rows = selection.select('.dg-body')
     .selectAll('.dg-row')
       .data(state.recordsToShow(), state.keyFunc)
       .style('height', `${state.rowHeight}px`);
-  rowSelection.exit().remove();
-  const rowEntered = rowSelection.enter().append('div')
+  rows.exit().remove();
+  rows.enter()
+    .append('div')
       .attr('class', 'dg-row')
-      .style('position', "absolute");
-  rowEntered.selectAll('.dg-cell')
-    .data(cData.map(e => e.width))
-    .enter().append('div')
-      .classed('dg-cell', true)
-      .classed('align-middle', true)
-      .style('display', 'inline-block')
-      .style('width', d => `${d}px`);
-  // TODO: need refactoring
-  rowEntered.merge(rowSelection)
-      .order()
-      .each(function(d, ri) {
-        const rowPos = (state.viewportTop + ri) * state.rowHeight;
+      .style('position', "absolute")
+    .merge(rows)
+      .each(function (d, i) {
+        const rowPos = (state.viewportTop + i) * state.rowHeight;
         d3.select(this)
           .style('transform', `translate(0px, ${rowPos}px)`)
-          .classed('odd', (state.viewportTop + ri) % 2 === 0)
-        .selectAll('.dg-cell')
-          .html(function (_, i) {
-            d3.select(this).attr('id', `c${ri}-${i}`);
-            const value = d[cData[i].key];
-            if (value === undefined) return '';
-            if (cData[i].format === 'd3_format') {
-              return misc.formatNum(value, cData[i].d3_format);
-            }
-            if (cData[i].format === 'plot') return '';
-            if (cData[i].format === 'compound_id') {
-              return `<a href="profile.html?compound=${value}" target="_blank">${value}</a>`;
-            }
-            if (cData[i].format === 'image') {  // data URI
-              return `<img src="${value}" width="180" height="180"/>`;
-            }
-            return value;
-          })
-          .each(function(_, i) {
-            if (cData[i].format !== 'plot') return;
-            if (!d.hasOwnProperty(cData[i].key)) return;
-            const value = d[cData[i].key];
-            img.showPlot(value, `#c${ri}-${i}`);
-          });
-    });
+          .classed('odd', (state.viewportTop + i) % 2 === 0);
+        d3.select(this).selectAll('.dg-cell').remove();
+        d3.select(this).call(rowFactory, d);
+      });
 }
+
 
 function resizeViewport(selection, state) {
   // TODO: set width
   selection.select('.dg-viewport').style('height', `${state.viewportHeight}px`);
 }
 
+
 export default {
-  updateHeader, updateViewport, updateRows, resizeViewport
+  updateContents, updateViewport, updateRowFunc, updateRows, resizeViewport
 };

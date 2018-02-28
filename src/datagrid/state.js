@@ -39,7 +39,7 @@ export default class DatagridState {
     this.numViewportRows = null;
     this.previousNumViewportRows = null;
 
-    this.updateHeaderNotifier = null;
+    this.updateContentsNotifier = null;
 
     // Initialize
     this.setFields(this.data.fields);

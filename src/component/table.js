@@ -17,11 +17,9 @@ function render(selection, id, caption, fields, records) {
       .classed('table-hover', true)
       .attr('id', id);
   if (caption) {
-  selection.append('caption')
-      .text(caption);
+    selection.append('caption').text(caption);
   }
-  selection.append('thead')
-    .append('tr');
+  selection.append('thead').append('tr');
   selection.append('tbody');
   if (fields) {
     selection.call(updateHeader, fields, records);
@@ -34,8 +32,7 @@ function updateHeader(selection, fields, records) {
     .selectAll('th')
       .data(fields);
   header.exit().remove();
-  header.enter()
-    .append('th')
+  header.enter().append('th')
       .text(d => d.name);
   if (records) {
     selection.call(updateContents, records, d => d.key, updateRowFunc(fields));
@@ -48,15 +45,12 @@ function updateContents(selection, records, keyFunc, rowFactory) {  // TODO: spe
     .selectAll('tr')
       .data(records, keyFunc);
   rows.exit().remove();
-  rows.enter()
-    .append('tr')
+  rows.enter().append('tr')
     .merge(rows)
-    .each(function (d) {
-      d3.select(this)
-        .selectAll('td').remove();
-      d3.select(this)
-        .call(rowFactory, d);
-    });
+      .each(function (d) {
+        d3.select(this).selectAll('td').remove();
+        d3.select(this).call(rowFactory, d);
+      });
 }
 
 
