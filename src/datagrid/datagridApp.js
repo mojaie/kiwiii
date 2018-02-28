@@ -13,6 +13,7 @@ import {default as button} from '../component/button.js';
 import {default as modal} from '../component/modal.js';
 
 import {default as fieldConfigDialog} from '../dialog/fieldConfig.js';
+import {default as fieldFetchDialog} from '../dialog/fieldFetch.js';
 import {default as fieldFileDialog} from '../dialog/fieldFile.js';
 import {default as networkgenDialog} from '../dialog/networkgen.js';
 import {default as renameDialog} from '../dialog/rename.js';
@@ -44,6 +45,8 @@ function app(data, serverStatus) {
       .select('.dropdown-menu');
   menu.append('a')
       .call(fieldConfigDialog.menuLink);
+  menu.append('a')
+      .call(fieldFetchDialog.menuLink);
   menu.append('a')
       .call(fieldFileDialog.menuLink);
   menu.append('a')

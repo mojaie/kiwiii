@@ -6,20 +6,22 @@ import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as modal} from '../component/modal.js';
 
+const id = 'fieldfetch-dialog';
+const title = 'Import fields from database';
 
-function menuButton(selection) {
-  selection.append('a')
-      .call(button.dropdownMenuModal,
-            'fieldconf', 'Field Setting', 'fieldconf-dialog');
+
+function menuLink(selection) {
+  selection.call(button.dropdownMenuModal, 'fieldfetch', title, id);
 }
 
 
 function body(selection, fields) {
-  selection
-      .call(modal.submitDialog, 'fieldconf-dialog', 'Field Setting')
-    .select('.modal-body').append('div')
+  const dialog = selection.call(modal.submitDialog, id, title);
+  dialog.select('.modal-body').append('div')
       .classed('ids', true)
-      .call(box.textareaBox, 'search-query', 'Query', fields);
+      .call(lbox.checklistBox, 'fieldfetch-list', 'Query', fields);
+
+
 
       // Prevent implicit submission
       document.getElementById('join-search')
