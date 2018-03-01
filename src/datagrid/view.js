@@ -14,9 +14,7 @@ function resize(selection, state) {
 }
 
 function datagrid(selection, state) {
-  if (selection.selectAll('div').size()) {
-    selection.selectAll('div').remove();
-  }
+  selection.selectAll('div').remove();
   selection.append('div')
     .classed('dg-header', true);
   selection.append('div')
