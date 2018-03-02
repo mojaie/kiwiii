@@ -1,27 +1,23 @@
 
 /** @module datagrid/rowFilter */
 
-import d3 from 'd3';
-import {default as misc} from '../common/misc.js';
-import {default as component} from './component.js';
+import {default as box} from '../component/formBox.js';
 
 
-function filter(selection, state) {
-  // Prevent implicit submission
-  document.getElementById('join-search')
-    .addEventListener('keypress', event => {
-      if (event.keyCode === 13) event.preventDefault();
-    });
-  selection
+function setFilter(selection, state) {
+  const searchBox = selection
+      .classed('row', true)
+      .classed('justify-content-end', true)
+    .append('div')
+      .classed('col-6', true)
+      .call(box.textBox, null, 'Search', 40, null);
+  searchBox.select('input')
     .on('keyup', function () {
-      const match = d => misc.partialMatch(d3form.value(this), d.name);
-      selection.selectAll('li')
-        .style('visibility', d => match(d) ? null : 'hidden')
-        .style('position', d => match(d) ? null : 'absolute');
+      state.updateFilterNotifier(box.textBoxValue(searchBox));
     });
 }
 
 
 export default {
-  filter
+  setFilter
 };
