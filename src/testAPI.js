@@ -70,7 +70,7 @@ testCases.push(() =>
     }).then(fetcher.json)
       .then(res => {
         setTimeout(() => {
-          const query = {id: res.id, command: 'abort'};
+          const query = {id: res.reference.workflow, command: 'abort'};
           fetcher.get('progress', query).then(fetcher.json).then(rows => r([res, rows]));
         }, 2000);
       });
@@ -88,7 +88,7 @@ testCases.push(() =>
     }).then(fetcher.json)
       .then(res => {
         setTimeout(() => {
-          const query = {id: res.id, command: 'abort'};
+          const query = {id: res.reference.workflow, command: 'abort'};
           fetcher.get('progress', query).then(fetcher.json).then(rows => r([res, rows]));
         }, 2000);
       });
@@ -117,7 +117,7 @@ testCases.push(() =>
           .then(fetcher.json)
           .then(res => {
             setTimeout(() => {
-              const query = {id: res.id, command: 'abort'};
+              const query = {id: res.reference.workflow, command: 'abort'};
               fetcher.get('progress', query).then(fetcher.json).then(rows => r([res, rows]));
             }, 2000);
           });
@@ -132,7 +132,9 @@ function run() {
     {key: 'result'}
   ]);
   const records = [];
-  d3.select('#test').call(table.render, fields, records);
+  const results = d3.select('#results')
+    .append('table')
+      .call(table.render, null, null, fields, records);
   testCases.reduce((ps, curr) => {
     return () => ps()
       .then(curr)
@@ -141,7 +143,7 @@ function run() {
         console.info(res.output);
         const pass = res.pass ? 'OK' : '<span class="text-danger">NG<span>';
         records.push({'test': res.test, 'result': pass});
-        d3.select('#test').call(table.updateRecords, records);
+        results.call(table.updateHeader, fields, records);
       })
       ;
   }, () => Promise.resolve())();

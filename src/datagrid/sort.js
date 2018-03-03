@@ -2,6 +2,7 @@
 /** @module datagrid/sort */
 
 import d3 from 'd3';
+import _ from 'lodash';
 import {default as misc} from '../common/misc.js';
 import {default as component} from './component.js';
 
@@ -43,12 +44,18 @@ function setSort(selection, state) {
     .on('click', d => {
       const isAsc = d3.select(`#sort-${d.key}`).text() === 'v';
       d3.select(`#sort-${d.key}`).text(isAsc ? '^' : 'v');
+      /*
       const isNum = misc.sortType(d.format) === 'numeric';
       const cmp = isAsc
         ? (isNum ? numericAsc : textAsc)
         : (isNum ? numericDesc : textDesc);
       state.data.records = state.data.records.sort((a, b) => cmp(a[d.key], b[d.key]));
-      selection.call(component.updateRows, state);
+      */
+      state.data.records = _.orderBy(
+        state.data.records, [o => o[d.key]], [isAsc ? 'desc' : 'asc']);
+      selection.call(
+        component.updateRows, state, component.updateRowFunc(state.visibleFields)
+      );
     });
 }
 

@@ -1,7 +1,7 @@
 
 /** @module dialog/filter */
 
-import KArray from '../common/KArray.js';
+import _ from 'lodash';
 
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
@@ -20,8 +20,10 @@ function menuLink(selection) {
 
 function body(selection, resources) {
   const dialog = selection.call(modal.submitDialog, id, title);
-  const fields = KArray.from(resources.map(e => e.fields))
-    .extend().unique('key').toArray()
+  const fields = _(resources.map(e => e.fields))
+    .flatten()
+    .uniqBy('key')
+    .value()
     .filter(e => e.hasOwnProperty('d3_format')
                  || ['compound_id', 'numeric', 'text'].includes(e.format));
   dialog.select('.modal-body').append('div')

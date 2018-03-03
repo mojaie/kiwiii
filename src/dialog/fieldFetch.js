@@ -1,6 +1,7 @@
 
 /** @module dialog/fieldFetch */
 
+import _ from 'lodash';
 
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
@@ -27,8 +28,11 @@ function body(selection, fields) {
           if (event.keyCode === 13) event.preventDefault();
         });
       const dataKeys = dataFields.map(e => e.key);
-      const resourceFields = KArray.from(resources.map(e => e.fields))
-        .extend().unique('key').filter(e => e.key !== 'id');
+      const resourceFields = _(resources.map(e => e.fields))
+        .flatten()
+        .uniqBy('key')
+        .value()
+        .filter(e => e.key !== 'id');
       d3.select('#join-keys')
         .call(cmp.checkboxList, resourceFields, 'keys', d => d.key, d => d.name)
         .selectAll('li')

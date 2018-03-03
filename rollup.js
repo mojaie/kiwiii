@@ -54,7 +54,8 @@ const external = {
   Dexie: 'Dexie',
   jLouvain: 'jLouvain',
   pako: 'pako',
-  vega: 'vega'
+  vega: 'vega',
+  lodash: '_'
 };
 
 
@@ -71,7 +72,7 @@ const jsBundled = bundles.map(bundle => {
   return rollup.rollup({
     input: bundle.hasOwnProperty('source') ? bundle.source : `src/${bundle.name}.js`,
     plugins: plugins,
-    external: Object.values(external)
+    external: Object.keys(external)
   }).then(b => {
     b.write({
       file: `${buildDir}/${module}.js`,
