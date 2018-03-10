@@ -19,6 +19,7 @@ import {default as renameDialog} from '../dialog/rename.js';
 
 import {default as view} from './view.js';
 import {default as sort} from './sort.js';
+import {default as rowf} from './rowFilter.js';
 import DatagridState from './state.js';
 
 
@@ -31,8 +32,10 @@ function app(data, serverStatus) {
   const state = new DatagridState(data);
   state.serverStatus = serverStatus;
   d3.select('#datagrid')
-    .call(view.datagrid, state)
-    .call(sort.setSort, state);
+      .call(view.datagrid, state)
+      .call(sort.setSort, state);
+  d3.select('#dg-search')
+      .call(rowf.setFilter, state);
 
   // Resize window
   window.onresize = () =>
@@ -165,7 +168,7 @@ function updateApp(state) {
   dialogs.select('.fieldconfd')
       .call(fieldConfigDialog.updateBody, state)
       .on('submit', function () {
-        state.setFields(fieldConfigDialog.value(d3.select(this)));
+        state.data.fields = fieldConfigDialog.value(d3.select(this));
         state.updateContentsNotifier();
         updateApp(state);
       });

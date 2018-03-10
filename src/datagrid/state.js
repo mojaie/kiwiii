@@ -1,6 +1,8 @@
 
 /** @module datagrid/state */
 
+import _ from 'lodash';
+
 import {default as legacy} from '../common/legacySchema.js';
 import {default as mapper} from '../common/mapper.js';
 import {default as misc} from '../common/misc.js';
@@ -11,7 +13,16 @@ export default class DatagridState {
 
     // Import from legacy format data
     this.data = legacy.convertTable(data);
-    this.fields = null;  // Working copy (set by setFields method)
+
+    this.fields = null;
+    this.visibleFields = null;
+    this.sortedRecords = null;
+    this.filteredRecords = null;
+
+    // Snapshot
+    const snp = this.data.snapshot || {sortOrder: [], filterText: null};
+    this.sortOrder = snp.sortOrder || [];
+    this.filterText = snp.filterText || null;
 
     this.defaultColumnWidth = {
       numeric: 120,
@@ -27,52 +38,104 @@ export default class DatagridState {
 
     this.keyFunc = d => d.index;
 
-    this.visibleFields = null;
+    // Size
     this.rowHeight = null;
     this.contentWidth = null;
     this.bodyHeight = null;
 
-    this.vieportTop = null;
-    this.previousVieportTop = null;
-    this.vieportBottom = null;
-
+    // Viewport
+    this.viewportHeight = null;
     this.numViewportRows = null;
     this.previousNumViewportRows = null;
+    this.viewportTop = null;
+    this.previousVieportTop = null;
+    this.viewportBottom = null;
 
+    // Event notifier
     this.updateContentsNotifier = null;
+    this.updateFilterNotifier = null;
 
     // Initialize
-    this.setFields(this.data.fields);
+    this.applyData();
+  }
+
+  setViewportSize(height) {
+    this.viewportHeight = height;
+    this.previousNumViewportRows = this.numViewportRows;
+    this.numViewportRows = Math.ceil(this.viewportHeight / this.rowHeight) + 1;
   }
 
   setScrollPosition(position) {
     this.previousVieportTop = this.viewportTop;
     this.viewportTop = position;
     this.viewportBottom = Math.min(
-      this.viewportTop + this.numViewportRows, this.data.records.length);
+      this.viewportTop + this.numViewportRows, this.filteredRecords.length);
   }
 
-  recordsToShow() {
-    return this.data.records.slice(this.viewportTop, this.viewportBottom);
+  setSortOrder(key, order) {
+    const ki  = this.sortOrder.findIndex(e => e.key);
+    const obj = {key: key, order: order};
+    if (ki !== -1) this.sortOrder.splice(ki, 1);
+    this.sortOrder.splice(0, 0, obj);
+    this.applyOrder(key, order);
   }
 
-  setFields(fields) {
-    this.fields = fields.map(e => {
-      e.width = this.defaultColumnWidth[misc.sortType(e.format)];
-      e.height = this.defaultColumnHeight[misc.sortType(e.format)];
-      return e;
+  setFilterText(text) {
+    this.filterText = text;
+    this.applyFilter();
+  }
+
+  joinFields(mapping) {
+    mapper.apply(this.data, mapping);
+    this.applyData();
+  }
+
+  applyData() {
+    this.fields = this.data.fields.map(e => {
+      const field = {
+        width: this.defaultColumnWidth[misc.sortType(e.format)],
+        height: this.defaultColumnHeight[misc.sortType(e.format)]
+      };
+      return Object.assign(field, e);
     });
     this.visibleFields = this.fields.filter(e => e.visible);
     this.rowHeight = this.visibleFields
       .reduce((a, b) => a.height > b.height ? a : b).height;
     this.contentWidth = this.visibleFields
       .reduce((a, b) => ({width: a.width + b.width})).width + this.scrollBarSpace;
-    this.bodyHeight = this.data.records.length * this.rowHeight;
+    this.applyOrder();
   }
 
-  joinFields(mapping) {
-    mapper.apply(this.data, mapping);
-    this.setFields(this.data.fields);
+  applyOrder(key, order) {
+    if (key) {
+      this.sortedRecords = _.orderBy(this.data.records.slice(), [key], [order]);
+    } else {
+      const keys = this.sortOrder.map(e => e.key);
+      const orders = this.sortOrder.map(e => e.order);
+      if (keys) {
+        this.sortedRecords = _.orderBy(this.data.records.slice(), keys, orders);
+      }
+    }
+    this.applyFilter();
+  }
+
+  applyFilter() {
+    if (this.filterText === null) {
+      this.filteredRecords = this.sortedRecords.slice();
+    } else {
+      const fields = this.visibleFields
+        .filter(e => misc.sortType(e.format) !== 'none')
+        .map(e => e.key);
+      this.filteredRecords = this.sortedRecords.filter(row => {
+        return fields.some(f => misc.partialMatch(this.filterText, row[f]));
+      });
+    }
+    this.bodyHeight = this.filteredRecords.length * this.rowHeight;
+    this.setScrollPosition(0);
+  }
+
+  recordsToShow() {
+    return this.filteredRecords.slice(this.viewportTop, this.viewportBottom);
   }
 
   export() {

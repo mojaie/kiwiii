@@ -25,7 +25,6 @@ function updateContents(selection, state) {
 function updateViewport(selection, state) {
   selection.style('width', `${state.contentWidth}px`);
   selection.select('.dg-body')
-    .style('height', `${state.bodyHeight}px`)
     .style('position', "relative");
   selection.select('.dg-viewport')
     .style('overflow-y', 'auto')
@@ -78,6 +77,8 @@ function updateRowFunc(fields) {
 
 
 function updateRows(selection, state, rowFactory) {
+  selection.select('.dg-body')
+    .style('height', `${state.bodyHeight}px`);
   const rows = selection.select('.dg-body')
     .selectAll('.dg-row')
       .data(state.recordsToShow(), state.keyFunc)
