@@ -2,8 +2,7 @@
 /** @module common/misc */
 
 import d3 from 'd3';
-
-import KArray from './KArray.js';
+import _ from 'lodash';
 
 
 function defaultFieldProperties(fields) {
@@ -43,8 +42,9 @@ function partialMatch(query, target) {
 
 
 function URLQuery() {
-  return KArray.from(window.location.search.substring(1).split("&"))
-    .map(e => e.split('=')).toObject();
+  const pairs = window.location.search.substring(1).split("&")
+    .map(e => e.split('='));
+  return _.fromPairs(pairs);
 }
 
 

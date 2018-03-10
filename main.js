@@ -1,2 +1,2 @@
 
-export {default as KArray} from "./src/common/KArray.js";
+export {default as mapper} from "./src/common/mapper.js";

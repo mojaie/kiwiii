@@ -12,7 +12,7 @@ Screen shots
 [<img src="img/network-view.png" width="260" height="160" alt="Network view" style="margin: 5px"/>](img/network-view.png)
 [<img src="img/profile-view.png" width="260" height="160" alt="Profile view" style="margin: 5px"/>](img/profile-view.png)
 [<img src="img/control-panel.png" width="260" height="160" alt="Control panel" style="margin: 5px"/>](img/control-panel.png)
-
+[<img src="img/spr-plot-example.png" width="260" height="160" alt="Plot example" style="margin: 5px"/>](img/spr-plot-example.png)
 
 
 Embedded view examples (Bl.ocks)
@@ -55,6 +55,8 @@ Web application demo
 
 
 - [Datagrid view (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii/datagrid.html?location=resources/DrugBank5.0.5_FDA_Approved.ndc)
+
+- [Datagrid view (SPR sensorgram plot table example)](https://mojaie.github.io/kiwiii/datagrid.html?location=resources/SPR_results_demo.ndc)
 
 - [Network view (DrugBank Approved drugs)](https://mojaie.github.io/kiwiii/network.html?location=resources/DrugBank5.0.5_FDA_Approved_GLS08.gfc)
 

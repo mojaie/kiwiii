@@ -1,7 +1,8 @@
 
 /** @module common/mapper */
 
-import KArray from './KArray.js';
+import _ from 'lodash';
+
 import {default as misc} from './misc.js';
 
 
@@ -120,11 +121,11 @@ function apply(data, mapping) {
         rcd[fd.key] = mp.mapping[rcd[mp.key]][i];
       });
     });
-  data.fields = KArray.from(data.fields)
+  data.fields =  _(data.fields)
     .concat(misc.defaultFieldProperties(mp.fields))
-    .unique('key').toArray();
+    .uniqBy('key')
+    .value();
 }
-
 
 export default {
   singleToMulti, mappingToTable, tableToMapping, csvToMapping, apply
