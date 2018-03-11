@@ -9,8 +9,9 @@ function setFilter(selection, state) {
       .classed('row', true)
       .classed('justify-content-end', true)
     .append('div')
-      .classed('col-6', true)
+      .classed('col-5', true)
       .call(box.textBox, null, 'Search', 40, null);
+  searchBox.select('label').classed('text-right', true);
   searchBox.select('input')
     .on('keyup', function () {
       state.updateFilterNotifier(box.textBoxValue(searchBox));
