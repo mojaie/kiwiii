@@ -5,7 +5,7 @@
   "homepage": "https://github.com/mojaie/kiwiii",
   "repository": {
     "type": "git",
-    "url": "git+https://bitbucket.org/mojaie/kiwiii.git"
+    "url": "git+https://github.com/mojaie/kiwiii"
   },
   "description": "Kinetic interactive web interface for intuitive informatics",
   "license": "MIT",
