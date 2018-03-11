@@ -6,6 +6,10 @@ import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as modal} from '../component/modal.js';
 
+import DatagridState from '../datagrid/state.js';
+import {default as view} from '../datagrid/view.js';
+import {default as rowf} from '../datagrid/rowfilter.js';
+
 const id = 'fieldfetch-dialog';
 const title = 'Import fields from database';
 
@@ -14,52 +18,52 @@ function menuLink(selection) {
   selection.call(button.dropdownMenuModal, 'fieldfetch', title, id);
 }
 
-function updateRowFunc() {
+function updateRowFunc(state) {
   return (selection, record) => {
-    record.append('div')
+    const done = state.assayFields.includes(record.key);
+    selection.append('div')
       .selectAll('label').select('input')
-      .property('checked', dataKeys.includes(d.key))
-      .attr('disabled', dataKeys.includes(d.key) ? 'disabled' : null);
+      .property('checked', done)
+      .property('disabled', done);
+    selection.append('div').text(record.assay_id);
+    selection.append('div').text(record.name);
+    selection.append('div').text(record.tags);
   };
 }
 
-function body(selection, fields) {
+function body(selection, schema) {
+  const data = {
+    fields: [
+      {key: 'check', name: 'Check', format: 'control'},
+      {key: 'assay_id', name: 'Assay ID', format: 'assay_id'},
+      {key: 'name', name: 'Name', format: 'text'},
+      {key: 'tags', name: 'Tags', format: 'list'}
+    ],
+    records: schema.resources.filter(e => e.domain === 'assay')
+  };
   const dialog = selection.call(modal.submitDialog, id, title);
   const state = new DatagridState(data);
-  dialog.select('.modal-body').append('div')
-    .call(view.datagrid, state)
-    .call(rowf.setFilter, state);
-
-  const dataKeys = dataFields.map(e => e.key);
-  const resourceFields = KArray.from(resources.map(e => e.fields))
-    .extend().unique('key').filter(e => e.key !== 'id');
+  const body = dialog.select('.modal-body');
+  const filter = body.append('div').classed('fetchd-filter', true);
+  const dg = body.append('div').classed('fetchd-dg', true);
+  state.rowFactory = updateRowFunc(state);
+  dg.call(view.datagrid, state);
+  filter.call(rowf.setFilter, state);
 }
 
 
-
-function updateBody(selection, fields) {
-  const dialog = selection.call(modal.submitDialog, id, title);
-  const state = new DatagridState(data);
-  dialog.select('.modal-body').append('div')
-    .call(view.datagrid, state)
-    .call(rowf.setFilter, state);
-
-  const dataKeys = dataFields.map(e => e.key);
-  const resourceFields = KArray.from(resources.map(e => e.fields))
-    .extend().unique('key').filter(e => e.key !== 'id');
+function updateBody(selection, checked) {
+  // TODO: update checked fields
 }
 
 
-function value(selection) {
-  const selected = d3form.checkboxValues('#join-keys');
-  const queryFieldKeys = resourceFields.map(e => e.key)
-    .filter(e => !dataKeys.includes(e))
-    .filter(e => selected.includes(e));
+function value(selection, state) {
+  const selected = lbox.checkboxlistValues(selection)
+    .filter(e => !state.assayFields.includes(e));
   return {
-    type: 'fieldfilter',
-    targetFields: queryFieldKeys,
-    key: 'compound_id',
-    values: compoundIDs
+    type: 'results',
+    targets: selected,
+    compounds: state.data.records.map(e => e.compound_id)
   };
 }
 
