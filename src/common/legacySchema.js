@@ -278,6 +278,10 @@ function convertTable(json) {
     delete data.revision;
     data.$schema = "https://mojaie.github.io/flashflood/_static/specs/job_result_v1.0.json";
   }
+  data.fields.filter(e => e.key === 'structure')
+    .forEach(e => {
+      e.format = 'svg';
+    });
   return data;
 }
 
