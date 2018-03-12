@@ -7,6 +7,8 @@ import {default as legacy} from '../common/legacySchema.js';
 import {default as mapper} from '../common/mapper.js';
 import {default as misc} from '../common/misc.js';
 
+import {default as factory} from './rowFactory.js';
+
 
 export default class DatagridState {
   constructor(data) {
@@ -55,6 +57,8 @@ export default class DatagridState {
     this.updateContentsNotifier = null;
     this.updateFilterNotifier = null;
 
+    this.rowFactory = () => factory.rowFactory(this.visibleFields);
+
     // Initialize
     this.applyData();
   }
@@ -66,7 +70,7 @@ export default class DatagridState {
   }
 
   setScrollPosition(position) {
-    this.previousVieportTop = this.viewportTop;
+    this.previousViewportTop = this.viewportTop;
     this.viewportTop = position;
     this.viewportBottom = Math.min(
       this.viewportTop + this.numViewportRows, this.filteredRecords.length);
@@ -131,7 +135,6 @@ export default class DatagridState {
       });
     }
     this.bodyHeight = this.filteredRecords.length * this.rowHeight;
-    this.setScrollPosition(0);
   }
 
   recordsToShow() {

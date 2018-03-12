@@ -33,15 +33,6 @@ function app(data, serverStatus, schema) {
 
   const state = new DatagridState(data);
   state.serverStatus = serverStatus;
-  d3.select('#datagrid')
-      .call(view.datagrid, state)
-      .call(sort.setSort, state);
-  d3.select('#dg-search')
-      .call(rowf.setFilter, state);
-
-  // Resize window
-  window.onresize = () =>
-    d3.select('#datagrid').call(view.resize, state);
 
   // Datagrid view control
   const menu = menubar.append('div')
@@ -138,6 +129,17 @@ function app(data, serverStatus, schema) {
       .classed('disabled', true)
       .on('click', null);
   }
+
+  // Contents
+  d3.select('#datagrid')
+      .call(view.datagrid, state)
+      .call(sort.setSort, state);
+  d3.select('#dg-search')
+      .call(rowf.setFilter, state);
+  // Resize window
+  window.onresize = () =>
+    d3.select('#datagrid').call(view.resize, state);
+  d3.select('#datagrid').call(view.resize, state);
 
   // Dialogs
   dialogs.append('div')

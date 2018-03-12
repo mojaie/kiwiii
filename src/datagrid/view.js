@@ -11,24 +11,34 @@ function resize(selection, state) {
   selection.call(component.resizeViewport, state);
 }
 
+
 function datagrid(selection, state) {
   selection.selectAll('div').remove();
   selection.append('div')
       .classed('dg-header', true);
   selection.append('div')
       .classed('dg-viewport', true)
+      .style('overflow-y', 'auto')
+      .on('scroll', function () {
+        const pos = Math.floor(this.scrollTop / state.rowHeight);
+        if (pos !== state.previousViewportTop) {
+          state.setScrollPosition(pos);
+          selection.call(component.updateRows, state);
+        }
+      })
+      .on('resize', () => selection.call(resize, state))
     .append('div')
-      .classed('dg-body', true);
-  selection.call(resize, state);
+      .classed('dg-body', true)
+      .style('position', 'relative');
   state.updateContentsNotifier = () => {
     state.applyData();
-    selection.call(component.updateContents, state);
+    selection.call(component.updateHeader, state);
   };
   state.updateFilterNotifier = value => {
     state.setFilterText(value);
-    selection.call(
-      component.updateRows, state, component.updateRowFunc(state.visibleFields)
-    );
+    state.setScrollPosition(0);
+    selection.call(component.updateRows, state);
+    selection.select('.dg-viewport').node().scrollTop = 0;
   };
   state.updateContentsNotifier();
 }
