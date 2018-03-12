@@ -45,13 +45,11 @@ function setSort(selection, state) {
       const isAsc = d3.select(`#sort-${d.key}`).text() === 'v';
       d3.select(`#sort-${d.key}`).text(isAsc ? '^' : 'v');
       state.setSortOrder(d.key, isAsc ? 'desc' : 'asc');
-      selection.call(
-        component.updateRows, state, component.updateRowFunc(state.visibleFields)
-      );
+      selection.call(component.updateRows, state);
     });
   state.updateContentsNotifier = () => {
     state.applyData();
-    selection.call(component.updateContents, state)
+    selection.call(component.updateHeader, state)
       .call(setSort, state);
   };
 }
