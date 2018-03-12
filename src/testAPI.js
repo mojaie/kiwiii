@@ -43,6 +43,19 @@ testCases.push(() =>
 );
 
 testCases.push(() =>
+  fetcher.get('activity', {
+    targets: ['exp_results'],
+    assay_id: 'Test1',
+    condition: {
+      compounds: ['DB00189', 'DB00193', 'DB00203', 'DB00865', 'DB01143'],
+      value_types: ['IC50']
+    }
+  }).then(fetcher.json)
+    .then(res => ({output: res, test: 'activity', pass: true}))
+    .catch(err => ({output: err, test: 'activity', pass: false}))
+);
+
+testCases.push(() =>
   fetcher.get('strprev', {
     format: 'dbid',
     source: 'drugbankfda',

@@ -34,18 +34,19 @@ Features
 
 
 - Datagrid view
-  - [SlickGrid![ext](./img/external_link.svg)](https://github.com/mleibman/SlickGrid)-like smooth scroll datatable
+  - [SlickGrid](https://github.com/mleibman/SlickGrid)-like smooth scroll datatable
   - Sortable
+  - Row filter
   - PNG, SVG image column (ex. chemical structure column)
-  - Plot column ([Vega version 3![ext](./img/external_link.svg)](https://vega.github.io/vega/) plot data)
-  - Chemical structure similarity network generation (requires [Flashflood![ext](./img/external_link.svg)](https://github.com/mojaie/flashflood) server)
-  - Export to SDFile and Excel (requires [Flashflood![ext](./img/external_link.svg)](https://github.com/mojaie/flashflood) server)
+  - Plot column ([Vega version 3](https://vega.github.io/vega/) plot data)
+  - Chemical structure similarity network generation (requires [Flashflood](https://github.com/mojaie/flashflood) server)
+  - Export to SDFile and Excel (requires [Flashflood](https://github.com/mojaie/flashflood) server)
 - Network view
-  - Visualized network of chemical structure nodes connected with structure similarity relationship (known as [Chemical Space Network![ext](./img/external_link.svg)](https://doi.org/10.1007/s10822-014-9760-0))
+  - Visualized network of chemical structure nodes connected with structure similarity relationship (known as [Chemical Space Network](https://doi.org/10.1007/s10822-014-9760-0))
   - Force-directed layout implemented with d3-force
   - Interactive zoom and drag
-  - Community detection ([jLouvain![ext](./img/external_link.svg)](https://github.com/upphiminn/jLouvain))
-- Profile view (requires [Flashflood![ext](./img/external_link.svg)](https://github.com/mojaie/flashflood) server)
+  - Community detection ([jLouvain](https://github.com/upphiminn/jLouvain))
+- Profile view (requires [Flashflood](https://github.com/mojaie/flashflood) server)
   - An overview of the chemical data entry (chemical structure, properties, aliases and related assay results)
 - Control panel
 
@@ -83,7 +84,7 @@ https://mojaie.github.io/kiwiii/docs
 License
 --------------
 
-[MIT license![ext](./img/external_link.svg)](http://opensource.org/licenses/MIT)
+[MIT license](http://opensource.org/licenses/MIT)
 
 
 
