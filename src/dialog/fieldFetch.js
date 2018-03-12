@@ -18,7 +18,7 @@ function menuLink(selection) {
   selection.call(button.dropdownMenuModal, 'fieldfetch', title, id);
 }
 
-function updateRowFunc(state) {
+function rowFactory(state) {
   return (selection, record) => {
     const done = state.assayFields.includes(record.key);
     selection.append('div')
@@ -46,7 +46,7 @@ function body(selection, schema) {
   const body = dialog.select('.modal-body');
   const filter = body.append('div').classed('fetchd-filter', true);
   const dg = body.append('div').classed('fetchd-dg', true);
-  state.rowFactory = updateRowFunc(state);
+  state.rowFactory = () => rowFactory(state);
   dg.call(view.datagrid, state);
   filter.call(rowf.setFilter, state);
 }
