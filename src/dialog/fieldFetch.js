@@ -9,6 +9,7 @@ import {default as button} from '../component/button.js';
 import {default as modal} from '../component/modal.js';
 
 import DatagridState from '../datagrid/state.js';
+import {default as component} from '../datagrid/component.js';
 import {default as view} from '../datagrid/view.js';
 import {default as rowf} from '../datagrid/rowfilter.js';
 
@@ -28,7 +29,8 @@ function rowFactory(fields, assays) {
           .classed('dg-cell', true)
           .classed('align-middle', true)
           .style('display', 'inline-block')
-          .style('width', `${field.width}px`);
+          .style('width', `${field.width}px`)
+          .style('word-wrap', 'break-word');
       if (field.key === 'check') {
         const done = assays.includes(record.key);
         cell.append('input')
@@ -51,10 +53,10 @@ function body(selection, schema) {
     .value();
   const data = {
     fields: misc.defaultFieldProperties([
-      {key: 'check', name: 'Check', format: 'control', width: 100, height: 50},
+      {key: 'check', name: 'Check', format: 'control', width: 70, height: 40},
       {key: 'assay_id', name: 'Assay ID', format: 'assay_id', width: 100},
       {key: 'name', name: 'Name', format: 'text', width: 100},
-      {key: 'tags', name: 'Tags', format: 'list', width: 100}
+      {key: 'tags', name: 'Tags', format: 'list', width: 50}
     ]),
     records: assays
   };
@@ -66,6 +68,8 @@ function body(selection, schema) {
   const dg = body.append('div').classed('fetchd-dg', true);
   dg.call(view.datagrid, state);
   filter.call(rowf.setFilter, state);
+  state.setViewportSize(250);
+  dg.call(component.resizeViewport, state);
 }
 
 

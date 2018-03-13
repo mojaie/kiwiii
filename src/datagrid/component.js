@@ -13,9 +13,10 @@ function updateHeader(selection, state) {
       .style('display', 'inline-block')
       .style('width', d => `${d.width}px`)
       .text(d => d.name);
-  selection.style('width', `${state.contentWidth}px`);
+  selection
+      .style('width', `${state.contentWidth}px`)
+      .dispatch('resize');
   const vp = selection.select('.dg-viewport');
-  vp.dispatch('resize');
   const pos = Math.floor(vp.node().scrollTop / state.rowHeight);
   state.setScrollPosition(pos);
   selection.call(updateRows, state);
@@ -27,14 +28,14 @@ function updateRows(selection, state) {
     .style('height', `${state.bodyHeight}px`);
   const rows = selection.select('.dg-body')
     .selectAll('.dg-row')
-      .data(state.recordsToShow(), state.keyFunc)
-      .style('height', `${state.rowHeight}px`);
+      .data(state.recordsToShow(), state.keyFunc);
   rows.exit().remove();
   rows.enter()
     .append('div')
       .attr('class', 'dg-row')
       .style('position', "absolute")
     .merge(rows)
+      .style('height', `${state.rowHeight}px`)
       .each(function (d, i) {
         const rowPos = (state.viewportTop + i) * state.rowHeight;
         d3.select(this)

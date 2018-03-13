@@ -131,17 +131,6 @@ function app(data, serverStatus, schema) {
       .on('click', null);
   }
 
-  // Contents
-  d3.select('#datagrid')
-      .call(view.datagrid, state)
-      .call(sort.setSort, state);
-  d3.select('#dg-search')
-      .call(rowf.setFilter, state);
-  // Resize window
-  window.onresize = () =>
-    d3.select('#datagrid').call(view.resize, state);
-  d3.select('#datagrid').call(view.resize, state);
-
   // Dialogs
   dialogs.append('div')
       .classed('fieldconfd', true)
@@ -164,6 +153,18 @@ function app(data, serverStatus, schema) {
         modal.confirmDialog, 'abort-dialog',
         'Are you sure you want to abort this calculation job?'
       );
+
+  // Contents
+  d3.select('#datagrid')
+      .call(view.datagrid, state)
+      .call(sort.setSort, state);
+  d3.select('#dg-search')
+      .call(rowf.setFilter, state);
+
+  // Resize window
+  d3.select('#datagrid').dispatch('resize');
+  window.onresize = () => d3.select('#datagrid').dispatch('resize');
+
   updateApp(state);
 }
 

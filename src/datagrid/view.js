@@ -14,6 +14,7 @@ function resize(selection, state) {
 
 function datagrid(selection, state) {
   selection.selectAll('div').remove();
+  selection.on('resize', () => selection.call(resize, state));
   selection.append('div')
       .classed('dg-header', true);
   selection.append('div')
@@ -26,7 +27,6 @@ function datagrid(selection, state) {
           selection.call(component.updateRows, state);
         }
       })
-      .on('resize', () => selection.call(resize, state))
     .append('div')
       .classed('dg-body', true)
       .style('position', 'relative');

@@ -13,7 +13,8 @@ function rowFactory(fields) {
         .classed('dg-cell', true)
         .classed('align-middle', true)
         .style('display', 'inline-block')
-        .style('width', `${field.width}px`);
+        .style('width', `${field.width}px`)
+        .style('word-wrap', 'break-word');
       if (value === undefined) return;
       if (field.format === 'd3_format') {
         cell.text(misc.formatNum(value, field.d3_format));
