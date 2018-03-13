@@ -1,6 +1,7 @@
 
 /** @module dialog/fieldFetch */
 
+import d3 from 'd3';
 import _ from 'lodash';
 
 import {default as misc} from '../common/misc.js';
@@ -21,6 +22,7 @@ const title = 'Import fields from database';
 function menuLink(selection) {
   selection.call(button.dropdownMenuModal, 'fieldfetch', title, id);
 }
+
 
 function rowFactory(fields, assays) {
   return (selection, record) => {
@@ -73,18 +75,31 @@ function body(selection, schema) {
 }
 
 
-function updateBody(selection, checked) {
-  // TODO: update checked fields
+function updateBody(selection, state) {
+  const fields = misc.defaultFieldProperties([
+      {key: 'check', name: 'Check', format: 'control', width: 70, height: 40},
+      {key: 'assay_id', name: 'Assay ID', format: 'assay_id', width: 100},
+      {key: 'name', name: 'Name', format: 'text', width: 100},
+      {key: 'tags', name: 'Tags', format: 'list', width: 150}
+  ]);
+  state.rowFactory = () => rowFactory(fields, state.assays);
 }
 
 
 function value(selection, state) {
-  const selected = lbox.checkboxlistValues(selection)
-    .filter(e => !state.assays.includes(e));
+  const updates = selection.selectAll('.dg-row')
+      .filter(function () {
+        const checked = d3.select(this).select('input:checked');
+        return checked.property('checked') && !checked.property('disabled');
+      }).data().map(d => d.key);
+  console.log(updates)
   return {
-    type: 'results',
-    targets: selected,
-    compounds: state.data.records.map(e => e.compound_id)
+    type: 'activity',
+    assay_id: updates[0],
+    condition: {
+      compounds: state.data.records.map(e => e.compound_id),
+      data_types: ['IC50']
+    }
   };
 }
 
