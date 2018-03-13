@@ -3,7 +3,6 @@
 
 import _ from 'lodash';
 
-import {default as legacy} from '../common/legacySchema.js';
 import {default as mapper} from '../common/mapper.js';
 import {default as misc} from '../common/misc.js';
 
@@ -12,14 +11,14 @@ import {default as factory} from './rowFactory.js';
 
 export default class DatagridState {
   constructor(data) {
-
-    // Import from legacy format data
-    this.data = legacy.convertTable(data);
+    this.data = data;
 
     this.fields = null;
     this.visibleFields = null;
     this.sortedRecords = null;
     this.filteredRecords = null;
+
+    this.assays = [];
 
     // Snapshot
     const snp = this.data.snapshot || {sortOrder: [], filterText: null};
@@ -97,8 +96,8 @@ export default class DatagridState {
   applyData() {
     this.fields = this.data.fields.map(e => {
       const field = {
-        width: this.defaultColumnWidth[misc.sortType(e.format)],
-        height: this.defaultColumnHeight[misc.sortType(e.format)]
+        width: e.width || this.defaultColumnWidth[misc.sortType(e.format)],
+        height: e.height || this.defaultColumnHeight[misc.sortType(e.format)]
       };
       return Object.assign(field, e);
     });

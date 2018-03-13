@@ -7,6 +7,7 @@ import {default as core} from '../common/core.js';
 import {default as idb} from '../common/idb.js';
 import {default as fetcher} from '../common/fetcher.js';
 import {default as hfile} from '../common/file.js';
+import {default as legacy} from '../common/legacySchema.js';
 import {default as mapper} from '../common/mapper.js';
 import {default as misc} from '../common/misc.js';
 
@@ -31,7 +32,7 @@ function app(data, serverStatus, schema) {
   const dialogs = d3.select('#dialogs');
   dialogs.selectAll('div').remove();  // Clean up
 
-  const state = new DatagridState(data);
+  const state = new DatagridState(legacy.convertTable(data));
   state.serverStatus = serverStatus;
 
   // Datagrid view control

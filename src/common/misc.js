@@ -18,7 +18,7 @@ function defaultFieldProperties(fields) {
 
 function sortType(fmt) {
   if (['numeric', 'd3_format'].includes(fmt)) return 'numeric';
-  if (['text', 'compound_id'].includes(fmt)) return 'text';
+  if (['text', 'compound_id', 'assay_id', 'list'].includes(fmt)) return 'text';
   return 'none';
 }
 

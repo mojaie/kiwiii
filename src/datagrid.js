@@ -40,18 +40,11 @@ function run() {
       console.info('Off-line mode is disabled for debugging');
       const storeID = misc.URLQuery().id || null;
       const dataURL = misc.URLQuery().location || null;
-      const error = misc.URLQuery().err || null;
-      if (error) {
-        console.error(decodeURI(error));
-      }
       if (storeID) {
         // Load from IndexedDB store
         core.fetchProgress(storeID, 'update')
           .then(() => idb.getItemByID(storeID))
-          .then(item => datagridApp.app(item, response.server))
-          .catch(err => {
-            window.location = `datagrid.html?err=${err}`;
-          });
+          .then(item => datagridApp.app(item, response.server, response.schema));
       } else if (dataURL) {
         // Fetch via HTTP
         hfile.fetchJSON(dataURL)
