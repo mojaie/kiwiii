@@ -12,7 +12,7 @@ import {default as table} from '../component/table.js';
 
 
 const id = 'fieldconf-dialog';
-const title = 'Field Setting';
+const title = 'Column setting';
 
 
 function menuLink(selection) {

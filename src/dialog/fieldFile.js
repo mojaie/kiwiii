@@ -12,7 +12,7 @@ import {default as table} from '../component/table.js';
 
 
 const id = 'fieldfile-dialog';
-const title = 'Import fields from file';
+const title = 'Append JSON fields';
 
 
 function menuLink(selection) {

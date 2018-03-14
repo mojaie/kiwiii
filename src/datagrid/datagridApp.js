@@ -53,7 +53,7 @@ function app(data, serverStatus, schema) {
       .call(renameDialog.menuLink);
   menu.append('a')
       .classed('saveview', true)
-      .call(button.dropdownMenuItem, null, 'Save to local storage')
+      .call(button.dropdownMenuItem, null, 'Save')
       .on('click', function () {
         if (state.data.storeID) {
           return idb.updateItem(state.data.storeID, item => {
@@ -72,7 +72,7 @@ function app(data, serverStatus, schema) {
       });
   menu.append('a')
       .classed('exportjson', true)
-      .call(button.dropdownMenuItem, null, 'Export to JSON')
+      .call(button.dropdownMenuItem, null, 'Download JSON')
       .on('click', () => {
         const data = state.export();
         // Delete local store information
@@ -81,7 +81,7 @@ function app(data, serverStatus, schema) {
       });
   menu.append('a')
       .classed('exportexcel', true)
-      .call(button.dropdownMenuItem, null, 'Export to Excel worksheet')
+      .call(button.dropdownMenuItem, null, 'Download Excel')
       .on('click', () => {
         const data = state.export();
         const formData = new FormData();

@@ -8,7 +8,7 @@ import {default as modal} from '../component/modal.js';
 
 
 const id = 'rename-dialog';
-const title = 'Rename view';
+const title = 'Rename';
 
 
 function menuLink(selection) {

@@ -16,7 +16,7 @@ import {default as rowf} from '../datagrid/rowfilter.js';
 
 
 const id = 'fieldfetch-dialog';
-const title = 'Import fields from database';
+const title = 'Append assays';
 
 
 function menuLink(selection) {

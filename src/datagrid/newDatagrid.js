@@ -55,7 +55,7 @@ function app(serverStatus, schema) {
       .call(sdfDialog.menuLink);
   menu.append('a')
       .classed('import', true)
-      .call(button.dropdownMenuFile, 'import', 'Import view', '.ndc,.ndr,.json,.gz')
+      .call(button.dropdownMenuFile, 'import', 'Import JSON', '.ndc,.ndr,.json,.gz')
       .on('change', function () {
         const file = button.dropdownMenuFileValue(d3.select(this));
         hfile.loadJSON(file)
