@@ -34,6 +34,7 @@ function app(data, serverStatus, schema) {
 
   const state = new DatagridState(legacy.convertTable(data));
   state.serverStatus = serverStatus;
+  state.resourceSchema = schema;
 
   // Datagrid view control
   const menu = menubar.append('div')
@@ -184,12 +185,16 @@ function updateApp(state) {
         updateApp(state);
       });
   dialogs.select('.fieldfetchd')
-      .call(fieldFetchDialog.updateBody, state)
       .on('submit', function () {
-        const query = fieldFetchDialog.query(d3.select(this));
+        const targets = state.resourceSchema.resources
+          .filter(e => e.domain === 'activity').map(e => e.id);
+        const compounds = state.data.records.map(e => e.compound_id);
+        const query = fieldFetchDialog.query(d3.select(this), targets, compounds);
         return fetcher.get(query.workflow, query)
+          .then(fetcher.json)
           .then(data => {
-            const mapping = mapper.tableToMapping(data, 'compound_id');
+            const mapping = mapper.tableToMapping(data, 'compound_id', ['index', 'assay_id', 'value_type', 'format']);
+
             state.joinFields(mapping);
             state.updateContentsNotifier();
             updateApp(state);

@@ -58,7 +58,7 @@ function body(selection, schema) {
       {key: 'check', name: 'Check', format: 'control', width: 70, height: 40},
       {key: 'assay_id', name: 'Assay ID', format: 'assay_id', width: 100},
       {key: 'name', name: 'Name', format: 'text', width: 100},
-      {key: 'tags', name: 'Tags', format: 'list', width: 50}
+      {key: 'tags', name: 'Tags', format: 'list', width: 150}
     ]),
     records: assays
   };
@@ -75,30 +75,19 @@ function body(selection, schema) {
 }
 
 
-function updateBody(selection, state) {
-  const fields = misc.defaultFieldProperties([
-      {key: 'check', name: 'Check', format: 'control', width: 70, height: 40},
-      {key: 'assay_id', name: 'Assay ID', format: 'assay_id', width: 100},
-      {key: 'name', name: 'Name', format: 'text', width: 100},
-      {key: 'tags', name: 'Tags', format: 'list', width: 150}
-  ]);
-  state.rowFactory = () => rowFactory(fields, state.assays);
-}
-
-
-function value(selection, state) {
+function query(selection, targets, compounds) {
   const updates = selection.selectAll('.dg-row')
       .filter(function () {
-        const checked = d3.select(this).select('input:checked');
+        const checked = d3.select(this).select('input');
         return checked.property('checked') && !checked.property('disabled');
-      }).data().map(d => d.key);
-  console.log(updates)
+      }).data().map(d => d.assay_id);
   return {
-    type: 'activity',
+    workflow: 'activity',
+    targets: targets,
     assay_id: updates[0],
     condition: {
-      compounds: state.data.records.map(e => e.compound_id),
-      data_types: ['IC50']
+      compounds: compounds,
+      value_types: ['inh5uM', 'inh20uM', 'IC50']
     }
   };
 }
@@ -106,5 +95,5 @@ function value(selection, state) {
 
 
 export default {
-  menuLink, body, updateBody, value
+  menuLink, body, query
 };

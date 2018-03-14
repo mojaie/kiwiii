@@ -48,7 +48,7 @@ testCases.push(() =>
     assay_id: 'Test1',
     condition: {
       compounds: ['DB00189', 'DB00193', 'DB00203', 'DB00865', 'DB01143'],
-      value_types: ['IC50']
+      value_types: ['IC50', 'inh5uM']
     }
   }).then(fetcher.json)
     .then(res => ({output: res, test: 'activity', pass: true}))
@@ -142,7 +142,7 @@ testCases.push(() =>
 function run() {
   const fields = misc.defaultFieldProperties([
     {key: 'test'},
-    {key: 'result'}
+    {key: 'result', format: 'html'}
   ]);
   const records = [];
   const results = d3.select('#results')
