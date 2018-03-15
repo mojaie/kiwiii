@@ -24,7 +24,7 @@ function menuLink(selection) {
 }
 
 
-function rowFactory(fields, assays) {
+function rowFactory(fields, state) {
   return (selection, record) => {
     fields.forEach(field => {
       const cell = selection.append('div')
@@ -34,11 +34,16 @@ function rowFactory(fields, assays) {
           .style('width', `${field.width}px`)
           .style('word-wrap', 'break-word');
       if (field.key === 'check') {
-        const done = assays.includes(record.key);
         cell.append('input')
           .attr('type', 'checkbox')
-          .property('checked', done)
-          .property('disabled', done);
+          .property('checked', record.check)
+          .property('disabled', record.check)
+          .on('click', function () {
+            if (state.assays.includes(record.key)) {
+              record.check = this.checked;
+            }
+            console.log(state.assays);
+          });
       } else {
         cell.text(record[field.key]);
       }
@@ -60,11 +65,13 @@ function body(selection, schema) {
       {key: 'name', name: 'Name', format: 'text', width: 100},
       {key: 'tags', name: 'Tags', format: 'list', width: 150}
     ]),
-    records: assays
+    records: assays.forEach(e => {
+      e.check = state.assays.includes(e.key)
+    })
   };
   const dialog = selection.call(modal.submitDialog, id, title);
   const state = new DatagridState(data);
-  state.rowFactory = () => rowFactory(data.fields, state.assays);
+  state.rowFactory = () => rowFactory(data.fields, state);
   const body = dialog.select('.modal-body');
   const filter = body.append('div').classed('fetchd-filter', true);
   const dg = body.append('div').classed('fetchd-dg', true);
