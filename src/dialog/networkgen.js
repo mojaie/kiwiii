@@ -46,12 +46,12 @@ function body(selection, rdk) {
   dialog.select('.measure')
       .on('change', function () {
         const value = lbox.selectBoxValue(d3.select(this));
-        dialog.selectAll('.diam, .tree, .skip')
+        dialog.selectAll('.diam, .tree')
           .select('input')
             .property('disabled', value !== 'gls');
         dialog.select('.timeout')
           .select('input')
-            .property('disabled', value !== 'rdfmcs');
+            .property('disabled', !['gls', 'rdfmcs'].includes(value));
       })
       .dispatch('change');
 }
