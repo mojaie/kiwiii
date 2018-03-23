@@ -37,12 +37,13 @@ function updateRows(selection, state) {
     .merge(rows)
       .style('height', `${state.rowHeight}px`)
       .each(function (d, i) {
-        const rowPos = (state.viewportTop + i) * state.rowHeight;
+        const rowIndex = state.viewportTop + i;
+        const rowPos = rowIndex * state.rowHeight;
         d3.select(this)
           .style('transform', `translate(0px, ${rowPos}px)`)
-          .classed('odd', (state.viewportTop + i) % 2 === 0);
+          .classed('odd', (rowIndex) % 2 === 0);
         d3.select(this).selectAll('.dg-cell').remove();
-        d3.select(this).call(state.rowFactory(), d);
+        d3.select(this).call(state.rowFactory(), d, rowIndex);
       });
 }
 

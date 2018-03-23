@@ -74,12 +74,12 @@ function body(selection, resources, rdk) {
         dialog.selectAll('.thld')
           .select('input')
             .property('disabled', ['exact', 'substr', 'supstr'].includes(value));
-        dialog.selectAll('.diam, .tree, .skip')
+        dialog.selectAll('.diam, .tree')
           .select('input')
             .property('disabled', value !== 'gls');
         dialog.select('.timeout')
           .select('input')
-            .property('disabled', value !== 'rdfmcs');
+            .property('disabled', !mcs);
       })
       .dispatch('change');
 }

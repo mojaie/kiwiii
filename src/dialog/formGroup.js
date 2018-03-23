@@ -117,7 +117,7 @@ function simOptionGroup(selection, id) {
   collapse.append('div')
       .classed('timeout', true)
       .classed('mb-1', true)
-      .call(box.numberBox, `${id}-timeout`, 'Timeout (RDKit FMCS)', 1, 999, 1, 2);
+      .call(box.numberBox, `${id}-timeout`, 'Timeout', 1, 999, 1, 2);
   collapse.append('div')
       .classed('diam', true)
       .classed('mb-1', true)
@@ -126,10 +126,6 @@ function simOptionGroup(selection, id) {
       .classed('tree', true)
       .classed('mb-1', true)
       .call(box.numberBox, `${id}-tree`, 'Max tree size (MCS-DR/GLS)', 20, 999, 1, 40);
-  collapse.append('div')
-      .classed('skip', true)
-      .classed('mb-1', true)
-      .call(box.numberBox, `${id}-skip`, 'Mol size cutoff (MCS-DR/GLS)', 20, 999, 1, 500);
   collapse.selectAll('label.col-form-label')
       .classed('col-4', false)
       .classed('col-6', true);
@@ -142,7 +138,6 @@ function simOptionGroupValue(selection) {
   const timeout = selection.select('.timeout');
   const diam = selection.select('.diam');
   const tree = selection.select('.tree');
-  const skip = selection.select('.skip');
   const query = {
     ignoreHs: box.checkBoxValue(selection.select('.ignoreh'))
   };
@@ -154,9 +149,6 @@ function simOptionGroupValue(selection) {
   }
   if (!tree.select('input').property('disabled')) {
     query.maxTreeSize = box.numberBoxValue(tree);
-  }
-  if (!skip.select('input').property('disabled')) {
-    query.molSizeCutoff = box.numberBoxValue(skip);
   }
   return query;
 }
