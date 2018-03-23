@@ -18,7 +18,7 @@ export default class DatagridState {
     this.sortedRecords = null;
     this.filteredRecords = null;
 
-    this.assays = [];
+    this.fetchedAssays = [];
 
     // Snapshot
     const snp = this.data.snapshot || {sortOrder: [], filterText: null};
@@ -52,6 +52,8 @@ export default class DatagridState {
     this.previousVieportTop = null;
     this.viewportBottom = null;
 
+    this.fixedViewportHeight = null;
+
     // Event notifier
     this.updateContentsNotifier = null;
     this.updateFilterNotifier = null;
@@ -63,7 +65,7 @@ export default class DatagridState {
   }
 
   setViewportSize(height) {
-    this.viewportHeight = height;
+    this.viewportHeight = this.fixedViewportHeight || height;
     this.previousNumViewportRows = this.numViewportRows;
     this.numViewportRows = Math.ceil(this.viewportHeight / this.rowHeight) + 1;
   }

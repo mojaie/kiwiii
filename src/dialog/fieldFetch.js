@@ -1,7 +1,6 @@
 
 /** @module dialog/fieldFetch */
 
-import d3 from 'd3';
 import _ from 'lodash';
 
 import {default as misc} from '../common/misc.js';
@@ -17,6 +16,7 @@ import {default as rowf} from '../datagrid/rowfilter.js';
 
 const id = 'fieldfetch-dialog';
 const title = 'Append assays';
+let state = null;
 
 
 function menuLink(selection) {
@@ -24,35 +24,7 @@ function menuLink(selection) {
 }
 
 
-function rowFactory(fields, state) {
-  return (selection, record) => {
-    fields.forEach(field => {
-      const cell = selection.append('div')
-          .classed('dg-cell', true)
-          .classed('align-middle', true)
-          .style('display', 'inline-block')
-          .style('width', `${field.width}px`)
-          .style('word-wrap', 'break-word');
-      if (field.key === 'check') {
-        cell.append('input')
-          .attr('type', 'checkbox')
-          .property('checked', record.check)
-          .property('disabled', record.check)
-          .on('click', function () {
-            if (state.assays.includes(record.key)) {
-              record.check = this.checked;
-            }
-            console.log(state.assays);
-          });
-      } else {
-        cell.text(record[field.key]);
-      }
-    });
-  };
-}
-
-
-function body(selection, schema) {
+function body(selection, schema, fetchedAssays) {
   const rsrcs = schema.resources.filter(e => e.domain === 'assay');
   const assays = _(rsrcs.map(e => e.data))
     .flatten()
@@ -60,47 +32,55 @@ function body(selection, schema) {
     .value();
   const data = {
     fields: misc.defaultFieldProperties([
-      {key: 'check', name: 'Check', format: 'control', width: 70, height: 40},
+      {key: 'check', name: 'Check', format: 'checkbox', disabled: 'check_d', width: 70, height: 40},
       {key: 'assay_id', name: 'Assay ID', format: 'assay_id', width: 100},
       {key: 'name', name: 'Name', format: 'text', width: 100},
       {key: 'tags', name: 'Tags', format: 'list', width: 150}
     ]),
-    records: assays.forEach(e => {
-      e.check = state.assays.includes(e.key)
+    records: assays.map(e => {
+      e.check = fetchedAssays.includes(e.assay_id);
+      e.check_d = fetchedAssays.includes(e.assay_id);
+      return e;
     })
   };
   const dialog = selection.call(modal.submitDialog, id, title);
-  const state = new DatagridState(data);
-  state.rowFactory = () => rowFactory(data.fields, state);
+  state = new DatagridState(data);
   const body = dialog.select('.modal-body');
   const filter = body.append('div').classed('fetchd-filter', true);
   const dg = body.append('div').classed('fetchd-dg', true);
   dg.call(view.datagrid, state);
   filter.call(rowf.setFilter, state);
-  state.setViewportSize(250);
+  state.fixedViewportHeight = 200;
   dg.call(component.resizeViewport, state);
 }
 
 
-function query(selection, targets, compounds) {
-  const updates = selection.selectAll('.dg-row')
-      .filter(function () {
-        const checked = d3.select(this).select('input');
-        return checked.property('checked') && !checked.property('disabled');
-      }).data().map(d => d.assay_id);
-  return {
-    workflow: 'activity',
-    targets: targets,
-    assay_id: updates[0],
-    condition: {
-      compounds: compounds,
-      value_types: ['inh5uM', 'inh20uM', 'IC50']
-    }
-  };
+function updateBody(selection, fetchedAssays) {
+  state.data.records.forEach(e => {
+    e.check_d = fetchedAssays.includes(e.assay_id);
+  });
+  state.updateContentsNotifier();
+}
+
+
+function queries(selection, targets, compounds) {
+  return state.data.records
+    .filter(e => e.check && !e.check_d)
+    .map(e => {
+      return {
+        workflow: 'activity',
+        targets: targets,
+        assay_id: e.assay_id,
+        condition: {
+          compounds: compounds,
+          value_types: ['inh5uM', 'inh20uM', 'IC50']
+        }
+      };
+    });
 }
 
 
 
 export default {
-  menuLink, body, query
+  menuLink, body, updateBody, queries
 };

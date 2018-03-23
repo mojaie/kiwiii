@@ -138,7 +138,7 @@ function app(data, serverStatus, schema) {
       .call(fieldConfigDialog.body);
   dialogs.append('div')
       .classed('fieldfetchd', true)
-      .call(fieldFetchDialog.body, schema);
+      .call(fieldFetchDialog.body, schema, state.fetchedAssays);
   dialogs.append('div')
       .classed('fieldfiled', true)
       .call(fieldFileDialog.body);
@@ -185,20 +185,26 @@ function updateApp(state) {
         updateApp(state);
       });
   dialogs.select('.fieldfetchd')
+      .call(fieldFetchDialog.updateBody, state.fetchedAssays)
       .on('submit', function () {
         const targets = state.resourceSchema.resources
           .filter(e => e.domain === 'activity').map(e => e.id);
         const compounds = state.data.records.map(e => e.compound_id);
-        const query = fieldFetchDialog.query(d3.select(this), targets, compounds);
-        return fetcher.get(query.workflow, query)
-          .then(fetcher.json)
-          .then(data => {
-            const mapping = mapper.tableToMapping(data, 'compound_id', ['index', 'assay_id', 'value_type', 'format']);
-
-            state.joinFields(mapping);
-            state.updateContentsNotifier();
-            updateApp(state);
-          });
+        const queries = fieldFetchDialog.queries(d3.select(this), targets, compounds);
+        const futures = queries.map(q => {
+          return fetcher.get(q.workflow, q)
+            .then(fetcher.json)
+            .then(data => {
+              return mapper.tableToMapping(
+                data, 'compound_id', ['index', 'assay_id', 'value_type', 'format']);
+            });
+        });
+        Promise.all(futures).then(mps => {
+          mps.forEach(mp => state.joinFields(mp));
+          state.updateContentsNotifier();
+          state.fetchedAssays = queries.map(e => e.assay_id);
+          updateApp(state);
+        });
       });
   dialogs.select('.fieldfiled')
       .on('submit', function () {

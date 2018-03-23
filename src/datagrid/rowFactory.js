@@ -35,11 +35,11 @@ function image(selection, record, field) {
       .attr('src', record[field.key]);
 }
 
-function checkbox(selection, record, field, i) {
+function checkbox(selection, record, field) {
   selection.append('input')
       .attr('type', 'checkbox')
-      .classed(`dg-chk-${field.key}-${i}`, true)
       .property('checked', record[field.key])
+      .property('disabled', field.disabled ? record[field.disabled] : false)
       .on('click', function () {
         record[field.key] = this.checked;
       });
@@ -57,6 +57,8 @@ const cellFunc = {
   raw: text,
   d3_format: d3Format,
   compound_id: compound_id,
+  assay_id: text,
+  list: text,
   plot: img.plotCell,
   image: image,
   checkbox: checkbox,
@@ -67,15 +69,16 @@ const cellFunc = {
 
 
 function rowFactory(fields) {
-  return (selection, record, i) => {
+  return (selection, record) => {
     fields.forEach(field => {
       const cell = selection.append('div')
         .classed('dg-cell', true)
         .classed('align-middle', true)
         .style('display', 'inline-block')
-        .style('width', `${field.width}px`);
+        .style('width', `${field.width}px`)
+        .style('word-wrap', 'break-word');
       if (!record.hasOwnProperty(field.key)) return;
-      cell.call(cellFunc[field.format], record, field, i);
+      cell.call(cellFunc[field.format], record, field);
     });
   };
 }
