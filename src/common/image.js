@@ -3,9 +3,10 @@
 
 import vega from 'vega';
 
-function showPlot(vegaSpec, selector) {
-  new vega.View(vega.parse(vegaSpec))
-    .initialize(selector)
+
+function plotCell(selection, record, field) {
+  new vega.View(vega.parse(record[field.key]))
+    .initialize(selection.node())
     .run();
 }
 
@@ -17,5 +18,5 @@ function plotThumbnail(vegaSpec) {
 
 
 export default {
-  showPlot, plotThumbnail
+  plotCell, plotThumbnail
 };
