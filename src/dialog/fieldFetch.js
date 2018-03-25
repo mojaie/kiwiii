@@ -73,7 +73,7 @@ function queries(selection, targets, compounds) {
         assay_id: e.assay_id,
         condition: {
           compounds: compounds,
-          value_types: ['inh5uM', 'inh20uM', 'IC50']
+          value_types: e.value_types.map(e => e.key)
         }
       };
     });

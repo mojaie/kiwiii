@@ -196,7 +196,7 @@ function updateApp(state) {
             .then(fetcher.json)
             .then(data => {
               return mapper.tableToMapping(
-                data, 'compound_id', ['index', 'assay_id', 'value_type', 'format']);
+                data, 'compound_id', ['index', 'assay_id']);
             });
         });
         Promise.all(futures).then(mps => {
