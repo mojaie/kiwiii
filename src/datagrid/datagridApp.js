@@ -53,84 +53,32 @@ function app(data, serverStatus, schema) {
       .call(renameDialog.menuLink);
   menu.append('a')
       .classed('saveview', true)
-      .call(button.dropdownMenuItem, null, 'Save')
-      .on('click', function () {
-        if (state.data.storeID) {
-          return idb.updateItem(state.data.storeID, item => {
-            item.id = misc.uuidv4();
-            item.name = state.data.name;
-            item.fields = state.data.fields;
-            item.records = state.data.records;
-          })
-          .then(() => console.info('Datagrid saved'));
-        } else {
-          return idb.putItem(state.export())
-            .then(storeID => {
-              window.location = `datagrid.html?id=${storeID}`;
-            });
-        }
-      });
+      .call(button.dropdownMenuItem, null, 'Save');
   menu.append('a')
       .classed('exportjson', true)
-      .call(button.dropdownMenuItem, null, 'Download JSON')
-      .on('click', () => {
-        const data = state.export();
-        // Delete local store information
-        delete data.storeID;
-        hfile.downloadJSON(data, data.name);
-      });
+      .call(button.dropdownMenuItem, null, 'Download JSON');
   menu.append('a')
       .classed('exportexcel', true)
-      .call(button.dropdownMenuItem, null, 'Download Excel')
-      .on('click', () => {
-        const data = state.export();
-        const formData = new FormData();
-        formData.append('contents', new Blob([JSON.stringify(data)]));
-        return fetcher.post('xlsx', formData)
-          .then(fetcher.blob)
-          .then(blob => hfile.downloadDataFile(blob, `${data.name}.xlsx`));
-      });
+      .call(button.dropdownMenuItem, null, 'Download Excel');
   // Open control panel
   menubar.append('a')
       .call(button.menuButtonLink, null, 'Control panel', 'outline-secondary')
       .attr('href', 'control.html')
       .attr('target', '_blank');
   // Fetch control
-  const ongoing = ['running', 'ready'].includes(state.data.status);
-  if (ongoing) {
   menubar.append('a')
       .classed('refresh', true)
-      .call(button.menuButtonLink, null, 'Refresh', 'outline-secondary')
-      .on('click', function () {
-        return core.fetchProgress(state.data.storeID)
-          .then(() => idb.getItemByID(state.data.storeID))
-          .then(item => app(item, state.serverStatus));
-      });
+      .call(button.menuButtonLink, null, 'Refresh', 'outline-secondary');
   menubar.append('a')
+      .classed('abort', true)
       .call(button.menuButtonLink, null, 'Abort server job', 'warning')
       .attr('data-toggle', 'modal')
       .attr('data-target', '#abort-dialog');
-  menubar.append('span')
-      .classed('progress', true)
+  menubar.append('span').classed('progress', true)
     .append('progress')
-      .attr('max', 100)
-      .attr('value', state.data.progress)
-      .text(`${state.data.progress}%`);
-  }
-  menubar.append('span')
-    .classed('title', true)
-    .text(state.data.name);
-  menubar.append('span')
-      .classed('status', true)
-      .text(`(${state.data.status} - ${state.data.records.length} records found in ${state.data.execTime} sec.)`);
-
-  // disable on-line commands
-  if (!serverStatus.instance) {
-    menu.selectAll('.networkgend, .exportexcel')
-      .attr('data-target', null)
-      .classed('disabled', true)
-      .on('click', null);
-  }
+      .attr('max', 100);
+  menubar.append('span').classed('title', true);
+  menubar.append('span').classed('status', true);
 
   // Dialogs
   dialogs.append('div')
@@ -172,9 +120,76 @@ function app(data, serverStatus, schema) {
 
 function updateApp(state) {
   d3.select('#loading-icon').style('display', 'none');
+
   // Title
   d3.select('title').text(state.data.name);
-  d3.select('#menubar').select('.title').text(state.data.name);
+
+  // Menubar
+  const menubar = d3.select('#menubar');
+  menubar.select('.saveview')
+      .on('click', function () {
+        if (state.data.storeID) {
+          return idb.updateItem(state.data.storeID, item => {
+            item.id = misc.uuidv4();
+            item.name = state.data.name;
+            item.fields = state.data.fields;
+            item.records = state.data.records;
+          })
+          .then(() => console.info('Datagrid saved'));
+        } else {
+          return idb.putItem(state.export())
+            .then(storeID => {
+              window.location = `datagrid.html?id=${storeID}`;
+            });
+        }
+      });
+  menubar.select('.exportjson')
+      .on('click', () => {
+        const data = state.export();
+        // Delete local store information
+        delete data.storeID;
+        hfile.downloadJSON(data, data.name);
+      });
+  menubar.select('.exportexcel')
+      .on('click', () => {
+        const data = state.export();
+        const formData = new FormData();
+        formData.append('contents', new Blob([JSON.stringify(data)]));
+        return fetcher.post('xlsx', formData)
+          .then(fetcher.blob)
+          .then(blob => hfile.downloadDataFile(blob, `${data.name}.xlsx`));
+      });
+
+  menubar.select('.title').text(state.data.name);
+  menubar.select('.status')
+      .text(`(${state.data.status} - ${state.data.records.length} records found in ${state.data.execTime} sec.)`);
+  menubar.select('.progress').select('progress')
+      .attr('value', state.data.progress)
+      .text(`${state.data.progress}%`);
+  menubar.select('.refresh')
+      .on('click', function () {
+        return core.fetchProgress(state.data.storeID)
+          .then(() => idb.getItemByID(state.data.storeID))
+          .then(item => {
+            state.data = item;
+            state.updateContentsNotifier();
+            updateApp(state);
+          });
+      });
+
+  // disable on-line commands
+  if (state.serverStatus.instance) {
+    menubar.selectAll('.networkgend, .exportexcel')
+      .attr('data-target', null)
+      .classed('disabled', true)
+      .on('click', null);
+  }
+
+  // hide fetch commands
+  const ongoing = ['running', 'ready'].includes(state.data.status);
+  menubar.selectAll('.progress, .refresh, .abort')
+    .style('display', ongoing ? null : 'none');
+
   // Dialogs
   const dialogs = d3.select('#dialogs');
   dialogs.select('.fieldconfd')
@@ -244,7 +259,11 @@ function updateApp(state) {
       .on('submit', function () {
         core.fetchProgress(state.data.storeID, 'abort')
           .then(() => idb.getItemByID(state.data.storeID))
-          .then(item => app(item, state.serverStatus));
+          .then(item => {
+            state.data = item;
+            state.updateContentsNotifier();
+            updateApp(state);
+          });
       });
 }
 
