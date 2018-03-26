@@ -121,7 +121,7 @@ testCases.push(() =>
       new Promise(r => {
         const params = {
           threshold: 0.25, ignoreHs: true,
-          diameter: 8, maxTreeSize: 40, molSizeCutoff: 500
+          diameter: 8, maxTreeSize: 40, timeout: 1
         };
         const formData = new FormData();
         formData.append('contents', new Blob([JSON.stringify(res)]));
