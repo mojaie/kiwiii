@@ -200,7 +200,7 @@ function updateApp(state) {
         updateApp(state);
       });
   dialogs.select('.fieldfetchd')
-      .call(fieldFetchDialog.updateBody, state.fetchedAssays)
+      .call(fieldFetchDialog.updateBody)
       .on('submit', function () {
         const targets = state.resourceSchema.resources
           .filter(e => e.domain === 'activity').map(e => e.id);
@@ -217,7 +217,6 @@ function updateApp(state) {
         Promise.all(futures).then(mps => {
           mps.forEach(mp => state.joinFields(mp));
           state.updateContentsNotifier();
-          state.fetchedAssays = queries.map(e => e.assay_id);
           updateApp(state);
         });
       });

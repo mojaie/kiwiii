@@ -18,8 +18,6 @@ export default class DatagridState {
     this.sortedRecords = null;
     this.filteredRecords = null;
 
-    this.fetchedAssays = [];
-
     // Snapshot
     const snp = this.data.snapshot || {sortOrder: [], filterText: null};
     this.sortOrder = snp.sortOrder || [];
