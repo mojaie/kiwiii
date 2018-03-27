@@ -178,7 +178,7 @@ function updateApp(state) {
       });
 
   // disable on-line commands
-  if (state.serverStatus.instance) {
+  if (!state.serverStatus.instance) {
     menubar.selectAll('.networkgend, .exportexcel')
       .attr('data-target', null)
       .classed('disabled', true)
