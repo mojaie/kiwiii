@@ -74,9 +74,9 @@ function rowFactory(fields) {
       const cell = selection.append('div')
         .classed('dg-cell', true)
         .classed('align-middle', true)
+        .classed('text-truncate', true)
         .style('display', 'inline-block')
-        .style('width', `${field.width}px`)
-        .style('word-wrap', 'break-word');
+        .style('width', `${field.width}px`);
       if (!record.hasOwnProperty(field.key)) return;
       cell.call(cellFunc[field.format], record, field);
     });
