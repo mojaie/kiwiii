@@ -1,6 +1,6 @@
 {
   "name": "kiwiii",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "author": "Seiji Matsuoka",
   "homepage": "https://github.com/mojaie/kiwiii",
   "repository": {
@@ -12,18 +12,18 @@
   "main": "main.js",
   "devDependencies": {
     "argv": "0.0.2",
-    "d3": "^4.12.0",
-    "ejs": "^2.5.7",
+    "d3": "^5.0.0",
+    "ejs": "^2.5.8",
     "jsdoc": "^3.5.5",
-    "jsdom": "^11.5.1",
-    "less": "^2.7.3",
-    "rollup": "^0.52.0",
-    "rollup-plugin-node-resolve": "^3.0.0",
-    "rollup-plugin-uglify": "^2.0.1",
-    "sw-precache": "^5.2.0",
+    "jsdom": "^11.6.2",
+    "less": "^3.0.1",
+    "rollup": "^0.57.1",
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-uglify": "^3.0.0",
+    "sw-precache": "^5.2.1",
     "sw-toolbox": "^3.6.0",
-    "tape": "^4.8.0",
-    "uglify-es": "^3.2.0"
+    "tape": "^4.9.0",
+    "uglify-es": "^3.3.9"
   },
   "scripts": {
     "pretest": "npm run build",

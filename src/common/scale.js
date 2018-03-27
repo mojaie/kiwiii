@@ -1,7 +1,6 @@
 
 /** @module common/scale */
 
-
 import d3 from 'd3';
 
 
@@ -24,17 +23,17 @@ const types = [
 
 const colorPalettes = [
   {key: 'aquamarine', name: 'Aquamarine',
-   range: ['#778899', '#7fffd4'], unknown: '#696969'},
+   range: ['#778899', '#7fffd4'], unknown: '#f0f0f0'},
   {key: 'chartreuse', name: 'Chartreuse',
-   range: ['#778899', '#7fff00'], unknown: '#696969'},
+   range: ['#778899', '#7fff00'], unknown: '#f0f0f0'},
   {key: 'salmon', name: 'Salmon',
-   range: ['#778899', '#fa8072'], unknown: '#696969'},
+   range: ['#778899', '#fa8072'], unknown: '#f0f0f0'},
   {key: 'violet', name: 'Violet',
-   range: ['#778899', '#ee82ee'], unknown: '#696969'},
+   range: ['#778899', '#ee82ee'], unknown: '#f0f0f0'},
   {key: 'temperature', name: 'Temperature',
-   range: ['#87ceeb', '#fff5ee', '#fa8072'], unknown: '#696969'},
+   range: ['#87ceeb', '#fff5ee', '#fa8072'], unknown: '#f0f0f0'},
   {key: 'spectrum', name: 'Spectrum',
-   range: ['#6495ed', '#ccff66', '#ffa500'], unknown: '#696969'}
+   range: ['#6495ed', '#ccff66', '#ffa500'], unknown: '#f0f0f0'}
 ];
 
 
@@ -43,11 +42,12 @@ const colorRangeTypes = [
   {key: 'continuous', name: 'Continuous', size: 2},
   {key: 'two-piece', name: 'Two-piece', size: 3},
   {key: 'category10', name: 'Category 10', size: 10,
-   range: d3.schemeCategory10, unknown: '#cccccc'},
+   range: d3.schemeCategory10, unknown: '#f0f0f0'},
   {key: 'category20', name: 'Category 20', size: 20,
-   range: d3.schemeCategory20, unknown: '#cccccc'},
+   range: d3.schemePaired.concat(d3.schemeSet2), unknown: '#f0f0f0'},
   {key: 'category40', name: 'Category 40', size: 40,
-   range: d3.schemeCategory20b.concat(d3.schemeCategory20c), unknown: '#cccccc'}
+   range: d3.schemePaired.concat(d3.schemePastel2, d3.schemeSet2, d3.schemeSet3),
+   unknown: '#f0f0f0'}
 ];
 
 

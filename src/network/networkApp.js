@@ -8,6 +8,7 @@ import {default as hfile} from '../common/file.js';
 import {default as idb} from '../common/idb.js';
 import {default as mapper} from '../common/mapper.js';
 import {default as misc} from '../common/misc.js';
+import {default as scale} from '../common/scale.js';
 
 import {default as button} from '../component/button.js';
 import {default as modal} from '../component/modal.js';
@@ -198,7 +199,8 @@ function updateApp(state) {
         mapper.apply(state.data.nodes, mapping);
         state.nodeColor = {
           field: value.name, scale: 'ordinal', domain: null,
-          range: d3.schemeCategory10, unknown: '#cccccc'
+          range: scale.colorRangeTypes[3].range,
+          unknown: scale.colorRangeTypes[3].unknown
         };
         $('#community-dialog').modal('hide');  // TODO:
         d3.select('#loading-icon').style('display', 'none');
