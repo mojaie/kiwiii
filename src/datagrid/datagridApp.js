@@ -17,6 +17,7 @@ import {default as modal} from '../component/modal.js';
 import {default as fieldConfigDialog} from '../dialog/fieldConfig.js';
 import {default as fieldFetchDialog} from '../dialog/fieldFetch.js';
 import {default as fieldFileDialog} from '../dialog/fieldFile.js';
+import {default as fieldInputDialog} from '../dialog/fieldInput.js';
 import {default as networkgenDialog} from '../dialog/networkgen.js';
 import {default as renameDialog} from '../dialog/rename.js';
 
@@ -46,6 +47,8 @@ function app(data, serverStatus, schema) {
       .call(fieldFetchDialog.menuLink);
   menu.append('a')
       .call(fieldFileDialog.menuLink);
+  menu.append('a')
+      .call(fieldInputDialog.menuLink);
   menu.append('a')
       .classed('networkgend', true)
       .call(networkgenDialog.menuLink);
@@ -90,6 +93,9 @@ function app(data, serverStatus, schema) {
   dialogs.append('div')
       .classed('fieldfiled', true)
       .call(fieldFileDialog.body);
+  dialogs.append('div')
+      .classed('fieldinputd', true)
+      .call(fieldInputDialog.body);
   dialogs.append('div')
       .classed('netgend', true)
       .call(networkgenDialog.body, serverStatus.rdkit);
@@ -228,6 +234,18 @@ function updateApp(state) {
             state.updateContentsNotifier();
             updateApp(state);
           });
+      });
+  dialogs.select('.fieldinputd')
+      .on('submit', function () {
+        const value = fieldInputDialog.value(d3.select(this));
+        const field = misc.defaultFieldProperties([value.field])[0];
+        state.data.fields.push(field);
+        state.data.records.forEach(e => {
+          e[field.key] = value.default;
+        });
+        state.applyData();
+        state.updateContentsNotifier();
+        updateApp(state);
       });
   dialogs.select('.netgend')
       .on('submit', function () {

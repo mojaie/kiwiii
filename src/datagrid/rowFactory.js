@@ -43,7 +43,16 @@ function checkbox(selection, record, field) {
       .on('click', function () {
         record[field.key] = this.checked;
       });
+}
 
+function textField(selection, record, field) {
+  selection.append('input')
+      .attr('type', 'text')
+      .style('width', '90%')
+      .property('value', record[field.key])
+      .on('change', function () {
+        record[field.key] = this.value;
+      });
 }
 
 function call(selection, value) {
@@ -62,6 +71,7 @@ const cellFunc = {
   plot: img.plotCell,
   image: image,
   checkbox: checkbox,
+  text_field: textField,
   control: call,
   svg: html,
   html: html
@@ -85,5 +95,5 @@ function rowFactory(fields) {
 
 
 export default {
-  d3Format, text, html, compound_id, image, checkbox, call, rowFactory
+  d3Format, text, html, compound_id, image, checkbox, textField, call, rowFactory
 };
