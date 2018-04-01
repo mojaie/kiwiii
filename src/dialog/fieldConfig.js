@@ -86,7 +86,7 @@ function body(selection) {
 
 function updateBody(selection, state) {
   selection.select('.field')
-      .call(table.updateContents, state.fields, d => d.key, updateRowFunc);
+      .call(table.updateContents, state.data.fields.slice(), d => d.key, updateRowFunc);
 }
 
 

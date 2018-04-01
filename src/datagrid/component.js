@@ -11,10 +11,10 @@ function updateHeader(selection, state) {
     .enter().append('div')
       .classed('dg-hcell', true)
       .style('display', 'inline-block')
-      .style('width', d => `${d.width}px`)
+      .style('width', d => `${d.width}%`)
       .text(d => d.name);
   selection
-      .style('width', `${state.contentWidth}px`)
+      .style('width', '100%')
       .dispatch('resize');
   const vp = selection.select('.dg-viewport');
   const pos = Math.floor(vp.node().scrollTop / state.rowHeight);
@@ -33,7 +33,8 @@ function updateRows(selection, state) {
   rows.enter()
     .append('div')
       .attr('class', 'dg-row')
-      .style('position', "absolute")
+      .style('position', 'absolute')
+      .style('width', '100%')
     .merge(rows)
       .style('height', `${state.rowHeight}px`)
       .each(function (d, i) {

@@ -76,7 +76,7 @@ function rowFactory(fields) {
         .classed('align-middle', true)
         .classed('text-truncate', true)
         .style('display', 'inline-block')
-        .style('width', `${field.width}px`);
+        .style('width', `${field.width}%`);
       if (!record.hasOwnProperty(field.key)) return;
       cell.call(cellFunc[field.format], record, field);
     });

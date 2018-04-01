@@ -30,10 +30,10 @@ function body(selection, schema) {
   const assays = _(rsrcs.map(e => e.data)).flatten().value();
   const data = {
     fields: misc.defaultFieldProperties([
-      {key: 'check', name: 'Check', format: 'checkbox', width: 70, height: 40},
-      {key: 'assay_id', name: 'Assay ID', format: 'assay_id', width: 100},
-      {key: 'name', name: 'Name', format: 'text', width: 100},
-      {key: 'tags', name: 'Tags', format: 'list', width: 150}
+      {key: 'check', name: 'Check', format: 'checkbox', widthf: 0.5, height: 40},
+      {key: 'assay_id', name: 'Assay ID', format: 'assay_id'},
+      {key: 'name', name: 'Name', format: 'text'},
+      {key: 'tags', name: 'Tags', format: 'list', widthf: 2}
     ]),
     records: assays.map(e => {
       e.check = false;

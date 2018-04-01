@@ -13,7 +13,6 @@ export default class DatagridState {
   constructor(data) {
     this.data = data;
 
-    this.fields = null;
     this.visibleFields = null;
     this.sortedRecords = null;
     this.filteredRecords = null;
@@ -94,18 +93,17 @@ export default class DatagridState {
   }
 
   applyData() {
-    this.fields = this.data.fields.map(e => {
+    this.visibleFields = this.data.fields.filter(e => e.visible);
+    const widthfSum = this.visibleFields.reduce((a, c) => a + (c.widthf || 1), 0);
+    this.visibleFields = this.visibleFields.map(e => {
       const field = {
-        width: e.width || this.defaultColumnWidth[misc.sortType(e.format)],
+        width: (e.widthf || 1) / widthfSum * 100,
         height: e.height || this.defaultColumnHeight[misc.sortType(e.format)]
       };
       return Object.assign(field, e);
     });
-    this.visibleFields = this.fields.filter(e => e.visible);
     this.rowHeight = this.visibleFields
       .reduce((a, b) => a.height > b.height ? a : b).height;
-    this.contentWidth = this.visibleFields
-      .reduce((a, b) => ({width: a.width + b.width})).width + this.scrollBarSpace;
     this.applyOrder();
   }
 
