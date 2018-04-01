@@ -22,18 +22,12 @@ export default class DatagridState {
     this.sortOrder = snp.sortOrder || [];
     this.filterText = snp.filterText || null;
 
-    this.defaultColumnWidth = {
-      numeric: 120,
-      text: 200,
-      none: 200
-    };
     this.defaultColumnHeight = {
       numeric: 40,
       text: 40,
       none: 200
     };
     this.scrollBarSpace = 20;
-
     this.keyFunc = d => d.index;
 
     // Size

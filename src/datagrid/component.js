@@ -50,7 +50,6 @@ function updateRows(selection, state) {
 
 
 function resizeViewport(selection, state) {
-  // TODO: set width
   selection.select('.dg-viewport').style('height', `${state.viewportHeight}px`);
 }
 

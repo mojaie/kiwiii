@@ -7,31 +7,6 @@ import {default as misc} from '../common/misc.js';
 import {default as component} from './component.js';
 
 
-function numericAsc(a, b) {
-  const fa = parseFloat(a);
-  const fb = parseFloat(b);
-  if (isNaN(fa) || isNaN(fb)) {
-    return String(b).localeCompare(String(a));
-  }
-  return fb - fa;
-}
-
-
-function numericDesc(a, b) {
-  return numericAsc(b, a);
-}
-
-
-function textAsc(a, b) {
-  return String(b).localeCompare(String(a));
-}
-
-
-function textDesc(a, b) {
-  return textAsc(b, a);
-}
-
-
 function setSort(selection, state) {
   selection.select('.dg-header').selectAll('.dg-hcell')
     .filter(d => misc.sortType(d.format) !== 'none')
