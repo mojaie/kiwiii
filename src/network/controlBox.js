@@ -57,6 +57,7 @@ function mainControlBox(selection, state) {
   forceBox.append('div')
       .classed('col-12', true)
     .append('div')
+      .classed('temperature', true)
       .classed('progress', true)
     .append('div')
       .classed('progress-bar', true)
@@ -121,22 +122,39 @@ function updateMainControlBox(selection, state) {
       })
       .dispatch('change');
   // Force layout
+  state.tickCallback = (simulation) => {
+    const alpha = simulation.alpha();
+    const isStopped = alpha <= simulation.alphaMin();
+    const progress = parseInt(isStopped ? 0 : alpha * 100);
+    selection.select('.temperature')
+      .select('.progress-bar')
+        .classed('bg-success', isStopped)
+        .classed('bg-warning', !isStopped)
+        .style('width', `${progress}%`)
+        .attr('aria-valuenow', progress);
+  };
   selection.select('.stick')
       .call(box.updateCheckBox, !state.simulationOnLoad)
       .on('change', function () {
         const value = box.checkBoxValue(d3.select(this));
+        selection.select('.temperature')
+            .style('background-color', value ? '#a3e4d7' : '#e9ecef')
+          .select('.progress-bar')
+            .style('width', `0%`)
+            .attr('aria-valuenow', 0);
         if (value) {
           state.stickNotifier();
-          selection.select('.progress')
-            .style('background-color', '#a3e4d7');
         } else {
           state.relaxNotifier();
-          selection.select('.progress')
-            .style('background-color', '#e9ecef');
         }
       });
   selection.select('.restart')
-      .on('click', function () { state.restartNotifier(); });
+      .on('click', function () {
+        selection.select('.stick')
+            .call(box.updateCheckBox, false)
+            .dispatch('change');
+        state.restartNotifier();
+      });
 }
 
 

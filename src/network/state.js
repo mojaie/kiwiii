@@ -119,6 +119,7 @@ export default class NetworkState {
     this.stickNotifier = null;
     this.relaxNotifier = null;
     this.restartNotifier = null;
+    this.tickCallback = () => {};
 
     // Working memory
     this.forceField = {top: 0, right: width, bottom: height, left: 0};

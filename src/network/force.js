@@ -33,19 +33,6 @@ function forceSimulation(width, height) {
 }
 
 
-function showTemperature(simulation) {
-  const alpha = simulation.alpha();
-  const isStopped = alpha <= simulation.alphaMin();
-  // TODO: select temperature indicator
-  const progress = parseInt(isStopped ? 0 : alpha * 100);
-  d3.select('#temperature')
-    .classed('bg-success', isStopped)
-    .classed('bg-warning', !isStopped)
-    .style('width', `${progress}%`)
-    .attr('aria-valuenow', progress);
-}
-
-
 function forceDragListener(selection, simulation, state) {
   return d3.drag()
     .on('start', () => {
@@ -68,7 +55,6 @@ function end(selection, simulation, state) {
   state.setAllCoords(coords);
   selection
     .call(component.updateComponents, state);
-  showTemperature(simulation);
 }
 
 
@@ -119,8 +105,8 @@ function setForce(selection, simulation, state) {
     .force('link').links(forceEdges);
 }
 
+
 function activate(selection, simulation, state) {
-  selection.call(setForce, simulation, state);
   simulation
     .on('tick', () => {
       selection.select('.nw-nodes').selectAll(".node")
@@ -129,9 +115,12 @@ function activate(selection, simulation, state) {
       state.setAllCoords(coords);
       selection.select('.nw-edges').selectAll(".link")
         .call(component.updateEdgeCoords);
-      showTemperature(simulation);
+      state.tickCallback(simulation);
     })
-    .on('end', () => selection.call(end, simulation, state));
+    .on('end', () => {
+      selection.call(end, simulation, state);
+      state.tickCallback(simulation);
+    });
   state.setForceNotifier = () => {
     selection.call(setForce, simulation, state);
   };
@@ -144,6 +133,7 @@ function activate(selection, simulation, state) {
   state.restartNotifier = () => {
     selection.call(restart, simulation, state);
   };
+  state.setForceNotifier();
   if (state.simulationOnLoad) {
     selection.call(restart, simulation, state);
   } else {
