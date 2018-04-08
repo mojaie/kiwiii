@@ -5,6 +5,7 @@ import {default as core} from './common/core.js';
 import {default as fetcher} from './common/fetcher.js';
 import {default as hfile} from './common/file.js';
 import {default as idb} from './common/idb.js';
+import {default as legacy} from './common/legacySchema.js';
 import {default as misc} from './common/misc.js';
 
 import DatagridState from './datagrid/state.js';
@@ -58,5 +59,5 @@ function run() {
 
 
 export default {
-  DatagridState, sort, view, run
+  DatagridState, sort, view, run, legacy
 };
