@@ -42,6 +42,7 @@ export default class DatagridState {
     this.viewportTop = null;
     this.previousVieportTop = null;
     this.viewportBottom = null;
+    this.currentScrollTop = 0;
 
     this.fixedViewportHeight = null;
 

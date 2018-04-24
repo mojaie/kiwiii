@@ -16,8 +16,7 @@ function updateHeader(selection, state) {
   selection
       .style('width', '100%')
       .dispatch('resize');
-  const vp = selection.select('.dg-viewport');
-  const pos = Math.floor(vp.node().scrollTop / state.rowHeight);
+  const pos = Math.floor(state.currentScrollTop / state.rowHeight);
   state.setScrollPosition(pos);
   selection.call(updateRows, state);
 }

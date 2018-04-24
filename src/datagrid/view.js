@@ -22,6 +22,7 @@ function datagrid(selection, state) {
       .style('overflow-y', 'auto')
       .on('scroll', function () {
         const pos = Math.floor(this.scrollTop / state.rowHeight);
+        state.currentScrollTop = this.scrollTop;
         if (pos !== state.previousViewportTop) {
           state.setScrollPosition(pos);
           selection.call(component.updateRows, state);
