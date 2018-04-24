@@ -41,6 +41,23 @@ function menuButtonLink(selection, id, label, type) {
 }
 
 
+function menuIconLink(selection, id, icon, title, type) {
+  selection
+    .classed('btn', true)
+    .classed(`btn-${type}`, true)
+    .classed(`btn-sm`, true)
+    .classed('mr-1', true)
+    .classed('pb-0', true)
+    .classed('px-1', true)
+    .append('span')
+      .classed(`oi oi-${icon}`, true)
+      .attr('title', title)
+      .attr('aria-hidden', true)
+      .attr('id', id)
+      .style('font-size', '1.4rem');
+}
+
+
 function menuModalLink(selection, id, label, type, target) {
   selection
       .classed('btn', true)
@@ -112,7 +129,7 @@ function dropdownMenuFileValue(selection) {
 
 
 export default {
-  buttonBox, menuButton, menuButtonLink, menuModalLink,
+  buttonBox, menuButton, menuButtonLink, menuIconLink, menuModalLink,
   dropdownMenuButton, dropdownMenuItem, dropdownMenuModal,
   dropdownMenuFile, dropdownMenuFileValue
 };

@@ -65,7 +65,7 @@ function app(data, serverStatus, schema) {
       .call(button.dropdownMenuItem, null, 'Download Excel');
   // Open control panel
   menubar.append('a')
-      .call(button.menuButtonLink, null, 'Control panel', 'outline-secondary')
+      .call(button.menuIconLink, null, 'cog', 'Control panel', 'outline-secondary')
       .attr('href', 'control.html')
       .attr('target', '_blank');
   // Fetch control
