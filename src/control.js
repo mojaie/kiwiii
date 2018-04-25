@@ -27,14 +27,13 @@ function updateStoreRow(selection, record) {
       .classed('action', true);
   const app = {nodes: 'datagrid', edges: 'network'};
   action.append('a')
-      .call(button.menuButtonLink, null, 'Open', 'primary')
+      .call(button.menuButtonLink, 'Open', 'primary', 'share-boxed')
       .attr('href', `${app[record.dataType]}.html?id=${record.storeID}`)
       .attr('target', '_blank');
   const ongoing = ['running', 'ready'].includes(record.status);
   action.append('a')
-      .call(button.menuModalLink, null, 'Delete', 'warning', 'delete-dialog')
+      .call(button.menuModalLink, 'delete-dialog', 'Delete', 'warning', 'trash')
       .property('disabled', ongoing)
-      .text(ongoing ? 'Running' : 'Delete')
       .on('click', () =>{
         d3.select('#delete-dialog')
           .select('.message')
@@ -42,7 +41,9 @@ function updateStoreRow(selection, record) {
         d3.select('#delete-dialog')
           .select('.ok')
           .on('click', () => idb.deleteItem(record.storeID).then(update));
-      });
+      })
+    .select('.label')
+      .text(ongoing ? 'Running' : 'Delete');
 }
 
 
@@ -95,15 +96,15 @@ function run() {
   // Menubar
   const menu = d3.select('#menubar');
   menu.append('a')
-      .call(button.menuButtonLink, null, '+ New datagrid', 'primary')
+      .call(button.menuButtonLink, 'Datagrid', 'primary', 'plus')
       .attr('href', 'datagrid.html')
       .attr('target', '_blank');
   menu.append('a')
-      .call(button.menuButtonLink, null, '+ New network', 'primary')
+      .call(button.menuButtonLink, 'Network', 'primary', 'plus')
       .attr('href', 'network.html')
       .attr('target', '_blank');
   menu.append('a')
-      .call(button.menuButtonLink, null, 'Refresh all', 'outline-secondary')
+      .call(button.menuButtonLink, 'Refresh all', 'outline-secondary', 'reload')
       .on('click', () => {
         return idb.getAllItems()
           .then(items => {
@@ -114,7 +115,7 @@ function run() {
           .then(update);
       });
   menu.append('a')
-      .call(button.menuModalLink, null, 'Reset local datastore', 'warning', 'reset-dialog');
+      .call(button.menuModalLink, 'reset-dialog', 'Reset local datastore', 'warning', 'trash');
 
   // Tables
   const storeFields = misc.defaultFieldProperties([

@@ -39,7 +39,7 @@ function app(serverStatus, schema) {
 
   // New datagrid menu
   const menu = menubar.append('div')
-      .call(button.dropdownMenuButton, null, '+ New datagrid', 'primary')
+      .call(button.dropdownMenuButton, 'Datagrid', 'primary', 'plus')
       .select('.dropdown-menu');
   menu.append('a')
       .classed('searchd', true)
@@ -55,7 +55,7 @@ function app(serverStatus, schema) {
       .call(sdfDialog.menuLink);
   menu.append('a')
       .classed('import', true)
-      .call(button.dropdownMenuFile, 'import', 'Import JSON', '.ndc,.ndr,.json,.gz')
+      .call(button.dropdownMenuFile, 'Import JSON', '.ndc,.ndr,.json,.gz', 'file')
       .on('change', function () {
         const file = button.dropdownMenuFileValue(d3.select(this));
         hfile.loadJSON(file)
@@ -63,7 +63,7 @@ function app(serverStatus, schema) {
       });
   // Control panel
   menubar.append('a')
-      .call(button.menuButtonLink, null, 'Control panel', 'outline-secondary')
+      .call(button.menuButtonLink, 'Control panel', 'outline-secondary', 'cog')
       .attr('href', 'control.html')
       .attr('target', '_blank');
 

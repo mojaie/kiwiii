@@ -39,7 +39,7 @@ function app(data, serverStatus, schema) {
 
   // Datagrid view control
   const menu = menubar.append('div')
-      .call(button.dropdownMenuButton, null, 'View control', 'primary')
+      .call(button.dropdownMenuButton, 'Datagrid', 'primary', 'menu')
       .select('.dropdown-menu');
   menu.append('a')
       .call(fieldConfigDialog.menuLink);
@@ -56,25 +56,25 @@ function app(data, serverStatus, schema) {
       .call(renameDialog.menuLink);
   menu.append('a')
       .classed('saveview', true)
-      .call(button.dropdownMenuItem, null, 'Save');
+      .call(button.dropdownMenuItem, 'Save', 'document');
   menu.append('a')
       .classed('exportjson', true)
-      .call(button.dropdownMenuItem, null, 'Download JSON');
+      .call(button.dropdownMenuItem, 'Download JSON', 'data-transfer-download');
   menu.append('a')
       .classed('exportexcel', true)
-      .call(button.dropdownMenuItem, null, 'Download Excel');
+      .call(button.dropdownMenuItem, 'Download Excel', 'data-transfer-download');
   // Open control panel
   menubar.append('a')
-      .call(button.menuIconLink, null, 'cog', 'Control panel', 'outline-secondary')
+      .call(button.menuButtonLink, 'Control panel', 'outline-secondary', 'cog')
       .attr('href', 'control.html')
       .attr('target', '_blank');
   // Fetch control
   menubar.append('a')
       .classed('refresh', true)
-      .call(button.menuButtonLink, null, 'Refresh', 'outline-secondary');
+      .call(button.menuButtonLink, 'Refresh', 'outline-secondary', 'reload');
   menubar.append('a')
       .classed('abort', true)
-      .call(button.menuButtonLink, null, 'Abort server job', 'warning')
+      .call(button.menuButtonLink, 'Abort server job', 'warning', 'x')
       .attr('data-toggle', 'modal')
       .attr('data-target', '#abort-dialog');
   menubar.append('span').classed('progress', true)

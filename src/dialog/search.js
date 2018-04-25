@@ -12,7 +12,7 @@ const title = 'Search by compound ID';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, 'search', title, id);
+  selection.call(button.dropdownMenuModal, title, id, 'magnifying-glass');
 }
 
 

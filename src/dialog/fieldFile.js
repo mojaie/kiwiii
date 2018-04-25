@@ -16,7 +16,7 @@ const title = 'Append JSON fields';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, 'fieldfile', title, id);
+  selection.call(button.dropdownMenuModal, title, id, 'file');
 }
 
 

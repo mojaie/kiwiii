@@ -27,7 +27,7 @@ const title = 'Import SDFile';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, 'sdf', title, id);
+  selection.call(button.dropdownMenuModal, title, id, 'file');
 }
 
 

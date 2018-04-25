@@ -59,7 +59,7 @@ function app(data) {
   menubar.selectAll('div,span,a').remove();
   // Network view control
   const menu = menubar.append('div')
-      .call(button.dropdownMenuButton, null, 'View control', 'primary')
+      .call(button.dropdownMenuButton, 'Network', 'primary', 'menu')
       .select('.dropdown-menu');
   menu.append('a')
       .classed('communityd', true)
@@ -69,7 +69,7 @@ function app(data) {
       .call(renameDialog.menuLink);
   menu.append('a')
       .classed('saveview', true)
-      .call(button.dropdownMenuItem, null, 'Save to local storage')
+      .call(button.dropdownMenuItem, 'Save', 'document')
       .on('click', function () {
         if (state.data.edges.storeID) {
           return idb.updateItem(state.data.edges.storeID, item => {
@@ -91,7 +91,7 @@ function app(data) {
         }
       });
   menu.append('a')
-      .call(button.dropdownMenuItem, null, 'Export to JSON')
+      .call(button.dropdownMenuItem, 'Export to JSON', 'data-transfer-download')
       .on('click', () => {
         const data = state.export();
         // Delete local store information
@@ -103,27 +103,27 @@ function app(data) {
   if (state.data.nodes.storeID) {
     // Node datagrid link
     menubar.append('a')
-        .call(button.menuButtonLink, null, 'Node datagrid', 'outline-secondary')
+        .call(button.menuButtonLink, 'Node datagrid', 'outline-secondary', 'list-rich')
         .attr('href', `datagrid.html?id=${state.data.nodes.storeID}`)
         .attr('target', '_blank');
   }
   // Control panel
   menubar.append('a')
-      .call(button.menuButtonLink, null, 'Control panel', 'outline-secondary')
+      .call(button.menuButtonLink, 'Control panel', 'outline-secondary', 'cog')
       .attr('href', 'control.html')
       .attr('target', '_blank');
   // Fetch control
   const ongoing = ['running', 'ready'].includes(state.data.edges.status);
   if (ongoing) {
     menubar.append('a')
-        .call(button.menuButtonLink, null, 'Refresh', 'outline-secondary')
+        .call(button.menuButtonLink, 'Refresh', 'outline-secondary', 'reload')
         .on('click', function () {
           core.fetchProgress(state.data.edges.storeID)
             .then(() => getGraph(state.data.edges.storeID))
             .then(app);
         });
     menubar.append('a')
-        .call(button.menuButtonLink, null, 'Abort server job', 'warning')
+        .call(button.menuButtonLink, 'Abort server job', 'warning', 'x')
         .attr('data-toggle', 'modal')
         .attr('data-target', '#abort-dialog');
     menubar.append('span')

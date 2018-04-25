@@ -109,7 +109,7 @@ function run() {
   // Menubar
   const menubar = d3.select('#menubar');
   menubar.append('a')
-      .call(button.menuButton, null, 'Control panel', 'outline-secondary')
+      .call(button.menuButtonLink, 'Control panel', 'outline-secondary', 'cog')
       .attr('href', 'control.html')
       .attr('target', '_blank');
 

@@ -15,7 +15,7 @@ const title = 'Search by structure';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, 'struct', title, id);
+  selection.call(button.dropdownMenuModal, title, id, 'magnifying-glass');
 }
 
 

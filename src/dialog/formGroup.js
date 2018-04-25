@@ -51,7 +51,7 @@ function queryMolGroup(selection, id, resources) {
       .attr('data-toggle', 'popover')
       .attr('data-html', 'true')
       .attr('data-content', '<div id="previmg"></div>')
-      .call(button.menuButton, `${id}-preview`, 'Structure preview', 'primary');
+      .call(button.menuButton, 'Structure preview', 'primary');
   selection.call(updateQueryMolGroup);
 }
 

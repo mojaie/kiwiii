@@ -12,7 +12,7 @@ const title = 'Rename';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, 'rename', title, id);
+  selection.call(button.dropdownMenuModal, title, id, 'pencil');
 }
 
 

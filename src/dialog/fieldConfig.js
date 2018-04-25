@@ -16,7 +16,7 @@ const title = 'Column setting';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, 'fieldconf', title, id);
+  selection.call(button.dropdownMenuModal, title, id, 'cog');
 }
 
 

@@ -17,7 +17,7 @@ function buttonBox(selection, id, label, type) {
 }
 
 
-function menuButton(selection, id, label, type) {
+function menuButton(selection, label, type, id) {
   selection
       .classed('btn', true)
       .classed(`btn-${type}`, true)
@@ -28,7 +28,7 @@ function menuButton(selection, id, label, type) {
 }
 
 
-function menuButtonLink(selection, id, label, type) {
+function menuButtonLink(selection, label, type, icon, id) {
   selection
       .classed('btn', true)
       .classed(`btn-${type}`, true)
@@ -36,29 +36,17 @@ function menuButtonLink(selection, id, label, type) {
       .classed('mr-1', true)
       .attr('role', 'button')
       .attr('href', '#')
-      .attr('id', id)
+      .attr('id', id);
+  selection.append('span')
+      .classed(`oi oi-${icon}`, true)
+      .classed('mr-1', true)
+      .attr('aria-hidden', true);
+  selection.append('span')
       .text(label);
 }
 
 
-function menuIconLink(selection, id, icon, title, type) {
-  selection
-    .classed('btn', true)
-    .classed(`btn-${type}`, true)
-    .classed(`btn-sm`, true)
-    .classed('mr-1', true)
-    .classed('pb-0', true)
-    .classed('px-1', true)
-    .append('span')
-      .classed(`oi oi-${icon}`, true)
-      .attr('title', title)
-      .attr('aria-hidden', true)
-      .attr('id', id)
-      .style('font-size', '1.4rem');
-}
-
-
-function menuModalLink(selection, id, label, type, target) {
+function menuModalLink(selection, target, label, type, icon, id) {
   selection
       .classed('btn', true)
       .classed(`btn-${type}`, true)
@@ -68,58 +56,84 @@ function menuModalLink(selection, id, label, type, target) {
       .attr('href', '#')
       .attr('role', 'button')
       .attr('data-toggle', 'modal')
-      .attr('data-target', `#${target}`)
+      .attr('data-target', `#${target}`);
+  selection.append('span')
+      .classed(`oi oi-${icon}`, true)
+      .classed('mr-1', true)
+      .attr('aria-hidden', true);
+  selection.append('span')
+      .classed('label', true)
       .text(label);
 }
 
 
-function dropdownMenuButton(selection, id, label, type) {
+function dropdownMenuButton(selection, label, type, icon, id) {
   selection
       .classed('btn-group', true)
       .classed('mr-1', true)
       .attr('id', id);
-  selection.append('button')
+  const button = selection.append('button')
       .classed('btn', true)
       .classed(`btn-${type}`, true)
       .classed('btn-sm', true)
       .classed('dropdown-toggle', true)
-      .attr('data-toggle', 'dropdown')
+      .attr('data-toggle', 'dropdown');
+  button.append('span')
+      .classed(`oi oi-${icon}`, true)
+      .classed('mr-1', true)
+      .attr('aria-hidden', true);
+  button.append('span')
       .text(label);
   selection.append('div')
       .classed('dropdown-menu', true);
 }
 
 
-function dropdownMenuItem(selection, id, label) {
+function dropdownMenuItem(selection, label, icon, id) {
   selection.classed('dropdown-item', true)
       .attr('id', id)
-      .attr('href', '#')
+      .attr('href', '#');
+  selection.append('span')
+      .classed(`oi oi-${icon}`, true)
+      .classed('mr-1', true)
+      .attr('aria-hidden', true);
+  selection.append('span')
       .text(label);
 }
 
-function dropdownMenuModal(selection, id, label, target) {
+function dropdownMenuModal(selection, label, target, icon, id) {
   selection.classed('dropdown-item', true)
       .attr('id', id)
       .attr('href', '#')
       .attr('data-toggle', 'modal')
-      .attr('data-target', `#${target}`)
+      .attr('data-target', `#${target}`);
+  selection.append('span')
+      .classed(`oi oi-${icon}`, true)
+      .classed('mr-1', true)
+      .attr('aria-hidden', true);
+  selection.append('span')
       .text(label);
 }
 
 
-function dropdownMenuFile(selection, id, label, accept) {
+function dropdownMenuFile(selection, label, accept, icon, id) {
   selection.classed('dropdown-item', true)
       .attr('id', id)
       .attr('href', '#')
-      .text(label)
       .on('click', function () {
         d3.select(this).select('input').node().click();
-      })
-    .append('form')
+      });
+  selection.append('form')
       .style('display', 'none')
     .append('input')
       .attr('type', 'file')
       .attr('accept', accept);
+  selection.append('span')
+      .classed(`oi oi-${icon}`, true)
+      .classed('mr-1', true)
+      .attr('aria-hidden', true);
+  selection.append('span')
+      .text(label);
 }
 
 
@@ -129,7 +143,7 @@ function dropdownMenuFileValue(selection) {
 
 
 export default {
-  buttonBox, menuButton, menuButtonLink, menuIconLink, menuModalLink,
+  buttonBox, menuButton, menuButtonLink, menuModalLink,
   dropdownMenuButton, dropdownMenuItem, dropdownMenuModal,
   dropdownMenuFile, dropdownMenuFileValue
 };

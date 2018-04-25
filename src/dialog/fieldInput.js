@@ -12,7 +12,7 @@ const title = 'Append input field';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, 'fieldinput', title, id);
+  selection.call(button.dropdownMenuModal, title, id, 'task');
 }
 
 
