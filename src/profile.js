@@ -26,7 +26,22 @@ function fetchProfile(compoundID, resources) {
   return fetcher.get(cmpdQuery.workflow, cmpdQuery)
     .then(fetcher.json)
     .then(res => {
-      profile.compound = res.records[0];
+      profile.compound = {
+        fields: [
+          {key: 'key', name: 'key'},
+          {key: 'value', name: 'value'}
+        ],
+        records: [
+          {key: 'Formula', value: res.records[0]._formula},
+          {key: 'Molecular weight', value: res.records[0]._mw},
+          {key: 'Wildman-Crippen logP', value: res.records[0]._logp},
+          {key: 'Non-hydrogen atom count', value: res.records[0]._nonH}
+        ]
+      };
+      profile.cid = res.records[0].compound_id;
+      profile.name = res.records[0].name;
+      profile.src = res.records[0].__source;
+      profile.struct = res.records[0].structure;
     })
     .then(() => {
       const aliasQuery = {
@@ -34,8 +49,8 @@ function fetchProfile(compoundID, resources) {
         targets: resources.filter(e => e.domain === 'chemical').map(e => e.id),
         queryMol: {
           format: 'dbid',
-          source: profile.compound.__source,
-          value: profile.compound.compound_id
+          source: profile.src,
+          value: profile.cid
         },
         params: {ignoreHs: true}
       };
@@ -44,12 +59,12 @@ function fetchProfile(compoundID, resources) {
     .then(fetcher.json)
     .then(res => {
       profile.aliases = res;
-      profile.aliases.fields = misc.defaultFieldProperties(profile.aliases.fields);
-      /*profile.aliases = res.records.filter(rcd => {
-        return rcd.compound_id !== profile.compound.compound_id ||
-        rcd.__source !== profile.compound.__source;
-      });
-      */
+      profile.aliases.fields = misc.defaultFieldProperties([
+        {key: 'index', name: 'Index', d3_format: 'd'},
+        {key: 'compound_id', name: 'Compound ID', format: 'compound_id'},
+        {key: 'name', name: 'Name', format: 'text'},
+        {key: '__source', name: 'Source', format: 'text'}
+      ]);
     })
     .then(() => {
       const assayQuery = {
@@ -62,14 +77,18 @@ function fetchProfile(compoundID, resources) {
     .then(fetcher.json)
     .then(res => {
       profile.assays = res;
-      profile.assays.fields = misc.defaultFieldProperties(profile.assays.fields);
-      console.log(JSON.parse(JSON.stringify(profile)));
+      profile.assays.fields = misc.defaultFieldProperties([
+        {key: 'index', name: 'Index', d3_format: 'd'},
+        {key: 'assay_id', name: 'Assay ID', format: 'assay_id'},
+        {key: 'value_type', name: 'Value type', format: 'text'},
+        {key: 'value', name: 'Value', format: 'numeric'}
+      ]);
       return profile;
     });
 }
 
 
-function update(compoundID) {
+function render(compoundID) {
   fetcher.get('schema')
     .then(fetcher.json)
     .then(schema => fetchProfile(compoundID, schema.resources))
@@ -82,16 +101,47 @@ function update(compoundID) {
       };
     })
     .then(res => {
-      d3.select('#cid').text(res.compound.compound_id);
-      d3.select('#db').text(res.compound.__source);
-      d3.select('#struct').html(res.compound.structure);
+      const contents = d3.select('#contents')
+        .style('padding-left', '10%')
+        .style('padding-right', '10%');
+      contents.append('h2').classed('mt-5', true)
+          .text('Compound ID');
+      contents.append('div').classed('mb-5', true)
+          .text(res.cid);
+      contents.append('h2').classed('mt-5', true)
+          .text('Name');
+      contents.append('div').classed('mb-5', true)
+          .text(res.name);
+      contents.append('h2').classed('mt-5', true)
+          .text('Source');
+      contents.append('div').classed('mb-5', true)
+          .text(res.src);
+      contents.append('h2').classed('mt-5', true)
+          .text('Structure');
+      contents.append('div').classed('mb-5', true)
+          .html(res.struct);
+      contents.append('h2').classed('mt-5', true)
+          .text('Chemical properties');
+      contents.append('div').classed('mb-5', true)
+        .append('table')
+          .call(
+            table.render, null, null, res.compound.fields, res.compound.records)
+          .style('width', '400px');
+      contents.append('h2').classed('mt-5', true)
+          .text('Aliases');
+      contents.append('div').classed('mb-5', true)
+          .attr('id', 'aliases');
+      contents.append('h2').classed('mt-5', true)
+          .text('Assay results');
+      contents.append('div').classed('mb-5', true)
+          .attr('id', 'assays');
 
       const aliasState = new DatagridState(res.aliases);
       const aliasFilter = d3.select('#aliases').append('div')
           .classed('alias-filter', true);
       const aliasdg = d3.select('#aliases').append('div')
           .classed('alias-dg', true);
-      aliasState.fixedViewportHeight = 200;
+      aliasState.fixedViewportHeight = 150;
       aliasdg.call(view.datagrid, aliasState);
       aliasFilter.call(rowf.setFilter, aliasState);
 
@@ -100,7 +150,7 @@ function update(compoundID) {
           .classed('assay-filter', true);
       const assaydg = d3.select('#assays').append('div')
           .classed('assay-dg', true);
-      assayState.fixedViewportHeight = 200;
+      assayState.fixedViewportHeight = 400;
       assaydg.call(view.datagrid, assayState);
       assayFilter.call(rowf.setFilter, assayState);
     });
@@ -114,48 +164,13 @@ function run() {
       .call(button.menuButtonLink, 'Control panel', 'outline-secondary', 'cog')
       .attr('href', 'control.html')
       .attr('target', '_blank');
-
-  // Compound row
-  const contents = d3.select('#contents');
-  const cid = contents.append('div');
-  contents.style('counter-reset', 'section');
-  cid.append('h2').text('Compound ID');
-  cid.append('div')
-      .attr('id', 'cid')
-      .classed('mb-2', true);
-  const db = contents.append('div');
-  db.append('h2').text('Database');
-  db.append('div')
-      .attr('id', 'db')
-      .classed('mb-2', true);
-  const struct = contents.append('div');
-  struct.append('h2').text('Structure');
-  struct.append('div')
-      .attr('id', 'struct')
-      .classed('mb-2', true);
-  const props = contents.append('div');
-  props.append('h2').text('Chemical properties');
-  props.append('div')
-      .attr('id', 'props')
-      .classed('mb-2', true);
-  const aliases = contents.append('div');
-  aliases.append('h2').text('Aliases');
-  aliases.append('div')
-      .attr('id', 'aliases')
-      .classed('mb-2', true);
-  const assays = contents.append('div');
-  assays.append('h2').text('Assay results');
-  assays.append('div')
-      .attr('id', 'assays')
-      .classed('mb-2', true);
-
   const compoundID = misc.URLQuery().compound || null;
   if (!compoundID) return;
   // TODO: offline mode flags
   const localFile = document.location.protocol !== "file:";
   const offLine = 'onLine' in navigator && !navigator.onLine;
   console.info('Off-line mode is disabled for debugging');
-  return update(compoundID);
+  return render(compoundID);
 }
 
 
