@@ -102,8 +102,8 @@ function render(compoundID) {
     })
     .then(res => {
       const contents = d3.select('#contents')
-        .style('padding-left', '10%')
-        .style('padding-right', '10%');
+          .style('padding-left', '10%')
+          .style('padding-right', '10%');
       contents.append('h2').classed('mt-5', true)
           .text('Compound ID');
       contents.append('div').classed('mb-5', true)

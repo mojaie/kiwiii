@@ -124,6 +124,9 @@ function run() {
     {key: 'size', name: 'Records', d3_format: 'd'},
     {key: 'action', name: 'Action', format: 'control'}
   ]);
+  d3.select('#contents')
+      .style('padding-left', '10%')
+      .style('padding-right', '10%');
   const dg = d3.select('#contents')
     .append('div')
       .classed('py-4', true);
