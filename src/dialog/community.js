@@ -12,7 +12,7 @@ const title = 'Comunity detection';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, title, id, 'aperture');
+  selection.call(button.dropdownMenuModal, title, id, 'painting');
 }
 
 

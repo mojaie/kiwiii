@@ -59,7 +59,7 @@ function app(data) {
   menubar.selectAll('div,span,a').remove();
   // Network view control
   const menu = menubar.append('div')
-      .call(button.dropdownMenuButton, 'Network', 'primary', 'menu')
+      .call(button.dropdownMenuButton, 'Network', 'primary', 'network-white')
       .select('.dropdown-menu');
   menu.append('a')
       .classed('communityd', true)
@@ -69,7 +69,7 @@ function app(data) {
       .call(renameDialog.menuLink);
   menu.append('a')
       .classed('saveview', true)
-      .call(button.dropdownMenuItem, 'Save', 'document')
+      .call(button.dropdownMenuItem, 'Save', 'save')
       .on('click', function () {
         if (state.data.edges.storeID) {
           return idb.updateItem(state.data.edges.storeID, item => {
@@ -91,7 +91,7 @@ function app(data) {
         }
       });
   menu.append('a')
-      .call(button.dropdownMenuItem, 'Export to JSON', 'data-transfer-download')
+      .call(button.dropdownMenuItem, 'Export to JSON', 'export')
       .on('click', () => {
         const data = state.export();
         // Delete local store information
@@ -103,13 +103,13 @@ function app(data) {
   if (state.data.nodes.storeID) {
     // Node datagrid link
     menubar.append('a')
-        .call(button.menuButtonLink, 'Node datagrid', 'outline-secondary', 'list-rich')
+        .call(button.menuButtonLink, 'Nodes', 'outline-secondary', 'table-gray')
         .attr('href', `datagrid.html?id=${state.data.nodes.storeID}`)
         .attr('target', '_blank');
   }
   // Control panel
   menubar.append('a')
-      .call(button.menuButtonLink, 'Control panel', 'outline-secondary', 'cog')
+      .call(button.menuButtonLink, 'Store', 'outline-secondary', 'db-gray')
       .attr('href', 'control.html')
       .attr('target', '_blank');
   // Fetch control

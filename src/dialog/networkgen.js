@@ -16,7 +16,7 @@ const title = 'Generate similarity network';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, title, id, 'fork');
+  selection.call(button.dropdownMenuModal, title, id, 'network');
 }
 
 

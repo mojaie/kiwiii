@@ -37,11 +37,12 @@ function menuButtonLink(selection, label, type, icon, id) {
       .attr('role', 'button')
       .attr('href', '#')
       .attr('id', id);
+  selection.append('img')
+      .attr('src', icon ? `./assets/icon/${icon}.svg` : null)
+      .style('width', '1.25rem')
+      .style('height', '1.25rem');
   selection.append('span')
-      .classed(`oi oi-${icon}`, true)
-      .classed('mr-1', true)
-      .attr('aria-hidden', true);
-  selection.append('span')
+      .style('vertical-align', 'middle')
       .text(label);
 }
 
@@ -57,12 +58,13 @@ function menuModalLink(selection, target, label, type, icon, id) {
       .attr('role', 'button')
       .attr('data-toggle', 'modal')
       .attr('data-target', `#${target}`);
-  selection.append('span')
-      .classed(`oi oi-${icon}`, true)
-      .classed('mr-1', true)
-      .attr('aria-hidden', true);
+  selection.append('img')
+      .attr('src', icon ? `./assets/icon/${icon}.svg` : null)
+      .style('width', '1.25rem')
+      .style('height', '1.25rem');
   selection.append('span')
       .classed('label', true)
+      .style('vertical-align', 'middle')
       .text(label);
 }
 
@@ -78,11 +80,12 @@ function dropdownMenuButton(selection, label, type, icon, id) {
       .classed('btn-sm', true)
       .classed('dropdown-toggle', true)
       .attr('data-toggle', 'dropdown');
+  button.append('img')
+      .attr('src', icon ? `./assets/icon/${icon}.svg` : null)
+      .style('width', '1.25rem')
+      .style('height', '1.25rem');
   button.append('span')
-      .classed(`oi oi-${icon}`, true)
-      .classed('mr-1', true)
-      .attr('aria-hidden', true);
-  button.append('span')
+      .style('vertical-align', 'middle')
       .text(label);
   selection.append('div')
       .classed('dropdown-menu', true);
@@ -93,10 +96,11 @@ function dropdownMenuItem(selection, label, icon, id) {
   selection.classed('dropdown-item', true)
       .attr('id', id)
       .attr('href', '#');
-  selection.append('span')
-      .classed(`oi oi-${icon}`, true)
+  selection.append('img')
+      .attr('src', icon ? `./assets/icon/${icon}.svg` : null)
       .classed('mr-1', true)
-      .attr('aria-hidden', true);
+      .style('width', '2rem')
+      .style('height', '2rem');
   selection.append('span')
       .text(label);
 }
@@ -107,10 +111,11 @@ function dropdownMenuModal(selection, label, target, icon, id) {
       .attr('href', '#')
       .attr('data-toggle', 'modal')
       .attr('data-target', `#${target}`);
-  selection.append('span')
-      .classed(`oi oi-${icon}`, true)
+  selection.append('img')
+      .attr('src', `./assets/icon/${icon}.svg`)
       .classed('mr-1', true)
-      .attr('aria-hidden', true);
+      .style('width', '2rem')
+      .style('height', '2rem');
   selection.append('span')
       .text(label);
 }
@@ -128,10 +133,11 @@ function dropdownMenuFile(selection, label, accept, icon, id) {
     .append('input')
       .attr('type', 'file')
       .attr('accept', accept);
-  selection.append('span')
-      .classed(`oi oi-${icon}`, true)
+  selection.append('img')
+      .attr('src', `./assets/icon/${icon}.svg`)
       .classed('mr-1', true)
-      .attr('aria-hidden', true);
+      .style('width', '2rem')
+      .style('height', '2rem');
   selection.append('span')
       .text(label);
 }

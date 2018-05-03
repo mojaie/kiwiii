@@ -1,0 +1,13 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
+ <g>
+  <title>Layer 1</title>
+  <path stroke="#007f7f" transform="rotate(65.70915985107422 92.71826171875004,125.85698699951169) " fill="#000000" stroke-width="7" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="null" fill-opacity="0" d="m43.11104,94.77979c-24.63486,30.24133 -25.12756,86.82568 2.95617,99.93813c28.08373,13.11245 55.42842,1.77198 72.05696,-18.0739c16.62853,-19.84588 -9.60761,-29.76884 -5.91238,-45.36201c3.69524,-15.59318 26.23613,-26.93368 37.69134,-42.52686c11.45522,-15.59318 20.93965,-35.20279 -11.4552,-37.211c-32.39484,-2.00822 -70.70203,12.99432 -95.33688,43.23564z" id="svg_3"/>
+  <ellipse stroke="#000000" ry="9.79021" rx="13.46154" id="svg_6" cy="141.24126" cx="51.6014" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="0" fill="#bfbf00"/>
+  <ellipse id="svg_8" stroke="#000000" ry="9.79021" rx="13.46154" cy="114.75524" cx="35.65734" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="0" fill="#007f7f"/>
+  <ellipse id="svg_9" stroke="#000000" ry="9.79021" rx="13.46154" cy="90.73426" cx="59.3986" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="0" fill="#ff5656"/>
+  <path stroke="#000000" transform="rotate(-7.500180721282959 115.10737609863278,113.79345703124987) " id="svg_1" d="m119.64644,96.52555c-10.37712,3.61111 -9.55517,11.16667 -9.09282,17.16667c0.46235,6 -9.55518,10.11111 -14.48688,12.33333c-4.9317,2.22222 17.0041,7.05556 26.40516,4.11111c9.40105,-2.94444 13.09983,-11.66667 12.27788,-21.88889" stroke-linecap="round" stroke-linejoin="null" stroke-dasharray="null" stroke-width="0" fill="#191919"/>
+  <rect stroke="#000000" transform="rotate(-151.02316284179688 150.1538848876953,57.75770568847657) " fill="#000000" stroke-width="0" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="round" x="144.30704" y="11.9535" width="11.69367" height="91.60839" id="svg_4" rx="2" ry="2"/>
+  <ellipse id="svg_10" stroke="#000000" ry="9.79021" rx="13.46154" cy="89.85315" cx="94.52098" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="0" fill="#003f7f"/>
+ </g>
+</svg>

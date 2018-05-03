@@ -14,7 +14,7 @@ const title = 'Search by properties';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, title, id, 'magnifying-glass');
+  selection.call(button.dropdownMenuModal, title, id, 'searchprop');
 }
 
 

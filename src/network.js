@@ -36,16 +36,16 @@ function run() {
     const menubar = d3.select('#menubar');
     menubar.selectAll('div,a').remove();
     const menu = menubar.append('div')
-        .call(button.dropdownMenuButton, 'Network', 'primary', 'plus')
+        .call(button.dropdownMenuButton, 'Network', 'primary', 'plus-white')
         .select('.dropdown-menu');
     menu.append('a')
-        .call(button.dropdownMenuFile, 'Import view', '.gfc,.gfr,.json,.gz', 'file')
+        .call(button.dropdownMenuFile, 'Import view', '.gfc,.gfr,.json,.gz', 'import')
         .on('change', function () {
           const file = button.dropdownMenuFileValue(d3.select(this));
           hfile.loadJSON(file).then(networkApp.app);
         });
     menubar.append('a')
-        .call(button.menuButtonLink, 'Control panel', 'outline-secondary', 'cog')
+        .call(button.menuButtonLink, 'Store', 'outline-secondary', 'db-gray')
         .attr('href', 'control.html')
         .attr('target', '_blank');
   }

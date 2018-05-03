@@ -27,12 +27,12 @@ function updateStoreRow(selection, record) {
       .classed('action', true);
   const app = {nodes: 'datagrid', edges: 'network'};
   action.append('a')
-      .call(button.menuButtonLink, 'Open', 'primary', 'share-boxed')
+      .call(button.menuButtonLink, 'Open', 'primary', 'open-white')
       .attr('href', `${app[record.dataType]}.html?id=${record.storeID}`)
       .attr('target', '_blank');
   const ongoing = ['running', 'ready'].includes(record.status);
   action.append('a')
-      .call(button.menuModalLink, 'delete-dialog', 'Delete', 'warning', 'trash')
+      .call(button.menuModalLink, 'delete-dialog', 'Delete', 'warning', 'delete-gray')
       .property('disabled', ongoing)
       .on('click', () =>{
         d3.select('#delete-dialog')
@@ -96,15 +96,15 @@ function run() {
   // Menubar
   const menu = d3.select('#menubar');
   menu.append('a')
-      .call(button.menuButtonLink, 'Datagrid', 'primary', 'plus')
+      .call(button.menuButtonLink, 'Datagrid', 'primary', 'plus-white')
       .attr('href', 'datagrid.html')
       .attr('target', '_blank');
   menu.append('a')
-      .call(button.menuButtonLink, 'Network', 'primary', 'plus')
+      .call(button.menuButtonLink, 'Network', 'primary', 'plus-white')
       .attr('href', 'network.html')
       .attr('target', '_blank');
   menu.append('a')
-      .call(button.menuButtonLink, 'Refresh all', 'outline-secondary', 'reload')
+      .call(button.menuButtonLink, 'Refresh all', 'outline-secondary', 'refresh-gray')
       .on('click', () => {
         return idb.getAllItems()
           .then(items => {
@@ -115,7 +115,7 @@ function run() {
           .then(update);
       });
   menu.append('a')
-      .call(button.menuModalLink, 'reset-dialog', 'Reset local datastore', 'warning', 'trash');
+      .call(button.menuModalLink, 'reset-dialog', 'Reset local datastore', 'warning', 'delete-gray');
 
   // Tables
   const storeFields = misc.defaultFieldProperties([

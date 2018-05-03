@@ -20,7 +20,7 @@ let fdstate = null;
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, title, id, 'beaker');
+  selection.call(button.dropdownMenuModal, title, id, 'addassay');
 }
 
 
