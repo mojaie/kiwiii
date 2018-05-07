@@ -6,6 +6,29 @@ import {default as fetcher} from './fetcher.js';
 import {default as misc} from './misc.js';
 
 
+function serverStatus() {
+  const response = {};
+  return fetcher.get('server')
+    .then(fetcher.json)
+    .then(res => {
+      response.server = res;
+    })
+    .then(() => fetcher.get('schema'))
+    .then(fetcher.json)
+    .then(res => {
+      response.schema = res;
+    })
+    .catch(() => {
+      console.info('Server did not respond');
+      response.server = {};
+      response.schema = {
+        resources: [], templates: [], compoundIDPlaceholder: null
+      };
+    })
+    .then(() => response);
+}
+
+
 function fetchProgress(storeID, command='update') {
   return idb.getItemByID(storeID)
     .then(data => {
@@ -33,5 +56,5 @@ function fetchProgress(storeID, command='update') {
 
 
 export default {
-  fetchProgress
+  serverStatus, fetchProgress
 };

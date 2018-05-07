@@ -1,27 +1,27 @@
 
-/** @module network/networkApp */
+/** @module networkApp */
 
 import d3 from 'd3';
 
-import {default as core} from '../common/core.js';
-import {default as hfile} from '../common/file.js';
-import {default as idb} from '../common/idb.js';
-import {default as mapper} from '../common/mapper.js';
-import {default as misc} from '../common/misc.js';
-import {default as scale} from '../common/scale.js';
+import {default as core} from './common/core.js';
+import {default as hfile} from './common/file.js';
+import {default as idb} from './common/idb.js';
+import {default as mapper} from './common/mapper.js';
+import {default as misc} from './common/misc.js';
+import {default as scale} from './common/scale.js';
 
-import {default as button} from '../component/button.js';
-import {default as modal} from '../component/modal.js';
+import {default as button} from './component/button.js';
+import {default as modal} from './component/modal.js';
 
-import {default as communityDialog} from '../dialog/community.js';
-import {default as renameDialog} from '../dialog/rename.js';
+import {default as communityDialog} from './dialog/community.js';
+import {default as renameDialog} from './dialog/rename.js';
 
-import {default as view} from './view.js';
-import {default as control} from './controlBox.js';
-import {default as interaction} from './interaction.js';
-import {default as force} from './force.js';
-import {default as community} from './communityDetection.js';
-import NetworkState from './state.js';
+import NetworkState from './network/state.js';
+import {default as community} from './network/communityDetection.js';
+import {default as control} from './network/controlBox.js';
+import {default as view} from './network/view.js';
+import {default as force} from './network/force.js';
+import {default as interaction} from './network/interaction.js';
 
 
 function getGraph(storeID) {
@@ -61,14 +61,9 @@ function app(data) {
   const menu = menubar.append('div')
       .call(button.dropdownMenuButton, 'Network', 'primary', 'network-white')
       .select('.dropdown-menu');
+  menu.append('a').call(communityDialog.menuLink);
+  menu.append('a').call(renameDialog.menuLink);
   menu.append('a')
-      .classed('communityd', true)
-      .call(communityDialog.menuLink);
-  menu.append('a')
-      .classed('renamed', true)
-      .call(renameDialog.menuLink);
-  menu.append('a')
-      .classed('saveview', true)
       .call(button.dropdownMenuItem, 'Save', 'save')
       .on('click', function () {
         if (state.data.edges.storeID) {
@@ -107,23 +102,23 @@ function app(data) {
         .attr('href', `datagrid.html?id=${state.data.nodes.storeID}`)
         .attr('target', '_blank');
   }
-  // Control panel
+  // Dashboard link
   menubar.append('a')
-      .call(button.menuButtonLink, 'Store', 'outline-secondary', 'db-gray')
-      .attr('href', 'control.html')
+      .call(button.menuButtonLink, 'Dashboard', 'outline-secondary', 'db-gray')
+      .attr('href', 'dashboard.html')
       .attr('target', '_blank');
   // Fetch control
   const ongoing = ['running', 'ready'].includes(state.data.edges.status);
   if (ongoing) {
     menubar.append('a')
-        .call(button.menuButtonLink, 'Refresh', 'outline-secondary', 'reload')
+        .call(button.menuButtonLink, 'Refresh', 'outline-secondary', 'refresh-gray')
         .on('click', function () {
           core.fetchProgress(state.data.edges.storeID)
             .then(() => getGraph(state.data.edges.storeID))
             .then(app);
         });
     menubar.append('a')
-        .call(button.menuButtonLink, 'Abort server job', 'warning', 'x')
+        .call(button.menuButtonLink, 'Abort server job', 'warning', 'delete-gray')
         .attr('data-toggle', 'modal')
         .attr('data-target', '#abort-dialog');
     menubar.append('span')
@@ -150,11 +145,15 @@ function app(data) {
       .classed('renamed', true)
       .call(renameDialog.body, state.data.edges.name);
   dialogs.append('div')
-      .classed('abortd', true)
       .call(
         modal.confirmDialog, 'abort-dialog',
         'Are you sure you want to abort this calculation job?'
-      );
+      )
+      .on('submit', function () {
+        core.fetchProgress(state.data.edges.storeID, 'abort')
+          .then(() => getGraph(state.data.edges.storeID))
+          .then(app);
+      });
   updateApp(state);
 }
 
@@ -171,13 +170,6 @@ function updateApp(state) {
       .on('submit', function () {
         state.data.edges.name = renameDialog.value(d3.select(this));
         updateApp(state);
-      });
-  // Abort dialog
-  dialogs.select('.abortd')
-      .on('submit', function () {
-        core.fetchProgress(state.data.edges.storeID, 'abort')
-          .then(() => getGraph(state.data.edges.storeID))
-          .then(app);
       });
   // Community dialog
   dialogs.select('.communityd')
@@ -209,6 +201,29 @@ function updateApp(state) {
 }
 
 
+function run() {
+  // TODO: offline mode flags
+  const localFile = document.location.protocol !== "file:";  // TODO
+  const offLine = 'onLine' in navigator && !navigator.onLine;  // TODO
+  const storeID = misc.URLQuery().id || null;
+  const dataURL = misc.URLQuery().location || null;
+  if (storeID) {
+    // Load from IndexedDB store
+    return core.fetchProgress(storeID, 'update')
+      .then(() => getGraph(storeID))
+      .then(app);
+  } else if (dataURL) {
+    // Fetch via HTTP
+    return hfile.fetchJSON(dataURL)
+      .then(app);
+  } else {
+    d3.select('#datagrid')
+      .style('color', 'red')
+      .text('ERROR: invalid URL');
+  }
+}
+
+
 export default {
-  getGraph, app, updateApp
+  run
 };

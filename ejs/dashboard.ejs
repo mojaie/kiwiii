@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <title>Control panel</title>
 <% include partial/header %>
-<script src="kwcontrol.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.5/pako.min.js"></script>
+<script src="dashboardApp.js"></script>
 <div class="container-fluid">
   <div id="menubar" class="btn-toolbar" role="toolbar"></div>
   <div id="contents"></div>
 </div>
 <div id="dialogs"></div>
 <script type="text/javascript">
-  kwcontrol.run();
+  dashboardApp.run();
 </script>

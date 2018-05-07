@@ -161,8 +161,8 @@ function run() {
   // Menubar
   const menubar = d3.select('#menubar');
   menubar.append('a')
-      .call(button.menuButtonLink, 'Control panel', 'outline-secondary', 'cog')
-      .attr('href', 'control.html')
+      .call(button.menuButtonLink, 'Dashboard', 'outline-secondary', 'db-gray')
+      .attr('href', 'dashboard.html')
       .attr('target', '_blank');
   const compoundID = misc.URLQuery().compound || null;
   if (!compoundID) return;

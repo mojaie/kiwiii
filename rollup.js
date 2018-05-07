@@ -23,28 +23,21 @@ argv.option({
   example: "'script --debug=true'"
 });
 const args = argv.run();
-const buildDir = args.targets[0];
 const isDebugBuild = args.options.debug;
 
+const distDir = 'dist';
+const buildDir = '_build';
 
 // Bundle setting
 const bundles = [
-  {name: 'control', module: 'kwcontrol'},
-  {name: 'datagrid', module: 'kwdatagrid'},
-  {name: 'profile', module: 'kwprofile'},
-  {name: 'network', module: 'kwnetwork'},
-  {
-    name: 'main',
-    source: 'main.js',
-    ejs: false,
-    cache: false,
-    deploy: false
-  },
-  {
-    name: 'testAPI',
-    cache: false,
-    deploy: false
-  }
+  {name: 'datagrid', module: 'kw-datagrid', dist: true}, // debug: no build, deploy: uglify
+  {name: 'network', module: 'kw-network', dist: true},
+  {name: 'dashboardApp', ejs: 'dashboard'},  // debug: build, deploy: uglify
+  {name: 'datagridApp', ejs: 'datagrid'},
+  {name: 'networkApp', ejs: 'network'},
+  {name: 'profileApp', ejs: 'profile'},
+  {name: 'testAPI', ejs: 'testAPI', deploy: false},  // debug: build, deploy: delete
+  {name: 'main', source: 'main.js', deploy: false}   // debug: build, deploy: delete
 ];
 
 
@@ -60,46 +53,45 @@ const external = {
 
 
 // JS build
-const jsBundled = bundles.map(bundle => {
-  const plugins = [resolve({jsnext: true})];
-  if (!isDebugBuild) {
-    if (bundle.hasOwnProperty('deploy') && !bundle.deploy) {
-      return Promise.resolve();
+const jsBundled = bundles
+  .filter(bundle => !(isDebugBuild && bundle.hasOwnProperty('dist') && bundle.dist))
+  .map(bundle => {
+    const plugins = [resolve({jsnext: true})];
+    if (!isDebugBuild) {
+      plugins.push(uglify({output: {beautify: false, preamble: preamble}}, minify));
     }
-    plugins.push(uglify({output: {beautify: false, preamble: preamble}}, minify));
-  }
-  const module = bundle.hasOwnProperty('module') ? bundle.module : bundle.name;
-  return rollup.rollup({
-    input: bundle.hasOwnProperty('source') ? bundle.source : `src/${bundle.name}.js`,
-    plugins: plugins,
-    external: Object.keys(external)
-  }).then(b => {
-    b.write({
-      file: `${buildDir}/${module}.js`,
-      format: 'umd',
-      sourcemap: true,
-      name: module,
-      banner: preamble,
-      globals: external
+    const module = bundle.hasOwnProperty('module') ? bundle.module : bundle.name;
+    return rollup.rollup({
+      input: bundle.hasOwnProperty('source') ? bundle.source : `src/${bundle.name}.js`,
+      plugins: plugins,
+      external: Object.keys(external)
+    }).then(b => {
+      b.write({
+        file: `${bundle.dist ? distDir : buildDir}/${module}.js`,
+        format: 'umd',
+        sourcemap: true,
+        name: module,
+        banner: preamble,
+        globals: external
+      });
     });
   });
-});
 
 
 // EJS build
 const htmlRendered = bundles
   .filter(bundle => isDebugBuild || !bundle.hasOwnProperty('deploy') || bundle.deploy)
-  .filter(bundle => !bundle.hasOwnProperty('ejs') || bundle.ejs)
+  .filter(bundle => bundle.hasOwnProperty('ejs'))
   .map(bundle => {
     return new Promise((resolve, reject) => {
       ejs.renderFile(
-        `./ejs/${bundle.name}.ejs`, {}, {},
+        `./ejs/${bundle.ejs}.ejs`, {}, {},
         (err, str) => {
           if (err) {
             console.error(err);
             reject();
           }
-          fs.writeFile(`${buildDir}/${bundle.name}.html`, str, () => {
+          fs.writeFile(`${buildDir}/${bundle.ejs}.html`, str, () => {
             resolve();
           });
         }

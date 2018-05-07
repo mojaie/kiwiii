@@ -1,30 +1,30 @@
 
-/** @module datagrid/datagridApp */
+/** @module datagridApp */
 
 import d3 from 'd3';
 
-import {default as core} from '../common/core.js';
-import {default as idb} from '../common/idb.js';
-import {default as fetcher} from '../common/fetcher.js';
-import {default as hfile} from '../common/file.js';
-import {default as legacy} from '../common/legacySchema.js';
-import {default as mapper} from '../common/mapper.js';
-import {default as misc} from '../common/misc.js';
+import {default as core} from './common/core.js';
+import {default as fetcher} from './common/fetcher.js';
+import {default as hfile} from './common/file.js';
+import {default as idb} from './common/idb.js';
+import {default as legacy} from './common/legacySchema.js';
+import {default as mapper} from './common/mapper.js';
+import {default as misc} from './common/misc.js';
 
-import {default as button} from '../component/button.js';
-import {default as modal} from '../component/modal.js';
+import {default as button} from './component/button.js';
+import {default as modal} from './component/modal.js';
 
-import {default as fieldConfigDialog} from '../dialog/fieldConfig.js';
-import {default as fieldFetchDialog} from '../dialog/fieldFetch.js';
-import {default as fieldFileDialog} from '../dialog/fieldFile.js';
-import {default as fieldInputDialog} from '../dialog/fieldInput.js';
-import {default as networkgenDialog} from '../dialog/networkgen.js';
-import {default as renameDialog} from '../dialog/rename.js';
+import {default as fieldConfigDialog} from './dialog/fieldConfig.js';
+import {default as fieldFetchDialog} from './dialog/fieldFetch.js';
+import {default as fieldFileDialog} from './dialog/fieldFile.js';
+import {default as fieldInputDialog} from './dialog/fieldInput.js';
+import {default as networkgenDialog} from './dialog/networkgen.js';
+import {default as renameDialog} from './dialog/rename.js';
 
-import {default as view} from './view.js';
-import {default as sort} from './sort.js';
-import {default as rowf} from './rowFilter.js';
-import DatagridState from './state.js';
+import DatagridState from './datagrid/state.js';
+import {default as rowf} from './datagrid/rowFilter.js';
+import {default as sort} from './datagrid/sort.js';
+import {default as view} from './datagrid/view.js';
 
 
 function app(data, serverStatus, schema) {
@@ -41,37 +41,71 @@ function app(data, serverStatus, schema) {
   const menu = menubar.append('div')
       .call(button.dropdownMenuButton, 'Datagrid', 'primary', 'table-white')
       .select('.dropdown-menu');
+  menu.append('a').call(fieldConfigDialog.menuLink);
   menu.append('a')
-      .call(fieldConfigDialog.menuLink);
-  menu.append('a')
+      .classed('online-command', true)
       .call(fieldFetchDialog.menuLink);
+  menu.append('a').call(fieldFileDialog.menuLink);
+  menu.append('a').call(fieldInputDialog.menuLink);
   menu.append('a')
-      .call(fieldFileDialog.menuLink);
-  menu.append('a')
-      .call(fieldInputDialog.menuLink);
-  menu.append('a')
-      .classed('networkgend', true)
+      .classed('online-command', true)
       .call(networkgenDialog.menuLink);
+  menu.append('a').call(renameDialog.menuLink);
   menu.append('a')
-      .call(renameDialog.menuLink);
+      .call(button.dropdownMenuItem, 'Save', 'save')
+      .on('click', function () {
+        if (state.data.storeID) {
+          return idb.updateItem(state.data.storeID, item => {
+            item.id = misc.uuidv4();
+            item.name = state.data.name;
+            item.fields = state.data.fields;
+            item.records = state.data.records;
+          })
+          .then(() => console.info('Datagrid saved'));
+        } else {
+          return idb.putItem(state.export())
+            .then(storeID => {
+              window.location = `datagrid.html?id=${storeID}`;
+            });
+        }
+      });
   menu.append('a')
-      .classed('saveview', true)
-      .call(button.dropdownMenuItem, 'Save', 'save');
+      .call(button.dropdownMenuItem, 'Download JSON', 'export')
+      .on('click', () => {
+        const data = state.export();
+        // Delete local store information
+        delete data.storeID;
+        hfile.downloadJSON(data, data.name);
+      });
   menu.append('a')
-      .classed('exportjson', true)
-      .call(button.dropdownMenuItem, 'Download JSON', 'export');
-  menu.append('a')
-      .classed('exportexcel', true)
-      .call(button.dropdownMenuItem, 'Download Excel', 'exportexcel');
+      .classed('online-command', true)
+      .call(button.dropdownMenuItem, 'Download Excel', 'exportexcel')
+      .on('click', () => {
+        const data = state.export();
+        const formData = new FormData();
+        formData.append('contents', new Blob([JSON.stringify(data)]));
+        return fetcher.post('xlsx', formData)
+          .then(fetcher.blob)
+          .then(blob => hfile.downloadDataFile(blob, `${data.name}.xlsx`));
+      });
   // Open control panel
   menubar.append('a')
-      .call(button.menuButtonLink, 'Store', 'outline-secondary', 'db-gray')
-      .attr('href', 'control.html')
+      .call(button.menuButtonLink, 'Dashboard', 'outline-secondary', 'db-gray')
+      .attr('href', 'dashboard.html')
       .attr('target', '_blank');
   // Fetch control
   menubar.append('a')
       .classed('refresh', true)
-      .call(button.menuButtonLink, 'Refresh', 'outline-secondary', 'refresh-gray');
+      .call(button.menuButtonLink, 'Refresh', 'outline-secondary', 'refresh-gray')
+      .on('click', function () {
+        return core.fetchProgress(state.data.storeID)
+          .then(() => idb.getItemByID(state.data.storeID))
+          .then(item => {
+            state.data = item;
+            state.updateContentsNotifier();
+            updateApp(state);
+          });
+      });
   menubar.append('a')
       .classed('abort', true)
       .call(button.menuButtonLink, 'Abort server job', 'warning', 'delete-gray')
@@ -132,60 +166,16 @@ function updateApp(state) {
 
   // Menubar
   const menubar = d3.select('#menubar');
-  menubar.select('.saveview')
-      .on('click', function () {
-        if (state.data.storeID) {
-          return idb.updateItem(state.data.storeID, item => {
-            item.id = misc.uuidv4();
-            item.name = state.data.name;
-            item.fields = state.data.fields;
-            item.records = state.data.records;
-          })
-          .then(() => console.info('Datagrid saved'));
-        } else {
-          return idb.putItem(state.export())
-            .then(storeID => {
-              window.location = `datagrid.html?id=${storeID}`;
-            });
-        }
-      });
-  menubar.select('.exportjson')
-      .on('click', () => {
-        const data = state.export();
-        // Delete local store information
-        delete data.storeID;
-        hfile.downloadJSON(data, data.name);
-      });
-  menubar.select('.exportexcel')
-      .on('click', () => {
-        const data = state.export();
-        const formData = new FormData();
-        formData.append('contents', new Blob([JSON.stringify(data)]));
-        return fetcher.post('xlsx', formData)
-          .then(fetcher.blob)
-          .then(blob => hfile.downloadDataFile(blob, `${data.name}.xlsx`));
-      });
-
   menubar.select('.title').text(state.data.name);
   menubar.select('.status')
       .text(`(${state.data.status} - ${state.data.records.length} records found in ${state.data.execTime} sec.)`);
   menubar.select('.progress').select('progress')
       .attr('value', state.data.progress)
       .text(`${state.data.progress}%`);
-  menubar.select('.refresh')
-      .on('click', function () {
-        return core.fetchProgress(state.data.storeID)
-          .then(() => idb.getItemByID(state.data.storeID))
-          .then(item => {
-            state.data = item;
-            state.updateContentsNotifier();
-            updateApp(state);
-          });
-      });
 
   // disable on-line commands
   if (!state.serverStatus.instance) {
-    menubar.selectAll('.networkgend, .exportexcel')
+    menubar.selectAll('.online-command')
       .attr('data-target', null)
       .classed('disabled', true)
       .on('click', null);
@@ -285,6 +275,33 @@ function updateApp(state) {
 }
 
 
+function run() {
+  // TODO: offline mode flags
+  const localFile = document.location.protocol !== "file:";  // TODO
+  const offLine = 'onLine' in navigator && !navigator.onLine;  // TODO
+  return core.serverStatus()
+    .then(response => {
+      console.info('Off-line mode is disabled for debugging');
+      const storeID = misc.URLQuery().id || null;
+      const dataURL = misc.URLQuery().location || null;
+      if (storeID) {
+        // Load from IndexedDB store
+        core.fetchProgress(storeID, 'update')
+          .then(() => idb.getItemByID(storeID))
+          .then(item => app(item, response.server, response.schema));
+      } else if (dataURL) {
+        // Fetch via HTTP
+        hfile.fetchJSON(dataURL)
+          .then(item => app(item, response.server, response.schema));
+      } else {
+        d3.select('#datagrid')
+          .style('color', 'red')
+          .text('ERROR: invalid URL');
+      }
+    });
+}
+
+
 export default {
-  app, updateApp
+  run
 };
