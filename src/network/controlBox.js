@@ -171,7 +171,7 @@ function nodeColorControlBox(selection, state) {
       .classed('range', true)
       .call(
         group.colorRangeGroup, 'color', scaledef.colorPalettes,
-        scaledef.colorRangeTypes, state.nodeColor.range
+        scaledef.colorRangeTypes, state.nodeColor.range, state.nodeColor.unknown
       );
   selection.append('div')
       .classed('scale', true)
@@ -193,11 +193,12 @@ function updateNodeColorControlBox(selection, state) {
       state.updateNodeAttrNotifier();
     });
   selection.select('.range')
-    .call(group.updateColorRangeGroup, state.nodeColor.range)
+    .call(group.updateColorRangeGroup, state.nodeColor.range, state.nodeColor.unknown)
     .on('change', function () {
       const values = group.colorRangeGroupValue(d3.select(this));
-      state.nodeColor.range = values;
-      if (values.length > 3) {
+      state.nodeColor.range = values.range;
+      state.nodeColor.unknown = values.unknown;
+      if (values.range.length > 3) {
         state.nodeColor.scale = 'ordinal';
         selection.select('.scale').selectAll('select,input')
           .property('disabled', true)
@@ -306,7 +307,7 @@ function nodeLabelControlBox(selection, state) {
       .classed('range', true)
       .call(
         group.colorRangeGroup, 'label', scaledef.colorPalettes,
-        scaledef.colorRangeTypes, state.nodeLabelColor.range
+        scaledef.colorRangeTypes, state.nodeLabelColor.range, state.nodeColor.unknown
       );
   selection.append('div')
       .classed('scale', true)
@@ -348,11 +349,12 @@ function updateNodeLabelControlBox(selection, state) {
         state.updateNodeAttrNotifier();
       });
   selection.select('.range')
-      .call(group.updateColorRangeGroup, state.nodeLabelColor.range)
+      .call(group.updateColorRangeGroup, state.nodeLabelColor.range, state.nodeColor.unknown)
       .on('change', function () {
         const values = group.colorRangeGroupValue(d3.select(this));
-        state.nodeLabelColor.range = values;
-        if (values.length > 3) {
+        state.nodeLabelColor.range = values.range;
+        state.nodeLabelColor.unknown = values.unknown;
+        if (values.range.length > 3) {
           state.nodeLabelColor.scale = 'ordinal';
           selection.select('.scale').selectAll('select,input')
             .property('disabled', true)

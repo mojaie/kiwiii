@@ -56,7 +56,7 @@ export default class NetworkState {
     this.nodeColor.scale = snp.nodeColor.scale || 'linear';
     this.nodeColor.domain = snp.nodeColor.domain || [0, 1];
     this.nodeColor.range = snp.nodeColor.range || ['#7fffd4', '#7fffd4'];
-    this.nodeColor.unknown = snp.nodeColor.unknown || ['#7fffd4'];
+    this.nodeColor.unknown = snp.nodeColor.unknown || '#7fffd4';
 
     // nodeSize
     this.nodeSize = {};
@@ -77,8 +77,8 @@ export default class NetworkState {
     this.nodeLabelColor.field = snp.nodeLabelColor.field || null;
     this.nodeLabelColor.scale = snp.nodeLabelColor.scale || 'linear';
     this.nodeLabelColor.domain = snp.nodeLabelColor.domain || [1, 1];
-    this.nodeLabelColor.range = snp.nodeLabelColor.range || ['#7fffd4', '#7fffd4'];
-    this.nodeLabelColor.unknown = snp.nodeLabelColor.unknown || ['#333333'];
+    this.nodeLabelColor.range = snp.nodeLabelColor.range || ['#cccccc', '#cccccc'];
+    this.nodeLabelColor.unknown = snp.nodeLabelColor.unknown || '#cccccc';
 
     // Edge attributes
     // this.edgeVisible = snp.edgeVisible || true;

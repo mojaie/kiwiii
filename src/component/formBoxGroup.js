@@ -3,6 +3,7 @@
 
 import d3 from 'd3';
 
+import {default as box} from '../component/formBox.js';
 import {default as lbox} from '../component/formListBox.js';
 import {default as rbox} from '../component/formRangeBox.js';
 import {default as scaledef} from '../common/scale.js';
@@ -12,7 +13,7 @@ import {default as scaledef} from '../common/scale.js';
  * Render color range control box group
  * @param {d3.selection} selection - selection of box container (div element)
  */
-function colorRangeGroup(selection, id, palettes, rangeTypes, range) {
+function colorRangeGroup(selection, id, palettes, rangeTypes, range, unknown) {
   selection
       .classed('mb-3', true);
   selection.append('div')
@@ -30,11 +31,15 @@ function colorRangeGroup(selection, id, palettes, rangeTypes, range) {
       .classed('range', true)
       .classed('mb-1', true)
       .call(rbox.colorScaleBox, `${id}-range`, 'Range', range);
-  selection.call(updateColorRangeGroup, range);
+  selection.append('div')
+      .classed('unknown', true)
+      .classed('mb-1', true)
+      .call(box.colorBox, 'Unknown', unknown);
+  selection.call(updateColorRangeGroup, range, unknown);
 }
 
 
-function updateColorRangeGroup(selection, range) {
+function updateColorRangeGroup(selection, range, unknown) {
   selection.select('.palette')
       .call(
         lbox.updateSelectBox,
@@ -66,17 +71,25 @@ function updateColorRangeGroup(selection, range) {
       .on('focusin', () => {
         selection.dispatch('change');
       });
+  selection.select('.unknown')
+      .call(box.updateColorBox, unknown)
+      .on('focusin', () => {
+        selection.dispatch('change');
+      });
 }
 
 
 function colorRangeGroupValue(selection) {
   const type = lbox.selectBoxValue(selection.select('.rangetype'));
-  const values = rbox.colorScaleBoxValue(selection.select('.range'));
-  if (!values.length) {
-    return scaledef.colorRangeTypes.find(e => e.key === type).range;
-  } else {
-    return values;
-  }
+  const range = rbox.colorScaleBoxValue(selection.select('.range'));
+  const unknown = box.colorBoxValue(selection.select('.unknown'));
+  const rvalue = range.length
+    ? range : scaledef.colorRangeTypes.find(e => e.key === type).range;
+  return {
+    range: rvalue,
+    unknown: unknown
+  };
+
 }
 
 

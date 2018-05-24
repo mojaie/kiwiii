@@ -2,6 +2,9 @@
 /** @module component/formBox */
 
 
+import d3 from 'd3';
+
+
 function textBox(selection, id, label, size, value) {  // TODO: remove size
   selection
       .classed('form-group', true)
@@ -152,6 +155,49 @@ function numberBoxValue(selection) {
   return selection.select('input').property('value');
 }
 
+/**
+ * Render color scale box components
+ * @param {d3.selection} selection - selection of box container (div element)
+ */
+function colorBox(selection, label, value) {
+  selection
+      .classed('form-row', true)
+      .classed('align-items-center', true);
+  selection.append('div')
+      .classed('form-group', true)
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
+      .classed('mb-1', true)
+      .text(label);
+  selection.append('div')
+      .classed('form-group', true)
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
+      .classed('mb-1', true)
+    .append('input')
+      .classed('form-control', true)
+      .classed('form-control-sm', true)
+      .attr('type', 'color');
+  selection
+      .call(updateColorBox, value)
+      .on('change', () => {
+        // avoid update by mousemove on the colorpicker
+        d3.event.stopPropagation();
+      });
+}
+
+
+function updateColorBox(selection, value) {
+  selection.select('input').property('value', value);
+}
+
+
+function colorBoxValue(selection) {
+  return selection.select('input').property('value');
+}
+
 
 function fileInputBox(selection, id, label, accept) {
 selection
@@ -183,5 +229,6 @@ export default {
   textareaBox, updateTextareaBox, textareaBoxValue, textareaBoxLines,
   checkBox, updateCheckBox, checkBoxValue,
   numberBox, updateNumberBox, numberBoxValue,
+  colorBox, updateColorBox, colorBoxValue,
   fileInputBox, fileInputBoxValue
 };
