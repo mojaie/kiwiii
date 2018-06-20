@@ -8,6 +8,7 @@ import {default as fetcher} from './common/fetcher.js';
 import {default as hfile} from './common/file.js';
 import {default as idb} from './common/idb.js';
 import {default as misc} from './common/misc.js';
+import {default as sw} from './common/sw.js';
 
 import {default as button} from './component/button.js';
 import {default as table} from './component/table.js';
@@ -265,7 +266,11 @@ function run() {
   // TODO: offline mode flags
   const localFile = document.location.protocol !== "file:";  // TODO
   const offLine = 'onLine' in navigator && !navigator.onLine;  // TODO
-  console.info('Off-line mode is disabled for debugging');
+  if (debug) {
+    console.info('Off-line mode is disabled for debugging');
+  } else {
+    sw.registerServiceWorker();
+  }
   return core.serverStatus()
     .then(app);
 }

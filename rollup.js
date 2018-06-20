@@ -72,6 +72,7 @@ const jsBundled = bundles
         sourcemap: true,
         name: module,
         banner: preamble,
+        intro: `const debug = ${isDebugBuild};`,
         globals: external
       });
     });
@@ -118,16 +119,20 @@ Promise.all(
 ).then(() => {
   precache.write(`${buildDir}/sw.js`, {
       staticFileGlobs: [
-        `${buildDir}/*.{js,html,css}`
+        `${buildDir}/*.{js,html,css}`,
+        `${buildDir}/assets/*.gif`,
+        `${buildDir}/assets/icon/*.svg`
       ],
       stripPrefix: `${buildDir}/`,
       ignoreUrlParametersMatching: [/(id|compound)/],
       runtimeCaching: [
-        {urlPattern: /^https:\/\/maxcdn\.bootstrapcdn\.com/, handler: 'cacheFirst'},
-        {urlPattern: /^https:\/\/code\.jquery\.com/, handler: 'cacheFirst'},
+        {urlPattern: /^https:\/\/cdn\.jsdelivr\.net/, handler: 'cacheFirst'},
+        {urlPattern: /^https:\/\/cdn\.rawgit\.com/, handler: 'cacheFirst'},
         {urlPattern: /^https:\/\/cdnjs\.cloudflare\.com/, handler: 'cacheFirst'},
-        {urlPattern: /^https:\/\/unpkg\.com/, handler: 'cacheFirst'},
+        {urlPattern: /^https:\/\/code\.jquery\.com/, handler: 'cacheFirst'},
         {urlPattern: /^https:\/\/d3js\.org/, handler: 'cacheFirst'},
+        {urlPattern: /^https:\/\/maxcdn\.bootstrapcdn\.com/, handler: 'cacheFirst'},
+        {urlPattern: /^https:\/\/unpkg\.com/, handler: 'cacheFirst'},
         {urlPattern: /^https:\/\/vega\.github\.io/, handler: 'cacheFirst'}
       ]
     }, () => {});

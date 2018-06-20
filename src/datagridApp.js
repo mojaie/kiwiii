@@ -10,6 +10,7 @@ import {default as idb} from './common/idb.js';
 import {default as legacy} from './common/legacySchema.js';
 import {default as mapper} from './common/mapper.js';
 import {default as misc} from './common/misc.js';
+import {default as sw} from './common/sw.js';
 
 import {default as button} from './component/button.js';
 import {default as modal} from './component/modal.js';
@@ -279,9 +280,13 @@ function run() {
   // TODO: offline mode flags
   const localFile = document.location.protocol !== "file:";  // TODO
   const offLine = 'onLine' in navigator && !navigator.onLine;  // TODO
+  if (debug) {
+    console.info('Off-line mode is disabled for debugging');
+  } else {
+    sw.registerServiceWorker();
+  }
   return core.serverStatus()
     .then(response => {
-      console.info('Off-line mode is disabled for debugging');
       const storeID = misc.URLQuery().id || null;
       const dataURL = misc.URLQuery().location || null;
       if (storeID) {
