@@ -54,7 +54,13 @@ const external = {
 
 // JS build
 const jsBundled = bundles
-  .filter(bundle => !(isDebugBuild && bundle.hasOwnProperty('dist') && bundle.dist))
+  .filter(bundle => {
+    if (isDebugBuild) {
+      return !(bundle.hasOwnProperty('dist') && bundle.dist);
+    } else {
+      return !(bundle.hasOwnProperty('deploy') && !bundle.deploy);
+    }
+  })
   .map(bundle => {
     const plugins = [resolve({jsnext: true})];
     if (!isDebugBuild) {
@@ -81,8 +87,8 @@ const jsBundled = bundles
 
 // EJS build
 const htmlRendered = bundles
-  .filter(bundle => isDebugBuild || !bundle.hasOwnProperty('deploy') || bundle.deploy)
   .filter(bundle => bundle.hasOwnProperty('ejs'))
+  .filter(bundle => isDebugBuild || !bundle.hasOwnProperty('deploy') || bundle.deploy)
   .map(bundle => {
     return new Promise((resolve, reject) => {
       ejs.renderFile(
@@ -113,9 +119,24 @@ const cssRendered = new Promise(resolve => {
 });
 
 
+// Remove debug files
+const filesRemoved = new Promise(resolve => {
+  bundles
+  .filter(bundle => !isDebugBuild && bundle.hasOwnProperty('deploy') && !bundle.deploy)
+  .map(bundle => {
+    fs.unlinkSync(`${buildDir}/${bundle.name}.js`);
+    fs.unlinkSync(`${buildDir}/${bundle.name}.js.map`);
+    if (bundle.hasOwnProperty('ejs')) {
+      fs.unlinkSync(`${buildDir}/${bundle.name}.html`);
+    }
+  });
+  resolve();
+});
+
+
 // Generate service worker file
 Promise.all(
-  jsBundled.concat(htmlRendered, cssRendered)
+  jsBundled.concat(htmlRendered, cssRendered, filesRemoved)
 ).then(() => {
   precache.write(`${buildDir}/sw.js`, {
       staticFileGlobs: [
