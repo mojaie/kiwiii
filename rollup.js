@@ -28,17 +28,26 @@ const isDebugBuild = args.options.debug;
 const distDir = 'dist';
 const buildDir = '_build';
 
+
 // Bundle setting
-const bundles = [
-  {name: 'datagrid', module: 'kw-datagrid', dist: true}, // debug: no build, deploy: uglify
-  {name: 'network', module: 'kw-network', dist: true},
-  {name: 'dashboardApp', ejs: 'dashboard'},  // debug: build, deploy: uglify
+const appBundles = [
+  {name: 'dashboardApp', ejs: 'dashboard'},
   {name: 'datagridApp', ejs: 'datagrid'},
   {name: 'networkApp', ejs: 'network'},
-  {name: 'profileApp', ejs: 'profile'},
-  {name: 'testAPI', ejs: 'testAPI', deploy: false},  // debug: build, deploy: delete
-  {name: 'main', source: 'main.js', deploy: false}   // debug: build, deploy: delete
+  {name: 'profileApp', ejs: 'profile'}
 ];
+
+const debugBundles = [
+  {name: 'testAPI', ejs: 'testAPI'},
+  {name: 'main', source: 'main.js'}
+];
+
+const deployBundles = [
+  {name: 'datagrid', module: 'kw-datagrid', dist: true},
+  {name: 'network', module: 'kw-network', dist: true}
+];
+
+const bundles = appBundles.concat(isDebugBuild ? debugBundles : deployBundles);
 
 
 // External JS libraries
@@ -53,42 +62,33 @@ const external = {
 
 
 // JS build
-const jsBundled = bundles
-  .filter(bundle => {
-    if (isDebugBuild) {
-      return !(bundle.hasOwnProperty('dist') && bundle.dist);
-    } else {
-      return !(bundle.hasOwnProperty('deploy') && !bundle.deploy);
-    }
-  })
-  .map(bundle => {
-    const plugins = [resolve({jsnext: true})];
-    if (!isDebugBuild) {
-      plugins.push(uglify({output: {beautify: false, preamble: preamble}}, minify));
-    }
-    const module = bundle.hasOwnProperty('module') ? bundle.module : bundle.name;
-    return rollup.rollup({
-      input: bundle.hasOwnProperty('source') ? bundle.source : `src/${bundle.name}.js`,
-      plugins: plugins,
-      external: Object.keys(external)
-    }).then(b => {
-      b.write({
-        file: `${bundle.dist ? distDir : buildDir}/${module}.js`,
-        format: 'umd',
-        sourcemap: true,
-        name: module,
-        banner: preamble,
-        intro: `const debug = ${isDebugBuild};`,
-        globals: external
-      });
+const jsBundled = bundles.map(bundle => {
+  const plugins = [resolve({jsnext: true})];
+  if (!isDebugBuild) {
+    plugins.push(uglify({output: {beautify: false, preamble: preamble}}, minify));
+  }
+  const module = bundle.hasOwnProperty('module') ? bundle.module : bundle.name;
+  return rollup.rollup({
+    input: bundle.hasOwnProperty('source') ? bundle.source : `src/${bundle.name}.js`,
+    plugins: plugins,
+    external: Object.keys(external)
+  }).then(b => {
+    b.write({
+      file: `${bundle.dist ? distDir : buildDir}/${module}.js`,
+      format: 'umd',
+      sourcemap: true,
+      name: module,
+      banner: preamble,
+      intro: `const debug = ${isDebugBuild};`,
+      globals: external
     });
   });
+});
 
 
 // EJS build
 const htmlRendered = bundles
   .filter(bundle => bundle.hasOwnProperty('ejs'))
-  .filter(bundle => isDebugBuild || !bundle.hasOwnProperty('deploy') || bundle.deploy)
   .map(bundle => {
     return new Promise((resolve, reject) => {
       ejs.renderFile(
@@ -119,42 +119,35 @@ const cssRendered = new Promise(resolve => {
 });
 
 
-// Remove debug files
-const filesRemoved = new Promise(resolve => {
-  bundles
-  .filter(bundle => !isDebugBuild && bundle.hasOwnProperty('deploy') && !bundle.deploy)
-  .map(bundle => {
-    fs.unlinkSync(`${buildDir}/${bundle.name}.js`);
-    fs.unlinkSync(`${buildDir}/${bundle.name}.js.map`);
-    if (bundle.hasOwnProperty('ejs')) {
-      fs.unlinkSync(`${buildDir}/${bundle.name}.html`);
-    }
-  });
-  resolve();
-});
-
-
 // Generate service worker file
 Promise.all(
-  jsBundled.concat(htmlRendered, cssRendered, filesRemoved)
+  jsBundled.concat(htmlRendered, cssRendered)
 ).then(() => {
+  if (!isDebugBuild) { // Remove debug files
+    debugBundles.forEach(bundle => {
+      ['.js', '.js.map', '.html'].forEach(ext => {
+        const p = `${buildDir}/${bundle.name}${ext}`;
+        if (fs.existsSync(p)) fs.unlinkSync(p);
+      });
+    });
+  }
   precache.write(`${buildDir}/sw.js`, {
-      staticFileGlobs: [
-        `${buildDir}/*.{js,html,css}`,
-        `${buildDir}/assets/*.gif`,
-        `${buildDir}/assets/icon/*.svg`
-      ],
-      stripPrefix: `${buildDir}/`,
-      ignoreUrlParametersMatching: [/(id|compound)/],
-      runtimeCaching: [
-        {urlPattern: /^https:\/\/cdn\.jsdelivr\.net/, handler: 'cacheFirst'},
-        {urlPattern: /^https:\/\/cdn\.rawgit\.com/, handler: 'cacheFirst'},
-        {urlPattern: /^https:\/\/cdnjs\.cloudflare\.com/, handler: 'cacheFirst'},
-        {urlPattern: /^https:\/\/code\.jquery\.com/, handler: 'cacheFirst'},
-        {urlPattern: /^https:\/\/d3js\.org/, handler: 'cacheFirst'},
-        {urlPattern: /^https:\/\/maxcdn\.bootstrapcdn\.com/, handler: 'cacheFirst'},
-        {urlPattern: /^https:\/\/unpkg\.com/, handler: 'cacheFirst'},
-        {urlPattern: /^https:\/\/vega\.github\.io/, handler: 'cacheFirst'}
-      ]
-    }, () => {});
+    staticFileGlobs: [
+      `${buildDir}/*.{js,html,css}`,
+      `${buildDir}/assets/*.gif`,
+      `${buildDir}/assets/icon/*.svg`
+    ],
+    stripPrefix: `${buildDir}/`,
+    ignoreUrlParametersMatching: [/(id|compound)/],
+    runtimeCaching: [
+      {urlPattern: /^https:\/\/cdn\.jsdelivr\.net/, handler: 'cacheFirst'},
+      {urlPattern: /^https:\/\/cdn\.rawgit\.com/, handler: 'cacheFirst'},
+      {urlPattern: /^https:\/\/cdnjs\.cloudflare\.com/, handler: 'cacheFirst'},
+      {urlPattern: /^https:\/\/code\.jquery\.com/, handler: 'cacheFirst'},
+      {urlPattern: /^https:\/\/d3js\.org/, handler: 'cacheFirst'},
+      {urlPattern: /^https:\/\/maxcdn\.bootstrapcdn\.com/, handler: 'cacheFirst'},
+      {urlPattern: /^https:\/\/unpkg\.com/, handler: 'cacheFirst'},
+      {urlPattern: /^https:\/\/vega\.github\.io/, handler: 'cacheFirst'}
+    ]
+  }, () => {});
 });
