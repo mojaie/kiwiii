@@ -3,8 +3,6 @@
 
 import _ from 'lodash';
 
-import {default as misc} from './misc.js';
-
 
 /**
  * Convert single field mapping to multi field mapping
@@ -34,7 +32,7 @@ function mappingToTable(mapping) {
   const mp = mapping.hasOwnProperty('field') ? singleToMulti(mapping) : mapping;
   const keyField = {key: mp.key, format: 'text'};
   const data = {
-    fields: misc.defaultFieldProperties([keyField].concat(mp.fields)),
+    fields: [keyField].concat(mp.fields),
     records: Object.entries(mp.mapping).map(entry => {
       const rcd = {};
       rcd[mp.key] = entry[0];
@@ -58,9 +56,8 @@ function tableToMapping(table, key, ignore=['index']) {
   const now = new Date();
   const mapping = {
     created: now.toString(),
-    fields: misc.defaultFieldProperties(table.fields
-      .filter(e => e.key !== key)
-      .filter(e => !ignore.includes(e.key))),
+    fields: table.fields.filter(e => e.key !== key)
+      .filter(e => !ignore.includes(e.key)),
     key: key,
     mapping: {}
   };
@@ -90,7 +87,7 @@ function csvToMapping(csvString) {
   });
   const mapping = {
     created: now.toString(),
-    fields: misc.defaultFieldProperties(fields),
+    fields: fields,
     key: key,
     mapping: {}
   };
@@ -122,7 +119,7 @@ function apply(data, mapping) {
       });
     });
   data.fields =  _(data.fields)
-    .concat(misc.defaultFieldProperties(mp.fields))
+    .concat(mp.fields)
     .uniqBy('key')
     .value();
 }

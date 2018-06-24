@@ -3,8 +3,6 @@
 
 import d3 from 'd3';
 
-import {default as misc} from '../common/misc.js';
-
 import {default as button} from '../component/button.js';
 import {default as lbox} from '../component/formListBox.js';
 import {default as modal} from '../component/modal.js';
@@ -69,12 +67,12 @@ function tableRowValue(selection) {
 
 
 function body(selection) {
-  const fields = misc.defaultFieldProperties([
-    {key: 'name', format: 'text'},
-    {key: 'visible', format: 'control'},
-    {key: 'format', format: 'control'},
-    {key: 'd3_format', format: 'control'}
-  ]);
+  const fields = [
+    {key: 'name', name: 'Name', format: 'text'},
+    {key: 'visible', name: 'Visible', format: 'control'},
+    {key: 'format', name: 'Format', format: 'control'},
+    {key: 'd3_format', name: 'D3 format', format: 'control'}
+  ];
   selection
       .call(modal.submitDialog, id, title)
     .select('.modal-body')
@@ -86,7 +84,7 @@ function body(selection) {
 
 function updateBody(selection, state) {
   selection.select('.field')
-      .call(table.updateContents, state.data.fields.slice(), d => d.key, updateRowFunc);
+      .call(table.updateContents, state.rows.fields.slice(), d => d.key, updateRowFunc);
 }
 
 

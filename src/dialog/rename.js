@@ -26,7 +26,7 @@ function body(selection, name) {
 
 function updateBody(selection, state) {
   selection.select('.rename')
-      .call(box.updateTextBox, state.data.name);
+      .call(box.updateTextBox, state.name);
 }
 
 

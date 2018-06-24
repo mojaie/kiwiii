@@ -65,8 +65,7 @@ function downloadDataFile(data, name) {
 function downloadJSON(json, name, compress=true) {
   const str = JSON.stringify(json);
   const data = compress ? pako.gzip(str) : str;
-  const c = compress ? 'c' : 'r';
-  const ext = json.hasOwnProperty('edges') ? `.gf${c}` :  `.nd${c}`;
+  const ext = `.ap${compress ? 'c' : 'r'}`;
   downloadDataFile(data, `${name}${ext}`);
 }
 

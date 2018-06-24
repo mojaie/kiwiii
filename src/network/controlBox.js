@@ -114,8 +114,8 @@ function updateMainControlBox(selection, state) {
         state.networkThreshold = value;
         state.updateComponentNotifier();
         state.setForceNotifier();
-        const numEdges = state.edges.filter(e => e.weight >= value).length;
-        const n = state.nodes.length;
+        const numEdges = state.es.filter(e => e.weight >= value).length;
+        const n = state.ns.length;
         const combinations = n * (n - 1) / 2;
         const logD = d3.format('.2f')(Math.log10(numEdges / combinations));
         selection.select('.logd').call(box.updateTextBox, logD);
@@ -164,7 +164,7 @@ function nodeColorControlBox(selection, state) {
       .classed('field', true)
       .call(
         lbox.selectBox, 'color-field', 'Field',
-        state.data.nodes.fields.filter(e => misc.sortType(e.format) !== 'none'),
+        state.nodes.fields.filter(e => misc.sortType(e.format) !== 'none'),
         state.nodeColor.field || ''
       );
   selection.append('div')
@@ -228,7 +228,7 @@ function nodeSizeControlBox(selection, state) {
     .classed('field', true)
     .call(
       lbox.selectBox, 'size-field', 'Field',
-      state.data.nodes.fields.filter(e => misc.sortType(e.format) === 'numeric'),
+      state.nodes.fields.filter(e => misc.sortType(e.format) === 'numeric'),
       state.nodeSize.field || ''
     );
   selection.append('div')
@@ -286,7 +286,7 @@ function nodeLabelControlBox(selection, state) {
       .classed('mb-1', true)
       .call(
         lbox.selectBox, 'label-text', 'Text field',
-        state.data.nodes.fields.filter(e => misc.sortType(e.format) !== 'none'),
+        state.nodes.fields.filter(e => misc.sortType(e.format) !== 'none'),
         state.nodeLabel.text || ''
       );
   labelGroup.append('div')
@@ -300,7 +300,7 @@ function nodeLabelControlBox(selection, state) {
       .classed('field', true)
       .call(
         lbox.selectBox, 'label-field', 'Color field',
-        state.data.nodes.fields.filter(e => misc.sortType(e.format) !== 'none'),
+        state.nodes.fields.filter(e => misc.sortType(e.format) !== 'none'),
         state.nodeLabelColor.field || ''
       );
   selection.append('div')
@@ -570,5 +570,6 @@ function updateControlBox(selection, state) {
 
 
 export default {
+  updateNodeColorControlBox,
   controlBox, updateControlBox
 };

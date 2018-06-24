@@ -69,7 +69,7 @@ function updateNodeAttrs(selection, state) {
       d3.select(this).select('.node-label')
           .text(d => {
             if (state.nodeLabel.text === null) return '';
-            const field = state.data.nodes.fields.find(e => e.key === state.nodeLabel.text);
+            const field = state.nodes.fields.find(e => e.key === state.nodeLabel.text);
             if (field.format === 'd3_format') {
               return misc.formatNum(d[state.nodeLabel.text], field.d3_format);
             }
@@ -189,8 +189,81 @@ function resizeViewBox(selection, width, height) {
 }
 
 
+function networkViewFrame(selection, state) {
+  selection
+    .style('width', '100%')
+    .style('height', '100%');
+  selection.select('.nw-view').remove(); // Clean up
+  selection.append('svg')
+    .classed('nw-view', true);
+  selection.call(resize, state);
+}
+
+
+function resize(selection, state) {
+  const area = selection.node();
+  state.setViewBox(area.offsetWidth, area.offsetHeight);
+  selection.select('.nw-view')
+    .call(resizeViewBox, area.offsetWidth, area.offsetHeight);
+}
+
+
+function networkView(selection, state) {
+  selection
+    .attr('preserveAspectRatio', 'xMinYMin meet')
+    .attr('pointer-events', 'all')
+    .attr('viewBox', `0 0 ${state.viewBox.right} ${state.viewBox.bottom}`)
+    .style('width', '100%')
+    .style('height', '100%');
+
+  // Clean up
+  selection.select('.nw-view-boundary').remove();
+  selection.select('.nw-field').remove();
+
+  // Render
+  selection.append('rect')
+      .classed('nw-view-boundary', true)
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', state.viewBox.right)
+      .attr('height', state.viewBox.bottom)
+      .attr('fill', '#ffffff')
+      .attr('stroke-width', 1)
+      .attr('stroke', '#cccccc');
+  const field = selection.append('g')
+      .classed('nw-field', true)
+      .style('opacity', 1e-6);
+  field.transition()
+      .duration(1000)
+      .style('opacity', 1);
+  const edges = field.append('g').classed('nw-edges', true);
+  const nodes = field.append('g').classed('nw-nodes', true);
+
+  // Set notifiers
+  state.updateComponentNotifier = () => {
+    selection.call(updateComponents, state);
+  };
+  state.updateNodeNotifier = () => {
+    nodes.call(updateNodes, state.nodesToRender());
+  };
+  state.updateEdgeNotifier = () => {
+    edges.call(updateEdges, state.edgesToRender());
+  };
+  state.updateNodeAttrNotifier = () => {
+    nodes.call(updateNodeAttrs, state);
+  };
+  state.updateEdgeAttrNotifier = () => {
+    edges.call(updateEdgeAttrs, state);
+  };
+
+  // Update graph components
+  selection.call(updateComponents, state);
+}
+
+
 export default {
   updateNodes, updateEdges, updateNodeCoords, updateEdgeCoords,
   updateNodeAttrs, updateEdgeAttrs, updateAttrs, updateComponents,
-  move, transform, resizeViewBox
+  move, transform, resizeViewBox,
+  networkViewFrame, resize, networkView
 };

@@ -3,12 +3,9 @@
 
 import d3 from 'd3';
 
-import {default as core} from './common/core.js';
 import {default as fetcher} from './common/fetcher.js';
 import {default as hfile} from './common/file.js';
 import {default as idb} from './common/idb.js';
-import {default as legacy} from './common/legacySchema.js';
-import {default as mapper} from './common/mapper.js';
 import {default as misc} from './common/misc.js';
 import {default as sw} from './common/sw.js';
 
@@ -25,18 +22,16 @@ import {default as renameDialog} from './dialog/rename.js';
 import DatagridState from './datagrid/state.js';
 import {default as rowf} from './datagrid/rowFilter.js';
 import {default as sort} from './datagrid/sort.js';
-import {default as view} from './datagrid/view.js';
+import {default as dg} from './datagrid/component.js';
 
 
-function app(data, serverStatus, schema) {
+function app(view, coll) {
   const menubar = d3.select('#menubar');
   menubar.selectAll('div,span,a').remove();  // Clean up
   const dialogs = d3.select('#dialogs');
   dialogs.selectAll('div').remove();  // Clean up
 
-  const state = new DatagridState(legacy.convertTable(data));
-  state.serverStatus = serverStatus;
-  state.resourceSchema = schema;
+  const state = new DatagridState(view, coll);
 
   // Datagrid view control
   const menu = menubar.append('div')
@@ -55,41 +50,20 @@ function app(data, serverStatus, schema) {
   menu.append('a')
       .call(button.dropdownMenuItem, 'Save', 'save')
       .on('click', function () {
-        if (state.data.storeID) {
-          return idb.updateItem(state.data.storeID, item => {
-            item.id = misc.uuidv4();
-            item.name = state.data.name;
-            item.fields = state.data.fields;
-            item.records = state.data.records;
-          })
-          .then(() => console.info('Datagrid saved'));
-        } else {
-          return idb.putItem(state.export())
-            .then(storeID => {
-              window.location = `datagrid.html?id=${storeID}`;
-            });
-        }
-      });
-  menu.append('a')
-      .call(button.dropdownMenuItem, 'Download JSON', 'export')
-      .on('click', () => {
-        const data = state.export();
-        // Delete local store information
-        delete data.storeID;
-        hfile.downloadJSON(data, data.name);
+        state.save().then(() => console.info('Datagrid saved'));
       });
   menu.append('a')
       .classed('online-command', true)
       .call(button.dropdownMenuItem, 'Download Excel', 'exportexcel')
       .on('click', () => {
-        const data = state.export();
+        const coll = state.rows.export();
         const formData = new FormData();
-        formData.append('contents', new Blob([JSON.stringify(data)]));
+        formData.append('contents', new Blob([JSON.stringify(coll)]));
         return fetcher.post('xlsx', formData)
           .then(fetcher.blob)
-          .then(blob => hfile.downloadDataFile(blob, `${data.name}.xlsx`));
+          .then(blob => hfile.downloadDataFile(blob, `${state.name}.xlsx`));
       });
-  // Open control panel
+  // Dashboard link
   menubar.append('a')
       .call(button.menuButtonLink, 'Dashboard', 'outline-secondary', 'db-gray')
       .attr('href', 'dashboard.html')
@@ -97,19 +71,15 @@ function app(data, serverStatus, schema) {
   // Fetch control
   menubar.append('a')
       .classed('refresh', true)
-      .call(button.menuButtonLink, 'Refresh', 'outline-secondary', 'refresh-gray')
+      .call(button.menuButtonLink,
+            'Refresh', 'outline-secondary', 'refresh-gray')
       .on('click', function () {
-        return core.fetchProgress(state.data.storeID)
-          .then(() => idb.getItemByID(state.data.storeID))
-          .then(item => {
-            state.data = item;
-            state.updateContentsNotifier();
-            updateApp(state);
-          });
+        return state.rows.pull().then(() => updateApp(state));
       });
   menubar.append('a')
       .classed('abort', true)
-      .call(button.menuButtonLink, 'Abort server job', 'warning', 'delete-gray')
+      .call(button.menuButtonLink,
+            'Abort server job', 'warning', 'delete-gray')
       .attr('data-toggle', 'modal')
       .attr('data-target', '#abort-dialog');
   menubar.append('span').classed('progress', true)
@@ -123,8 +93,7 @@ function app(data, serverStatus, schema) {
       .classed('fieldconfd', true)
       .call(fieldConfigDialog.body);
   dialogs.append('div')
-      .classed('fieldfetchd', true)
-      .call(fieldFetchDialog.body, schema, state.fetchedAssays);
+      .classed('fieldfetchd', true);
   dialogs.append('div')
       .classed('fieldfiled', true)
       .call(fieldFileDialog.body);
@@ -132,11 +101,10 @@ function app(data, serverStatus, schema) {
       .classed('fieldinputd', true)
       .call(fieldInputDialog.body);
   dialogs.append('div')
-      .classed('netgend', true)
-      .call(networkgenDialog.body, serverStatus.rdkit);
+      .classed('netgend', true);
   dialogs.append('div')
       .classed('renamed', true)
-      .call(renameDialog.body, state.data.name);
+      .call(renameDialog.body, state.name);
   dialogs.append('div')
       .classed('abortd', true)
       .call(
@@ -146,7 +114,7 @@ function app(data, serverStatus, schema) {
 
   // Contents
   d3.select('#datagrid')
-      .call(view.datagrid, state)
+      .call(dg.datagrid, state)
       .call(sort.setSort, state);
   d3.select('#dg-search')
       .call(rowf.setFilter, state);
@@ -155,7 +123,24 @@ function app(data, serverStatus, schema) {
   d3.select('#datagrid').dispatch('resize');
   window.onresize = () => d3.select('#datagrid').dispatch('resize');
 
-  updateApp(state);
+  // Server bound tasks
+  return fetcher.serverStatus()
+    .then(response => {
+      state.serverStatus = response.server;
+      state.resourceSchema = response.schema;
+      state.offLine = false;
+    })
+    .catch(() => {
+      // disable on-line commands
+      menubar.selectAll('.online-command')
+        .attr('data-target', null)
+        .classed('disabled', true)
+        .on('click', null);
+      state.serverStatus = null;
+      state.resourceSchema = null;
+      state.offLine = true;
+    })
+    .then(() => updateApp(state));
 }
 
 
@@ -163,118 +148,124 @@ function updateApp(state) {
   d3.select('#loading-icon').style('display', 'none');
 
   // Title
-  d3.select('title').text(state.data.name);
+  d3.select('title').text(state.name);
 
   // Menubar
   const menubar = d3.select('#menubar');
-  menubar.select('.title').text(state.data.name);
+  const fstatus = state.rows.status();
+  const fsize = state.rows.size();
+  const ftime = state.rows.execTime();
+  const fprog = state.rows.progress();
+  const ongoing = state.rows.ongoing();
+  menubar.select('.title').text(state.name);
   menubar.select('.status')
-      .text(`(${state.data.status} - ${state.data.records.length} records found in ${state.data.execTime} sec.)`);
+      .text(`(${fstatus} - ${fsize} records found in ${ftime} sec.)`);
   menubar.select('.progress').select('progress')
-      .attr('value', state.data.progress)
-      .text(`${state.data.progress}%`);
-
-  // disable on-line commands
-  if (!state.serverStatus.instance) {
-    menubar.selectAll('.online-command')
-      .attr('data-target', null)
-      .classed('disabled', true)
-      .on('click', null);
-  }
-
+      .attr('value', fprog)
+      .text(`${fprog}%`);
   // hide fetch commands
-  const ongoing = ['running', 'ready'].includes(state.data.status);
   menubar.selectAll('.progress, .refresh, .abort')
     .style('display', ongoing ? null : 'none');
 
+
   // Dialogs
   const dialogs = d3.select('#dialogs');
+
+  // Field config dialog
   dialogs.select('.fieldconfd')
       .call(fieldConfigDialog.updateBody, state)
       .on('submit', function () {
-        state.data.fields = fieldConfigDialog.value(d3.select(this));
-        state.updateContentsNotifier();
+        const values = fieldConfigDialog.value(d3.select(this));
+        state.updateFields(values);
         updateApp(state);
       });
-  dialogs.select('.fieldfetchd')
-      .call(fieldFetchDialog.updateBody)
-      .on('submit', function () {
-        const targets = state.resourceSchema.resources
-          .filter(e => e.domain === 'activity').map(e => e.id);
-        const compounds = state.data.records.map(e => e.compound_id);
-        const queries = fieldFetchDialog.queries(d3.select(this), targets, compounds);
-        const futures = queries.map(q => {
-          return fetcher.get(q.workflow, q)
-            .then(fetcher.json)
-            .then(data => {
-              return mapper.tableToMapping(
-                data, 'compound_id', ['index', 'assay_id']);
-            });
-        });
-        Promise.all(futures).then(mps => {
-          mps.forEach(mp => state.joinFields(mp));
-          state.updateContentsNotifier();
-          updateApp(state);
-        });
-      });
+
+  // Import fields dialog
   dialogs.select('.fieldfiled')
       .on('submit', function () {
         return fieldFileDialog.readFile(d3.select(this))
           .then(data => {
             state.joinFields(data);
-            state.updateContentsNotifier();
             updateApp(state);
           });
       });
+
+  // Input field dialog
   dialogs.select('.fieldinputd')
       .on('submit', function () {
         const value = fieldInputDialog.value(d3.select(this));
-        const field = misc.defaultFieldProperties([value.field])[0];
-        state.data.fields.push(field);
-        state.data.records.forEach(e => {
-          e[field.key] = value.default;
+        state.rows.addField(value.field);
+        state.rows.records().forEach(e => {
+          e[value.field.key] = value.default;
         });
         state.applyData();
         state.updateContentsNotifier();
         updateApp(state);
       });
-  dialogs.select('.netgend')
-      .on('submit', function () {
-        const formData = new FormData();
-        const params = networkgenDialog.queryParams(d3.select(this));
-        formData.append('params', JSON.stringify(params));
-        formData.append('contents', new Blob([JSON.stringify(state.export())]));
-        return fetcher.post(`${params.measure}net`, formData)
-          .then(fetcher.json)
-          .then(data => {
-            data.reference.nodes = state.data.storeID;
-            data.fields = misc.defaultFieldProperties(data.fields);
-            return data;
-          })
-          .then(idb.putItem)
-          .then(storeID => {
-            d3.select('#loading-icon').style('display', 'none');
-            window.open(`network.html?id=${storeID}`, '_blank');
-          });
-      });
+
+  // Rename dialog
   dialogs.select('.renamed')
       .call(renameDialog.updateBody, state)
       .on('submit', function () {
-        state.data.name = renameDialog.value(d3.select(this));
+        state.name = renameDialog.value(d3.select(this));
         updateApp(state);
   });
-  dialogs.select('.abortd')
+
+
+  // Online commands
+  if (state.offline) return;
+
+  // Fetch db fields dialog
+  dialogs.select('.fieldfetchd')
+      .call(fieldFetchDialog.body, state.resourceSchema, state.rows.fields)
       .on('submit', function () {
-        core.fetchProgress(state.data.storeID, 'abort')
-          .then(() => idb.getItemByID(state.data.storeID))
-          .then(item => {
-            state.data = item;
-            state.updateContentsNotifier();
+        const compounds = state.rows.records().map(e => e.compound_id);
+        fieldFetchDialog
+          .execute(d3.select(this), compounds, state.resourceSchema)
+          .then(res => {
+            state.joinFields(res);
             updateApp(state);
           });
       });
-}
 
+  // Network generation dialog
+  dialogs.select('.netgend')
+      .call(networkgenDialog.body, state.serverStatus.rdkit)
+      .on('submit', function () {
+        networkgenDialog
+          .execute(d3.select(this), state.rows.records())
+          .then(data => {
+            const wid = data.workflowID.slice(0, 8);
+            return Promise.all([
+              idb.appendView(state.viewID, {
+                $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
+                viewID: wid,
+                name: wid,
+                viewType: 'network',
+                nodes: state.rows.collectionID,
+                edges: wid,
+                networkThresholdCutoff: data.query.params.threshold
+              }),
+              idb.appendCollection(state.rows.collectionID, {
+                $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
+                collectionID: wid,
+                name: wid,
+                contents: [data]
+              })
+            ])
+            .then(() => {
+              d3.select('#loading-icon').style('display', 'none');
+              window.open(`network.html?view=${wid}`, '_blank');
+            });
+          });
+      });
+
+  // Abort dialog
+  dialogs.select('.abortd')
+      .on('submit', function () {
+        state.rows.abort().then(() => updateApp(state));
+      });
+}
 
 function run() {
   // TODO: offline mode flags
@@ -285,24 +276,19 @@ function run() {
   } else {
     sw.registerServiceWorker();
   }
-  return core.serverStatus()
-    .then(response => {
-      const storeID = misc.URLQuery().id || null;
-      const dataURL = misc.URLQuery().location || null;
-      if (storeID) {
-        // Load from IndexedDB store
-        core.fetchProgress(storeID, 'update')
-          .then(() => idb.getItemByID(storeID))
-          .then(item => app(item, response.server, response.schema));
-      } else if (dataURL) {
-        // Fetch via HTTP
-        hfile.fetchJSON(dataURL)
-          .then(item => app(item, response.server, response.schema));
-      } else {
-        d3.select('#datagrid')
-          .style('color', 'red')
-          .text('ERROR: invalid URL');
-      }
+  const viewID = misc.URLQuery().view || null;
+  return idb.getView(viewID)
+    .then(view => {
+      if (!view) throw('ERROR: invalid URL');
+      const collID = view.rows;
+      return idb.getCollection(collID)
+        .then(coll => app(view, coll));
+    })
+    .catch(err => {
+      console.error(err);
+      d3.select('#datagrid')
+        .style('color', 'red')
+        .text(err);
     });
 }
 

@@ -3,7 +3,6 @@
 
 import d3 from 'd3';
 
-import {default as misc} from './common/misc.js';
 import {default as fetcher} from './common/fetcher.js';
 
 import {default as table} from './component/table.js';
@@ -140,10 +139,10 @@ testCases.push(() =>
 );
 
 function run() {
-  const fields = misc.defaultFieldProperties([
-    {key: 'test'},
-    {key: 'result', format: 'html'}
-  ]);
+  const fields = [
+    {key: 'test', name: 'Test', format: 'text'},
+    {key: 'result', name: 'Result', format: 'html'}
+  ];
   const records = [];
   const results = d3.select('#results')
     .append('table')

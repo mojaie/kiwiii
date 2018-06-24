@@ -5,17 +5,6 @@ import d3 from 'd3';
 import _ from 'lodash';
 
 
-function defaultFieldProperties(fields) {
-  return fields.map(e => {
-    if (!e.hasOwnProperty('name')) e.name = e.key;
-    if (!e.hasOwnProperty('visible')) e.visible = true;
-    if (e.hasOwnProperty('d3_format')) e.format = 'd3_format';
-    if (!e.hasOwnProperty('format')) e.format = 'raw';
-    return e;
-  });
-}
-
-
 function sortType(fmt) {
   if (['numeric', 'd3_format'].includes(fmt)) return 'numeric';
   if (['text', 'compound_id', 'assay_id', 'list'].includes(fmt)) return 'text';
@@ -58,5 +47,5 @@ function uuidv4() {
 
 
 export default {
-  defaultFieldProperties, sortType, formatNum, partialMatch, URLQuery, uuidv4
+  sortType, formatNum, partialMatch, URLQuery, uuidv4
 };

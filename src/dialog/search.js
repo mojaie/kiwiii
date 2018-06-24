@@ -1,6 +1,7 @@
 
 /** @module dialog/search */
 
+import {default as fetcher} from '../common/fetcher.js';
 
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
@@ -24,16 +25,18 @@ function body(selection, placeholder) {
 }
 
 
-function query(selection, targets) {
-  return {
+function execute(selection, chemrsrc) {
+  const query = {
     workflow: 'search',
-    targets: targets,
+    targets: chemrsrc.map(e => e.id),  // All DBs
     key: 'compound_id',
     values: box.textareaBoxLines(selection.select('.ids'))
   };
+  return fetcher.get(query.workflow, query)
+    .then(fetcher.json);
 }
 
 
 export default {
-  menuLink, body, query
+  menuLink, body, execute
 };

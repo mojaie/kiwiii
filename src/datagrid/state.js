@@ -3,25 +3,29 @@
 
 import _ from 'lodash';
 
-import {default as mapper} from '../common/mapper.js';
+import Collection from '../common/collection.js';
+import {default as idb} from '../common/idb.js';
 import {default as misc} from '../common/misc.js';
 
 import {default as factory} from './rowFactory.js';
 
 
 export default class DatagridState {
-  constructor(data) {
-    this.data = data;
+  constructor(view, coll) {
+    this.viewID = view.viewID || null;
+    this.name = view.name || null;
+    this.sortOrder = view.sortOrder || [];
+    this.filterText = view.filterText || null;
+    this.rows = new Collection(coll);
+    if (view.fields) {
+      this.rows.updateFields(view.fields);
+    }
 
     this.visibleFields = null;
     this.sortedRecords = null;
     this.filteredRecords = null;
 
-    // Snapshot
-    const snp = this.data.snapshot || {sortOrder: [], filterText: null};
-    this.sortOrder = snp.sortOrder || [];
-    this.filterText = snp.filterText || null;
-
+    // TODO: auto adjust
     this.defaultColumnHeight = {
       numeric: 40,
       text: 40,
@@ -56,6 +60,48 @@ export default class DatagridState {
     this.applyData();
   }
 
+  applyData() {
+    this.visibleFields = this.rows.fields.filter(e => e.visible);
+    const widthfSum = this.visibleFields.reduce((a, c) => a + (c.widthf || 1), 0);
+    this.visibleFields = this.visibleFields.map(e => {
+      const field = {
+        width: (e.widthf || 1) / widthfSum * 100,
+        height: e.height || this.defaultColumnHeight[misc.sortType(e.format)]
+      };
+      return Object.assign(field, e);
+    });
+    this.rowHeight = this.visibleFields
+      .reduce((a, b) => a.height > b.height ? a : b).height;
+    this.applyOrder();
+  }
+
+  applyOrder(key, order) {
+    if (key) {
+      this.sortedRecords = _.orderBy(this.rows.records().slice(), [key], [order]);
+    } else {
+      const keys = this.sortOrder.map(e => e.key);
+      const orders = this.sortOrder.map(e => e.order);
+      if (keys) {
+        this.sortedRecords = _.orderBy(this.rows.records().slice(), keys, orders);
+      }
+    }
+    this.applyFilter();
+  }
+
+  applyFilter() {
+    if (this.filterText === null) {
+      this.filteredRecords = this.sortedRecords.slice();
+    } else {
+      const fields = this.visibleFields
+        .filter(e => misc.sortType(e.format) !== 'none')
+        .map(e => e.key);
+      this.filteredRecords = this.sortedRecords.filter(row => {
+        return fields.some(f => misc.partialMatch(this.filterText, row[f]));
+      });
+    }
+    this.bodyHeight = this.filteredRecords.length * this.rowHeight;
+  }
+
   setViewportSize(height) {
     this.viewportHeight = this.fixedViewportHeight || height;
     this.previousNumViewportRows = this.numViewportRows;
@@ -82,60 +128,38 @@ export default class DatagridState {
     this.applyFilter();
   }
 
+  updateFields(fs) {
+    this.rows.updateFields(fs);
+    this.updateContentsNotifier();
+  }
+
   joinFields(mapping) {
-    mapper.apply(this.data, mapping);
+    this.rows.joinFields(mapping);
     this.applyData();
-  }
-
-  applyData() {
-    this.visibleFields = this.data.fields.filter(e => e.visible);
-    const widthfSum = this.visibleFields.reduce((a, c) => a + (c.widthf || 1), 0);
-    this.visibleFields = this.visibleFields.map(e => {
-      const field = {
-        width: (e.widthf || 1) / widthfSum * 100,
-        height: e.height || this.defaultColumnHeight[misc.sortType(e.format)]
-      };
-      return Object.assign(field, e);
-    });
-    this.rowHeight = this.visibleFields
-      .reduce((a, b) => a.height > b.height ? a : b).height;
-    this.applyOrder();
-  }
-
-  applyOrder(key, order) {
-    if (key) {
-      this.sortedRecords = _.orderBy(this.data.records.slice(), [key], [order]);
-    } else {
-      const keys = this.sortOrder.map(e => e.key);
-      const orders = this.sortOrder.map(e => e.order);
-      if (keys) {
-        this.sortedRecords = _.orderBy(this.data.records.slice(), keys, orders);
-      }
-    }
-    this.applyFilter();
-  }
-
-  applyFilter() {
-    if (this.filterText === null) {
-      this.filteredRecords = this.sortedRecords.slice();
-    } else {
-      const fields = this.visibleFields
-        .filter(e => misc.sortType(e.format) !== 'none')
-        .map(e => e.key);
-      this.filteredRecords = this.sortedRecords.filter(row => {
-        return fields.some(f => misc.partialMatch(this.filterText, row[f]));
-      });
-    }
-    this.bodyHeight = this.filteredRecords.length * this.rowHeight;
+    this.updateContentsNotifier();
   }
 
   recordsToShow() {
     return this.filteredRecords.slice(this.viewportTop, this.viewportBottom);
   }
 
+  save() {
+    return Promise.all([
+      idb.updateCollection(this.rows.collectionID, this.rows.export()),
+      idb.updateView(this.viewID, this.export())
+    ]);
+  }
+
   export() {
-    this.data.id = misc.uuidv4();
-    return this.data;
+    return {
+      $schema: "https://mojaie.github.io/kiwiii/specs/datagrid_v1.0.json",
+      viewID: this.viewID,
+      name: this.name,
+      viewType: "datagrid",
+      rows: this.rows.collectionID,
+      sortOrder: this.sortOrder,
+      filterText: this.filterText
+    };
   }
 
 }

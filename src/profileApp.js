@@ -10,7 +10,7 @@ import {default as button} from './component/button.js';
 import {default as table} from './component/table.js';
 
 import DatagridState from './datagrid/state.js';
-import {default as view} from './datagrid/view.js';
+import {default as dg} from './datagrid/component.js';
 import {default as rowf} from './datagrid/rowfilter.js';
 
 
@@ -28,8 +28,8 @@ function fetchProfile(compoundID, resources) {
     .then(res => {
       profile.compound = {
         fields: [
-          {key: 'key', name: 'key'},
-          {key: 'value', name: 'value'}
+          {key: 'key', name: 'key', format: 'text'},
+          {key: 'value', name: 'value', format: 'text'}
         ],
         records: [
           {key: 'Formula', value: res.records[0]._formula},
@@ -59,12 +59,12 @@ function fetchProfile(compoundID, resources) {
     .then(fetcher.json)
     .then(res => {
       profile.aliases = res;
-      profile.aliases.fields = misc.defaultFieldProperties([
-        {key: 'index', name: 'Index', d3_format: 'd'},
+      profile.aliases.fields = [
+        {key: 'index', name: 'Index', format: 'd3_format', d3_format: 'd'},
         {key: 'compound_id', name: 'Compound ID', format: 'compound_id'},
         {key: 'name', name: 'Name', format: 'text'},
         {key: '__source', name: 'Source', format: 'text'}
-      ]);
+      ];
     })
     .then(() => {
       const assayQuery = {
@@ -77,12 +77,12 @@ function fetchProfile(compoundID, resources) {
     .then(fetcher.json)
     .then(res => {
       profile.assays = res;
-      profile.assays.fields = misc.defaultFieldProperties([
-        {key: 'index', name: 'Index', d3_format: 'd'},
+      profile.assays.fields = [
+        {key: 'index', name: 'Index', format: 'd3_format', d3_format: 'd'},
         {key: 'assay_id', name: 'Assay ID', format: 'assay_id'},
         {key: 'value_type', name: 'Value type', format: 'text'},
         {key: 'value', name: 'Value', format: 'numeric'}
-      ]);
+      ];
       return profile;
     });
 }
@@ -135,23 +135,22 @@ function render(compoundID) {
           .text('Assay results');
       contents.append('div').classed('mb-5', true)
           .attr('id', 'assays');
-
-      const aliasState = new DatagridState(res.aliases);
+      const aliasState = new DatagridState({}, res.aliases);
       const aliasFilter = d3.select('#aliases').append('div')
           .classed('alias-filter', true);
       const aliasdg = d3.select('#aliases').append('div')
           .classed('alias-dg', true);
       aliasState.fixedViewportHeight = 150;
-      aliasdg.call(view.datagrid, aliasState);
+      aliasdg.call(dg.datagrid, aliasState);
       aliasFilter.call(rowf.setFilter, aliasState);
 
-      const assayState = new DatagridState(res.assays);
+      const assayState = new DatagridState({}, res.assays);
       const assayFilter = d3.select('#assays').append('div')
           .classed('assay-filter', true);
       const assaydg = d3.select('#assays').append('div')
           .classed('assay-dg', true);
       assayState.fixedViewportHeight = 400;
-      assaydg.call(view.datagrid, assayState);
+      assaydg.call(dg.datagrid, assayState);
       assayFilter.call(rowf.setFilter, assayState);
     });
 }

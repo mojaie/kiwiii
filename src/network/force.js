@@ -51,7 +51,7 @@ function forceDragListener(selection, simulation, state) {
 
 
 function end(selection, simulation, state) {
-  const coords = state.nodes.map(e => ({x: e.x, y: e.y}));
+  const coords = state.ns.map(e => ({x: e.x, y: e.y}));
   state.setAllCoords(coords);
   selection
     .call(component.updateComponents, state);
@@ -79,7 +79,7 @@ function unstick(selection, simulation, state) {
   state.dragListener = forceDragListener(selection, simulation, state);
   // Render all nodes and do not render edges
   // TODO: edge rendering behavior should be changed by data size or setting
-  const coords = state.nodes.map(e => ({x: e.x, y: e.y}));
+  const coords = state.ns.map(e => ({x: e.x, y: e.y}));
   state.setAllCoords(coords);
   selection
     .call(component.updateComponents, state);
@@ -99,9 +99,9 @@ function restart(selection, simulation, state) {
 
 
 function setForce(selection, simulation, state) {
-  const forceEdges = state.edges
+  const forceEdges = state.es
     .filter(e => e.weight >= state.networkThreshold);
-  simulation.nodes(state.nodes)
+  simulation.nodes(state.ns)
     .force('link').links(forceEdges);
 }
 
@@ -111,7 +111,7 @@ function activate(selection, simulation, state) {
     .on('tick', () => {
       selection.select('.nw-nodes').selectAll(".node")
         .call(component.updateNodeCoords);
-      const coords = state.nodes.map(e => ({x: e.x, y: e.y}));
+      const coords = state.ns.map(e => ({x: e.x, y: e.y}));
       state.setAllCoords(coords);
       selection.select('.nw-edges').selectAll(".link")
         .call(component.updateEdgeCoords);

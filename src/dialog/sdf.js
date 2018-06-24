@@ -3,6 +3,7 @@
 
 import d3 from 'd3';
 
+import {default as fetcher} from '../common/fetcher.js';
 import {default as hfile} from '../common/file.js';
 
 import {default as button} from '../component/button.js';
@@ -61,7 +62,7 @@ function body(selection) {
 }
 
 
-function queryFormData(selection) {
+function execute(selection) {
   const params = {
     fields: lbox.checklistBoxValue(selection.select('.field')),
     implh: box.checkBoxValue(selection.select('.implh')),
@@ -70,11 +71,12 @@ function queryFormData(selection) {
   const formData = new FormData();
   formData.append('contents', box.fileInputBoxValue(selection.select('.file')));
   formData.append('params', JSON.stringify(params));
-  return formData;
+  return fetcher.post('sdfin', formData)
+    .then(fetcher.json);
 }
 
 
 
 export default {
-  menuLink, body, queryFormData
+  menuLink, body, execute
 };

@@ -3,6 +3,8 @@
 
 import _ from 'lodash';
 
+import {default as fetcher} from '../common/fetcher.js';
+
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as lbox} from '../component/formListBox.js';
@@ -51,17 +53,19 @@ function body(selection, resources) {
 }
 
 
-function query(selection) {
-  return {
+function execute(selection) {
+  const query = {
     workflow: 'filter',
     targets: lbox.checklistBoxValue(selection.select('.target')),
     key: lbox.selectBoxValue(selection.select('.key')),
     value: box.textBoxValue(selection.select('.value')),
     operator: lbox.selectBoxValue(selection.select('.operator'))
   };
+  return fetcher.get(query.workflow, query)
+    .then(fetcher.json);
 }
 
 
 export default {
-  menuLink, body, query
+  menuLink, body, execute
 };

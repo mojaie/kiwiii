@@ -3,6 +3,8 @@
 
 import d3 from 'd3';
 
+import {default as fetcher} from '../common/fetcher.js';
+
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as lbox} from '../component/formListBox.js';
@@ -21,6 +23,7 @@ function menuLink(selection) {
 
 
 function body(selection, rdk) {
+  selection.selectAll('div').remove();  // Clean up
   const dialog = selection.call(modal.submitDialog, id, title);
   // Similarity measure
   const measures = [
@@ -57,7 +60,7 @@ function body(selection, rdk) {
 }
 
 
-function queryParams(selection) {
+function execute(selection, rcds) {
   const measure = selection.select('.measure');
   const thld = selection.select('.thld');
   const params = group.simOptionGroupValue(selection.select('.option'));
@@ -67,11 +70,15 @@ function queryParams(selection) {
   if (!thld.select('input').property('disabled')) {
     params.threshold = box.numberBoxValue(thld);
   }
-  return params;
+  const formData = new FormData();
+  // TODO: need updates in flashflood query schema
+  formData.append('params', JSON.stringify(params));
+  formData.append('contents', new Blob([JSON.stringify(rcds)]));
+  return fetcher.post(`${params.measure}net`, formData)
+    .then(fetcher.json);
 }
 
 
-
 export default {
-  menuLink, body, queryParams
+  menuLink, body, execute
 };

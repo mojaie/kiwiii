@@ -3,6 +3,8 @@
 
 import d3 from 'd3';
 
+import {default as fetcher} from '../common/fetcher.js';
+
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as lbox} from '../component/formListBox.js';
@@ -85,7 +87,7 @@ function body(selection, resources, rdk) {
 }
 
 
-function query(selection) {
+function execute(selection) {
   const params = group.simOptionGroupValue(selection.select('.option'));
   const measure = selection.select('.measure');
   const thld = selection.select('.thld');
@@ -101,10 +103,11 @@ function query(selection) {
     queryMol: group.queryMolGroupValue(selection.select('.qmol')),
     params: params
   };
-  return query;
+  return fetcher.get(query.workflow, query)
+    .then(fetcher.json);
 }
 
 
 export default {
-  menuLink, body, query
+  menuLink, body, execute
 };

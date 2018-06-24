@@ -48,13 +48,27 @@ function post(url, formdata) {
   });
 }
 
-
 function error(err) {
   console.error(err);
   return null;
 }
 
+function serverStatus() {
+  const response = {};
+  return get('server')
+    .then(json)
+    .then(res => {
+      response.server = res;
+    })
+    .then(() => get('schema'))
+    .then(json)
+    .then(res => {
+      response.schema = res;
+    })
+    .then(() => response);
+}
+
 
 export default {
-  get, json, text, blob, post, error
+  get, json, text, blob, post, error, serverStatus
 };

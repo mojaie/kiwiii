@@ -3,13 +3,13 @@
 
 import d3 from 'd3';
 
-import {default as legacy} from '../common/legacySchema.js';
-import {default as misc} from '../common/misc.js';
+import Collection from '../common/collection.js';
+import {default as idb} from '../common/idb.js';
 
 
 export default class NetworkState {
-  constructor(data, width, height) {
-    // View modes
+  constructor(view, nodes, edges) {
+    /* Settings */
 
     // Focused view mode (num of nodes displayed are less than the thld)
     // Show node contents
@@ -23,84 +23,95 @@ export default class NetworkState {
     this.enableOverlookView = true;
     this.overlookView = false;
 
-    // Import from legacy format data
-    this.data = legacy.convertNetwork(data);
+    this.fieldWidth = 1200;
+    this.fieldHeight = 1200;
 
-    this.nodes = JSON.parse(JSON.stringify(this.data.nodes.records));  // Working copy
-    this.edges = JSON.parse(JSON.stringify(this.data.edges.records));  // Working copy
 
-    // Adjacency
-    // Assuming that the network is undirected graph and
-    // source index < target index
-    this.nodes.forEach(n => {
-      n.adjacency = [];
-    });
-    this.edges.forEach((e, i) => {
-      e.num = i;  // e.index will be overwritten by d3-force
-      this.nodes[e.source].adjacency.push([e.target, i]);
-      this.nodes[e.target].adjacency.push([e.source, i]);
-    });
+    /* Attributes */
 
-    // Snapshot
-    const snp = this.data.edges.snapshot || {
-      nodeColor: {}, nodeSize: {}, nodeLabel: {}, nodeLabelColor: {},
-      edgeWidth: {}, edgeLabel: {}
+    this.viewID = view.viewID;
+    this.name = view.name;
+
+    this.nodes = new Collection(nodes);
+    this.edges = new Collection(edges);
+
+
+    /* Appearance */
+
+    this.nodeColor = {
+      field: null, scale: 'linear', domain: [0, 1],
+      range: ['#7fffd4', '#7fffd4'], unknown: '#7fffd4'
     };
+    if (view.hasOwnProperty('nodeColor')) {
+      this.nodeColor.field = view.nodeColor.field;
+      this.nodeColor.scale = view.nodeColor.scale;
+      this.nodeColor.domain = view.nodeColor.domain;
+      this.nodeColor.range = view.nodeColor.range;
+      this.nodeColor.unknown = view.nodeColor.unknown;
+    }
 
-    // Node attributes
-    // this.nodeContentVisible = snp.nodeContentVisible || true;
+    this.nodeSize = {
+      field: null, scale: 'linear', domain: [1, 1],
+      range: [40, 40], unknown: 40
+    };
+    if (view.hasOwnProperty('nodeSize')) {
+      this.nodeSize.field = view.nodeSize.field;
+      this.nodeSize.scale = view.nodeSize.scale;
+      this.nodeSize.domain = view.nodeSize.domain;
+      this.nodeSize.range = view.nodeSize.range;
+      this.nodeSize.unknown = view.nodeSize.unknown;
+    }
 
-    // nodeColor
-    this.nodeColor = {};
-    this.nodeColor.field = snp.nodeColor.field || null;
-    this.nodeColor.scale = snp.nodeColor.scale || 'linear';
-    this.nodeColor.domain = snp.nodeColor.domain || [0, 1];
-    this.nodeColor.range = snp.nodeColor.range || ['#7fffd4', '#7fffd4'];
-    this.nodeColor.unknown = snp.nodeColor.unknown || '#7fffd4';
+    this.nodeLabel = {
+      text: null, size: 12, visible: false
+    };
+    if (view.hasOwnProperty('nodeLabel')) {
+      this.nodeLabel.text = view.nodeLabel.text;
+      this.nodeLabel.size = view.nodeLabel.size;
+      this.nodeLabel.visible = view.nodeLabel.visible;
+    }
 
-    // nodeSize
-    this.nodeSize = {};
-    this.nodeSize.field = snp.nodeSize.field || null;
-    this.nodeSize.scale = snp.nodeSize.scale || 'linear';
-    this.nodeSize.domain = snp.nodeSize.domain || [1, 1];
-    this.nodeSize.range = snp.nodeSize.range || [40, 40];
-    this.nodeSize.unknown = snp.nodeSize.unknown || 40;
+    this.nodeLabelColor = {
+      field: null, scale: 'linear', domain: [1, 1],
+      range: ['#cccccc', '#cccccc'], unknown: '#cccccc'
+    };
+    if (view.hasOwnProperty('nodeLabelColor')) {
+      this.nodeLabelColor.field = view.nodeLabelColor.field;
+      this.nodeLabelColor.scale = view.nodeLabelColor.scale;
+      this.nodeLabelColor.domain = view.nodeLabelColor.domain;
+      this.nodeLabelColor.range = view.nodeLabelColor.range;
+      this.nodeLabelColor.unknown = view.nodeLabelColor.unknown;
+    }
 
-    // nodeLabel
-    this.nodeLabel = {};
-    this.nodeLabel.text = snp.nodeLabel.text || null;
-    this.nodeLabel.size = snp.nodeLabel.size || 12;
-    this.nodeLabel.visible = snp.nodeLabel.visible || false;
+    this.edgeWidth = {
+      scale: 'linear', domain: [0.5, 1],
+      range: [10, 10], unknown: 1
+    };
+    if (view.hasOwnProperty('edgeWidth')) {
+      this.edgeWidth.scale = view.edgeWidth.scale;
+      this.edgeWidth.domain = view.edgeWidth.domain;
+      this.edgeWidth.range = view.edgeWidth.range;
+      this.edgeWidth.unknown = view.edgeWidth.unknown;
+    }
 
-    // nodeLabelColor
-    this.nodeLabelColor = {};
-    this.nodeLabelColor.field = snp.nodeLabelColor.field || null;
-    this.nodeLabelColor.scale = snp.nodeLabelColor.scale || 'linear';
-    this.nodeLabelColor.domain = snp.nodeLabelColor.domain || [1, 1];
-    this.nodeLabelColor.range = snp.nodeLabelColor.range || ['#cccccc', '#cccccc'];
-    this.nodeLabelColor.unknown = snp.nodeLabelColor.unknown || '#cccccc';
+    this.edgeLabel = {
+      size: 12, visible: false
+    };
+    if (view.hasOwnProperty('edgeLabel')) {
+      this.edgeLabel.size = view.edgeLabel.size;
+      this.edgeLabel.visible = view.edgeLabel.visible;
+    }
 
-    // Edge attributes
-    // this.edgeVisible = snp.edgeVisible || true;
-    this.networkThresholdCutoff = data.edges.query.params.threshold;
-    this.networkThreshold = snp.networkThreshold || data.edges.query.params.threshold;
-
-    // edgeWidth
-    this.edgeWidth = {};
-    this.edgeWidth.scale = snp.edgeWidth.scale || 'linear';
-    this.edgeWidth.domain = snp.edgeWidth.domain || [0.5, 1];
-    this.edgeWidth.range = snp.edgeWidth.range || [1, 5];
-    this.edgeWidth.unknown = snp.edgeWidth.unknown || 1;
-
-    // edgeLabel
-    this.edgeLabel = {};
-    this.edgeLabel.size = snp.edgeLabel.size || 12;
-    this.edgeLabel.visible = snp.edgeLabel.visible || false;
+    // Edge threshold
+    this.networkThresholdCutoff = view.networkThresholdCutoff;
+    this.networkThreshold = view.networkThreshold || view.networkThresholdCutoff;
 
     // Transform
-    this.transform = snp.fieldTransform || {x: 0, y: 0, k: 1};
+    this.transform = view.fieldTransform || {x: 0, y: 0, k: 1};
 
-    // Event listener
+
+    /* Event listener */
+
     this.zoomListener = null;
     this.dragListener = null;
 
@@ -110,10 +121,11 @@ export default class NetworkState {
     this.updateEdgeNotifier = null;
     this.updateNodeAttrNotifier = null;
     this.updateEdgeAttrNotifier = null;
-    // Snapshot
+
     this.snapShotNotifier = null;
-    // Zoom control
+
     this.fitNotifier = null;
+
     // Force control
     this.setForceNotifier = null;
     this.stickNotifier = null;
@@ -121,19 +133,41 @@ export default class NetworkState {
     this.restartNotifier = null;
     this.tickCallback = () => {};
 
-    // Working memory
-    this.forceField = {top: 0, right: width, bottom: height, left: 0};
-    this.viewBox = {top: 0, right: width, bottom: height, left: 0};
+
+    /* Working memory */
+
+    // Working copies
+    // D3.force does some destructive operations
+    this.ns = JSON.parse(JSON.stringify(this.nodes.records()));
+    this.es = JSON.parse(JSON.stringify(this.edges.records()));
+
+    // Adjacency
+    // Assuming that the network is undirected graph and
+    // source index < target index
+    this.ns.forEach(n => {
+      n.adjacency = [];
+    });
+    this.es.forEach((e, i) => {
+      e.num = i;  // e.index will be overwritten by d3-force
+      this.ns[e.source].adjacency.push([e.target, i]);
+      this.ns[e.target].adjacency.push([e.source, i]);
+    });
+
+    // Drawing
+    this.forceField = {
+      top: 0, right: this.fieldWidth, bottom: this.fieldHeight, left: 0};
+    this.viewBox = {
+      top: 0, right: this.fieldWidth, bottom: this.fieldHeight, left: 0};
     this.focusArea = {};
     this.boundary = {};
     this.prevTransform = {
       x: this.transform.x, y: this.transform.y, k: this.transform.k
     };
 
-    if (snp.coords) {
+    if (view.coords) {
       this.simulationOnLoad = false;
       // Set default state
-      this.setAllCoords(snp.coords);
+      this.setAllCoords(view.coords);
       this.setFocusArea();
       this.setBoundary();
     } else {
@@ -142,8 +176,8 @@ export default class NetworkState {
   }
 
   setBoundary() {
-    const xs = this.nodes.map(e => e.x);
-    const ys = this.nodes.map(e => e.y);
+    const xs = this.ns.map(e => e.x);
+    const ys = this.ns.map(e => e.y);
     this.boundary.top = Math.min.apply(null, ys);
     this.boundary.left = Math.min.apply(null, xs);
     this.boundary.bottom = Math.max.apply(null, ys);
@@ -179,19 +213,19 @@ export default class NetworkState {
   }
 
   setAllCoords(coordsList) {
-    this.nodes.forEach(n => {
+    this.ns.forEach(n => {
       n.x = coordsList[n.index].x;
       n.y = coordsList[n.index].y;
-      // this.edges can be changed by forceSimulation so use adjacency
+      // this.es can be changed by forceSimulation so use adjacency
       n.adjacency.forEach(e => {
         const nbr = e[0];
         const edge = e[1];
         if (n.index < nbr) {
-          this.edges[edge].sx = coordsList[n.index].x;
-          this.edges[edge].sy = coordsList[n.index].y;
+          this.es[edge].sx = coordsList[n.index].x;
+          this.es[edge].sy = coordsList[n.index].y;
         } else {
-          this.edges[edge].tx = coordsList[n.index].x;
-          this.edges[edge].ty = coordsList[n.index].y;
+          this.es[edge].tx = coordsList[n.index].x;
+          this.es[edge].ty = coordsList[n.index].y;
         }
       });
     });
@@ -199,31 +233,31 @@ export default class NetworkState {
   }
 
   setCoords(n, x, y) {
-    this.nodes[n].x = x;
-    this.nodes[n].y = y;
-    this.nodes[n].adjacency.forEach(e => {
+    this.ns[n].x = x;
+    this.ns[n].y = y;
+    this.ns[n].adjacency.forEach(e => {
       const nbr = e[0];
       const edge = e[1];
       if (n < nbr) {
-        this.edges[edge].sx = x;
-        this.edges[edge].sy = y;
+        this.es[edge].sx = x;
+        this.es[edge].sy = y;
       } else {
-        this.edges[edge].tx = x;
-        this.edges[edge].ty = y;
+        this.es[edge].tx = x;
+        this.es[edge].ty = y;
       }
     });
     this.setBoundary();
   }
 
   nodesToRender() {
-    return this.nodes.filter(
+    return this.ns.filter(
       e => e.y > this.focusArea.top && e.x > this.focusArea.left
         && e.y < this.focusArea.bottom && e.x < this.focusArea.right
     );
   }
 
   edgesToRender() {
-    return this.edges.filter(
+    return this.es.filter(
       e => e.weight >= this.networkThreshold
         && this.focusArea.top < Math.max(e.sy, e.ty)
         && this.focusArea.left < Math.max(e.sx, e.tx)
@@ -232,8 +266,23 @@ export default class NetworkState {
     );
   }
 
-  snapshot() {
-    return {
+  save() {
+    return Promise.all([
+      idb.updateCollection(this.nodes.collectionID, this.nodes.export()),
+      idb.updateCollection(this.edges.collectionID, this.edges.export()),
+      idb.updateView(this.viewID, this.export())
+    ]);
+  }
+
+  export() {
+    // TODO: need deep copy?
+    return JSON.parse(JSON.stringify({
+      $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
+      viewID: this.viewID,
+      name: this.name,
+      viewType: "network",
+      nodes: this.nodes.collectionID,
+      edges: this.edges.collectionID,
       nodeColor: this.nodeColor,
       nodeSize: this.nodeSize,
       nodeLabel: this.nodeLabel,
@@ -243,15 +292,10 @@ export default class NetworkState {
       networkThreshold: this.networkThreshold,
       networkThresholdCutoff: this.networkThresholdCutoff,
       fieldTransform: this.transform,
-      coords: this.nodes.map(e => ({x: e.x, y: e.y}))
-    };
+      coords: this.ns.map(e => ({x: e.x, y: e.y}))
+    }));
   }
 
-  export() {
-    this.data.edges.id = misc.uuidv4();
-    this.data.edges.snapshot = this.snapshot();
-    return JSON.parse(JSON.stringify(this.data));
-  }
 
   showTransform() {
     d3.select('#debug-transform')
