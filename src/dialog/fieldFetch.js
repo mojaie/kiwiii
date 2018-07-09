@@ -36,8 +36,15 @@ function body(selection, schema, fields) {
       return copy;
     });
   });
-  const done = fields.filter(e => e.hasOwnProperty('__origin'))
-    .map(e => e.__origin);
+  const done = {};
+  fields.filter(e => e.hasOwnProperty('__origin'))
+    .map(e => e.__origin)
+    .forEach(e => {
+      if (!done.hasOwnProperty(e.assay_id)) {
+        done[e.assay_id] = [];
+      }
+      done[e.assay_id].push(e.value_type);
+    });
   const data = {
     fields: [
       {key: 'check', name: 'Check', format: 'checkbox',
@@ -48,8 +55,8 @@ function body(selection, schema, fields) {
       {key: 'tags', name: 'Tags', format: 'list', widthf: 2}
     ],
     records: items.map(item => {
-      const a = done.find(e => e.assay_id === item.assay_id);
-      const d = a !== undefined && (a.value_type === item.value_type);
+      const d = done.hasOwnProperty(item.assay_id)
+          && done[item.assay_id].includes(item.value_type);
       item.check = d;
       item.check_d = d;
       return item;

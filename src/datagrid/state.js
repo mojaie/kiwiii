@@ -17,9 +17,6 @@ export default class DatagridState {
     this.sortOrder = view.sortOrder || [];
     this.filterText = view.filterText || null;
     this.rows = new Collection(coll);
-    if (view.fields) {
-      this.rows.updateFields(view.fields);
-    }
 
     this.visibleFields = null;
     this.sortedRecords = null;
