@@ -85,7 +85,7 @@ function app(view, nodes, edges) {
 
   // Force simulation
   const simulation = force.forceSimulation(
-    state.fieldWidth, state.fieldHeight);
+    state.forcePreset, state.fieldWidth, state.fieldHeight);
   // Contents
   const frame = d3.select('#nw-frame')
       .call(component.networkViewFrame, state);

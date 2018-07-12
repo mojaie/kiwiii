@@ -109,6 +109,8 @@ export default class NetworkState {
     // Transform
     this.transform = view.fieldTransform || {x: 0, y: 0, k: 1};
 
+    // Force
+    this.forcePreset = view.forcePreset || 'aggregate';
 
     /* Event listener */
 

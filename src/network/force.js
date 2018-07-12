@@ -7,28 +7,27 @@ import {default as component} from './component.js';
 import {default as interaction} from './interaction.js';
 
 
-function forceSimulation(width, height) {
-  return d3.forceSimulation()
-    .force('link',
-      d3.forceLink().id(d => d.index)
-        .distance(60)
-        .strength(1))
+const forcePresets = {
+  aggregate: d3.forceSimulation()
+    .force('link', d3.forceLink().id(d => d.index).distance(60).strength(1))
     .force('charge',
-      d3.forceManyBody()
-        .strength(-600)
-        .distanceMin(15)
-        .distanceMax(720))
-    .force('collide',
-      d3.forceCollide()
-        .radius(90))
-    .force('center',
-      d3.forceCenter(width / 2, height / 2))
-    .force('x',
-      d3.forceX()
-        .strength(0.002))
-    .force('y',
-      d3.forceY()
-        .strength(0.002))
+      d3.forceManyBody().strength(-600).distanceMin(15).distanceMax(720))
+    .force('collide', d3.forceCollide().radius(90))
+    .force('x', d3.forceX().strength(0.002))
+    .force('y', d3.forceY().strength(0.002)),
+  tree: d3.forceSimulation()
+    .force('link', d3.forceLink().id(d => d.index).distance(60).strength(2))
+    .force('charge',
+      d3.forceManyBody().strength(-6000).distanceMin(15).distanceMax(720))
+    .force('collide', d3.forceCollide().radius(90))
+    .force('x', d3.forceX().strength(0.0002))
+    .force('y', d3.forceY().strength(0.0002))
+};
+
+
+function forceSimulation(preset, width, height) {
+  return forcePresets[preset]
+    .force('center', d3.forceCenter(width / 2, height / 2))
     .stop();
 }
 
