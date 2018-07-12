@@ -33,12 +33,22 @@ function mainControlBox(selection, state) {
       .call(box.checkBox, 'overlook', 'Enable overlook view', state.enableOverlookView);
   // Network threshold
   const thldGroup = selection.append('div')
+      .classed('thld-group', true)
       .classed('mb-3', true);
+  thldGroup.append('div')
+      .classed('field', true)
+      .classed('mb-1', true)
+      .call(
+        lbox.selectBox, null, 'Connection',
+        state.edges.fields.filter(e => misc.sortType(e.format) !== 'none')
+          .filter(e => !['source', 'target'].includes(e.key)),
+        state.connThldField
+      );
   thldGroup.append('div')
       .classed('thld', true)
       .classed('mb-1', true)
-      .call(box.numberBox, 'thld', 'Network threshold',
-            state.networkThresholdCutoff, 1.000, 0.01, state.networkThreshold);
+      .call(box.numberBox, null, 'Threshold',
+            state.minConnThld, 1.000, 0.01, state.currentConnThld);
   thldGroup.append('div')
       .classed('logd', true)
       .classed('mb-1', true)
@@ -107,20 +117,26 @@ function updateMainControlBox(selection, state) {
         state.updateComponentNotifier();
       });
   // Network threshold
-  selection.select('.thld')
-      .call(box.updateNumberBox, state.networkThreshold)
+  const thldGroup = selection.select('.thld-group');
+  thldGroup.select('.field')
+      .call(lbox.updateSelectBox, state.connThldField);
+  thldGroup.select('.thld')
+      .call(box.updateNumberBox, state.currentConnThld);
+  thldGroup.selectAll('.field, .thld')
       .on('change', function () {
-        const value = box.numberBoxValue(d3.select(this));
-        state.networkThreshold = value;
+        const field = lbox.selectBoxValue(thldGroup.select('.field'));
+        const thld = box.numberBoxValue(thldGroup.select('.thld'));
+        state.connThldField = field;
+        state.currentConnThld = thld;
         state.updateComponentNotifier();
         state.setForceNotifier();
-        const numEdges = state.es.filter(e => e.weight >= value).length;
+        const numEdges = state.es.filter(e => e[field] >= thld).length;
         const n = state.ns.length;
         const combinations = n * (n - 1) / 2;
         const logD = d3.format('.2f')(Math.log10(numEdges / combinations));
         selection.select('.logd').call(box.updateTextBox, logD);
-      })
-      .dispatch('change');
+      });
+  thldGroup.select('.field').dispatch('change');
   // Force layout
   state.tickCallback = (simulation) => {
     const alpha = simulation.alpha();
@@ -287,7 +303,7 @@ function nodeLabelControlBox(selection, state) {
       .call(
         lbox.selectBox, 'label-text', 'Text field',
         state.nodes.fields.filter(e => misc.sortType(e.format) !== 'none'),
-        state.nodeLabel.text || ''
+        state.nodeLabel.field || ''
       );
   labelGroup.append('div')
       .classed('size', true)
@@ -330,9 +346,9 @@ function updateNodeLabelControlBox(selection, state) {
       });
   // nodeLabel
   selection.select('.text')
-      .call(lbox.updateSelectBox, state.nodeLabel.text)
+      .call(lbox.updateSelectBox, state.nodeLabel.field)
       .on('change', function () {
-        state.nodeLabel.text = lbox.selectBoxValue(d3.select(this));
+        state.nodeLabel.field = lbox.selectBoxValue(d3.select(this));
         state.updateNodeAttrNotifier();
       });
   selection.select('.size')

@@ -46,12 +46,10 @@ function updateEdges(selection, records) {
       .attr('class', 'link');
   entered.append('line')
       .attr('class', 'edge-line')
-      .style('stroke', '#999')
       .style('stroke-opacity', 0.6);
   entered.append('text')
       .attr('class', 'edge-label')
-      .attr('text-anchor', 'middle')
-      .text(d => d.weight);
+      .attr('text-anchor', 'middle');
   // draw all components and then
   entered.call(updateEdgeCoords);
 }
@@ -68,12 +66,12 @@ function updateNodeAttrs(selection, state) {
           .style('fill', color);
       d3.select(this).select('.node-label')
           .text(d => {
-            if (state.nodeLabel.text === null) return '';
-            const field = state.nodes.fields.find(e => e.key === state.nodeLabel.text);
+            if (state.nodeLabel.field === null) return '';
+            const field = state.nodes.fields.find(e => e.key === state.nodeLabel.field);
             if (field.format === 'd3_format') {
-              return misc.formatNum(d[state.nodeLabel.text], field.d3_format);
+              return misc.formatNum(d[state.nodeLabel.field], field.d3_format);
             }
-            return d[state.nodeLabel.text];
+            return d[state.nodeLabel.field];
           })
           .attr('font-size', state.nodeLabel.size)
           .attr('y', parseFloat(size) + parseInt(state.nodeLabel.size))
@@ -85,10 +83,14 @@ function updateNodeAttrs(selection, state) {
 
 function updateEdgeAttrs(selection, state) {
   selection.selectAll('.link').select('.edge-line')
-    .style('stroke-width', d => scale.scaleFunction(state.edgeWidth)(d.weight));
+    .style('stroke',
+           d => scale.scaleFunction(state.edgeColor)(d[state.edgeColor.field]))
+    .style('stroke-width',
+           d => scale.scaleFunction(state.edgeWidth)(d[state.edgeWidth.field]));
   selection.selectAll('.link').select('.edge-label')
     .attr('visibility', state.edgeLabel.visible ? 'inherit' : 'hidden')
-    .attr('font-size', state.edgeLabel.size);
+    .attr('font-size', state.edgeLabel.size)
+    .text(d => d[state.edgeLabel.field]);
 }
 
 

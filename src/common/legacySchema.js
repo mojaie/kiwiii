@@ -317,7 +317,7 @@ function convertPackage(json) {
   const data = isNW ? convertNetwork(json) : convertTable(json);
   const nodes = isNW ? data.nodes : data;
   const specs = {
-    $schema: "https://mojaie.github.io/kiwiii/specs/datagrid_v1.0.json",
+    $schema: "https://mojaie.github.io/kiwiii/specs/package_v1.0.json",
     name: data.edges.name,
     views: [],
     dataset: []
@@ -396,6 +396,20 @@ function convertPackage(json) {
       }]
     });
   }
+  specs.views.filter(e => e.viewType === 'network')
+    .forEach(view => {
+      view.minConnThld = view.networkThresholdCutoff;
+      view.currentConnThld = view.networkThreshold;
+      if (view.hasOwnProperty('nodeLabel')) {
+        view.nodeLabel.field = view.nodeLabel.text;
+      }
+      if (view.hasOwnProperty('edgeLabel')) {
+        view.edgeLabel.field = 'weight';
+      }
+      if (view.hasOwnProperty('edgeWidth')) {
+        view.edgeWidth.field = 'weight';
+      }
+    });
   return specs;
 }
 

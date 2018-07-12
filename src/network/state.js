@@ -63,10 +63,10 @@ export default class NetworkState {
     }
 
     this.nodeLabel = {
-      text: null, size: 12, visible: false
+      field: null, size: 12, visible: false
     };
     if (view.hasOwnProperty('nodeLabel')) {
-      this.nodeLabel.text = view.nodeLabel.text;
+      this.nodeLabel.field = view.nodeLabel.field;
       this.nodeLabel.size = view.nodeLabel.size;
       this.nodeLabel.visible = view.nodeLabel.visible;
     }
@@ -83,11 +83,24 @@ export default class NetworkState {
       this.nodeLabelColor.unknown = view.nodeLabelColor.unknown;
     }
 
+    this.edgeColor = {
+      field: null, scale: 'linear', domain: [0, 1],
+      range: ['#999999', '#999999'], unknown: '#999999'
+    };
+    if (view.hasOwnProperty('edgeColor')) {
+      this.edgeColor.field = view.edgeColor.field;
+      this.edgeColor.scale = view.edgeColor.scale;
+      this.edgeColor.domain = view.edgeColor.domain;
+      this.edgeColor.range = view.edgeColor.range;
+      this.edgeColor.unknown = view.edgeColor.unknown;
+    }
+
     this.edgeWidth = {
-      scale: 'linear', domain: [0.5, 1],
+      field: 'weight', scale: 'linear', domain: [0.5, 1],
       range: [10, 10], unknown: 1
     };
     if (view.hasOwnProperty('edgeWidth')) {
+      this.edgeWidth.field = view.edgeWidth.field;
       this.edgeWidth.scale = view.edgeWidth.scale;
       this.edgeWidth.domain = view.edgeWidth.domain;
       this.edgeWidth.range = view.edgeWidth.range;
@@ -95,16 +108,18 @@ export default class NetworkState {
     }
 
     this.edgeLabel = {
-      size: 12, visible: false
+      field: 'weight', size: 12, visible: false
     };
     if (view.hasOwnProperty('edgeLabel')) {
+      this.edgeLabel.field = view.edgeLabel.field;
       this.edgeLabel.size = view.edgeLabel.size;
       this.edgeLabel.visible = view.edgeLabel.visible;
     }
 
-    // Edge threshold
-    this.networkThresholdCutoff = view.networkThresholdCutoff;
-    this.networkThreshold = view.networkThreshold || view.networkThresholdCutoff;
+    // Connection threshold
+    this.connThldField = view.connThldField || 'weight';
+    this.minConnThld = view.minConnThld;
+    this.currentConnThld = view.currentConnThld || view.minConnThld;
 
     // Transform
     this.transform = view.fieldTransform || {x: 0, y: 0, k: 1};
@@ -260,7 +275,7 @@ export default class NetworkState {
 
   edgesToRender() {
     return this.es.filter(
-      e => e.weight >= this.networkThreshold
+      e => e.weight >= this.currentConnThld
         && this.focusArea.top < Math.max(e.sy, e.ty)
         && this.focusArea.left < Math.max(e.sx, e.tx)
         && this.focusArea.bottom > Math.min(e.sy, e.ty)
@@ -289,10 +304,12 @@ export default class NetworkState {
       nodeSize: this.nodeSize,
       nodeLabel: this.nodeLabel,
       nodeLabelColor: this.nodeLabelColor,
+      edgeColor: this.edgeColor,
       edgeWidth: this.edgeWidth,
       edgeLabel: this.edgeLabel,
-      networkThreshold: this.networkThreshold,
-      networkThresholdCutoff: this.networkThresholdCutoff,
+      connThldField: this.connThldField,
+      currentConnThld: this.currentConnThld,
+      minConnThld: this.minConnThld,
       fieldTransform: this.transform,
       coords: this.ns.map(e => ({x: e.x, y: e.y}))
     }));
