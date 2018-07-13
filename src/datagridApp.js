@@ -244,7 +244,7 @@ function updateApp(state) {
                 viewType: 'network',
                 nodes: state.rows.collectionID,
                 edges: wid,
-                networkThresholdCutoff: data.query.params.threshold
+                minConnThld: data.query.params.threshold
               }),
               idb.appendCollection(state.rows.collectionID, {
                 $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",

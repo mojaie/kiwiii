@@ -98,10 +98,8 @@ function restart(selection, simulation, state) {
 
 
 function setForce(selection, simulation, state) {
-  const forceEdges = state.es
-    .filter(e => e.weight >= state.networkThreshold);
   simulation.nodes(state.ns)
-    .force('link').links(forceEdges);
+    .force('link').links(state.currentEdges());
 }
 
 

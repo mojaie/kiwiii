@@ -134,12 +134,14 @@ function updateApp(state) {
   dialogs.select('.communityd')
       .on('submit', function () {
         const value = communityDialog.value(d3.select(this));
-        const nodeIds = state.nodes.records().map(e => e.index);
-        const edges = state.edges.records()
-          .filter(e => e.weight >= state.networkThreshold);
-        const comm = community.communityDetection(
-          nodeIds, edges, {nulliso: value.nulliso}
-        );
+        const ns = state.nodes.records();
+        const es = state.currentEdges();
+        const ops = {
+          nodeField: 'index',
+          weightField: state.connThldField,
+          nulliso: value.nulliso
+        };
+        const comm = community.communityDetection(ns, es, ops);
         const mapping = {
           key: 'index',
           field: {key: value.name, name: value.name,
@@ -147,10 +149,11 @@ function updateApp(state) {
           mapping: comm
         };
         state.nodes.joinFields(mapping);
+        const defaultScale = scale.colorRangeTypes
+          .find(e => e.key === 'category40');
         state.nodeColor = {
           field: value.name, scale: 'ordinal', domain: [0, 1],
-          range: scale.colorRangeTypes[3].range,
-          unknown: scale.colorRangeTypes[3].unknown
+          range: defaultScale.range, unknown: defaultScale.unknown
         };
         $('#community-dialog').modal('hide');  // TODO:
         d3.select('#loading-icon').style('display', 'none');

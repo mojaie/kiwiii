@@ -273,10 +273,13 @@ export default class NetworkState {
     );
   }
 
+  currentEdges() {
+    return this.es.filter(e => e[this.connThldField] >= this.currentConnThld);
+  }
+
   edgesToRender() {
-    return this.es.filter(
-      e => e.weight >= this.currentConnThld
-        && this.focusArea.top < Math.max(e.sy, e.ty)
+    return this.currentEdges().filter(
+      e => this.focusArea.top < Math.max(e.sy, e.ty)
         && this.focusArea.left < Math.max(e.sx, e.tx)
         && this.focusArea.bottom > Math.min(e.sy, e.ty)
         && this.focusArea.right > Math.min(e.sx, e.tx)

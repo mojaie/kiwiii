@@ -5,15 +5,20 @@ import jLouvain from 'jLouvain';
 
 
 export function communityDetection(nodes, edges, option) {
-  // TODO: partition resolution setting
-  // TODO: Error at edges.length 0
+  const nodeField = option.nodeField || 'index';
+  const weightField = option.weightField || 'weight';
   if (!edges.length) {
     const community = {};
     nodes.forEach(e => { community[e] = option.nulliso ? null : e; });
     return community;
   }
+  const ns = nodes.map(e => e[nodeField]);
+  const es = edges.map(e => ({
+    source: e.source[nodeField], target: e.target[nodeField],
+    weight: e[weightField]
+  }));
   const clusters = {};
-  const community = jLouvain().nodes(nodes).edges(edges)();
+  const community = jLouvain().nodes(ns).edges(es)();
   Object.entries(community).forEach(e => {
     if (!clusters.hasOwnProperty(e[1])) {
       clusters[e[1]] = [];
