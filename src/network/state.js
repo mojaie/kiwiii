@@ -116,6 +116,18 @@ export default class NetworkState {
       this.edgeLabel.visible = view.edgeLabel.visible;
     }
 
+    this.edgeLabelColor = {
+      field: null, scale: 'linear', domain: [1, 1],
+      range: ['#cccccc', '#cccccc'], unknown: '#cccccc'
+    };
+    if (view.hasOwnProperty('edgeLabelColor')) {
+      this.edgeLabelColor.field = view.edgeLabelColor.field;
+      this.edgeLabelColor.scale = view.edgeLabelColor.scale;
+      this.edgeLabelColor.domain = view.edgeLabelColor.domain;
+      this.edgeLabelColor.range = view.edgeLabelColor.range;
+      this.edgeLabelColor.unknown = view.edgeLabelColor.unknown;
+    }
+
     // Connection threshold
     this.connThldField = view.connThldField || 'weight';
     this.minConnThld = view.minConnThld;
