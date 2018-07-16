@@ -44,6 +44,24 @@ function app(view, coll) {
   menu.append('a').call(fieldFileDialog.menuLink);
   menu.append('a').call(fieldInputDialog.menuLink);
   menu.append('a')
+      .call(button.dropdownMenuItem, 'Generate tile view', 'painting')
+      .on('click', function () {
+        const newID = misc.uuidv4();
+        idb.appendView(state.viewID, {
+          $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
+          viewID: newID,
+          name: newID,
+          viewType: 'tile',
+          items: state.rows.collectionID,
+          rowCount: 5,
+          columnCount: 5,
+          tileContent: {field: 'structure', visible: true}
+        }).then(() => {
+          d3.select('#loading-icon').style('display', 'none');
+          window.open(`tile.html?view=${newID}`, '_blank');
+        });
+      });
+  menu.append('a')
       .classed('online-command', true)
       .call(networkgenDialog.menuLink);
   menu.append('a').call(renameDialog.menuLink);

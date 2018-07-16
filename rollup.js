@@ -34,7 +34,8 @@ const appBundles = [
   {name: 'dashboardApp', ejs: 'dashboard'},
   {name: 'datagridApp', ejs: 'datagrid'},
   {name: 'networkApp', ejs: 'network'},
-  {name: 'profileApp', ejs: 'profile'}
+  {name: 'profileApp', ejs: 'profile'},
+  {name: 'tileApp', ejs: 'tile'}
 ];
 
 const debugBundles = [
@@ -44,7 +45,8 @@ const debugBundles = [
 
 const deployBundles = [
   {name: 'datagrid', module: 'kw-datagrid', dist: true},
-  {name: 'network', module: 'kw-network', dist: true}
+  {name: 'network', module: 'kw-network', dist: true},
+  {name: 'tile', module: 'kw-tile', dist: true}
 ];
 
 const bundles = appBundles.concat(isDebugBuild ? debugBundles : deployBundles);
