@@ -13,7 +13,8 @@ import {default as renameDialog} from './dialog/rename.js';
 
 import TileState from './tile/state.js';
 import {default as component} from './tile/component.js';
-// import {default as control} from './tile/controlBox.js';
+import {default as interaction} from './tile/interaction.js';
+import {default as control} from './tile/controlBox.js';
 
 
 function app(view, coll) {
@@ -45,13 +46,17 @@ function app(view, coll) {
       .call(renameDialog.body, state.name);
 
   // Contents
-  d3.select('#tileview')
-      .call(component.tileView, state);
-  //d3.select('#tl-control')
-  //    .call(control.controlBox, state);
+  const frame = d3.select('#tl-frame')
+      .call(component.tileViewFrame, state);
+  frame.select('.tl-view')
+      .call(component.tileView, state)
+      .call(interaction.setInteraction, state);
+  d3.select('#tl-control')
+      .call(control.controlBox, state);
 
   // Resize window
-  window.onresize = () => d3.select('#tileview').dispatch('resize');
+  window.onresize = () =>
+    d3.select('#tl-frame').call(component.resize, state);
 
   // Update
   updateApp(state);
