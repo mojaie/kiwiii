@@ -9,7 +9,7 @@ import {default as idb} from '../common/idb.js';
 export default class TileState {
   constructor(view, items) {
     /* Settings */
-    this.pColMarginRatio = 0.05;
+    this.groupMarginRatio = 0.05;
 
     /* Attributes */
 
@@ -17,19 +17,19 @@ export default class TileState {
     this.name = view.name;
 
     this.items = new Collection(items);
-    this.panelField = this.panelField || null;
 
 
     /* Appearance */
 
     this.rowCount = view.rowCount || 8;
     this.columnCount = view.columnCount || 12;
-    this.fixPanelSize = view.fixPanelSize || false;
-    this.fixAspectRatio = true;  // TODO
-    this.panelsPerRow = view.panelsPerRow || 1;
-    this.panelsPerColumn = view.panelsPerColumn || 1;
-    this.fixPageSize = view.fixPageSize || false;
-    this.currentPage = view.currentPage || 0;
+    this.groupField = view.groupField || null;
+    this.groupsPerRow = view.groupsPerRow || 1;
+    this.fixRowCount = view.fixRowCount || false;
+    this.fixColumnCount = view.fixColumnCount || false;
+    this.tileAspectRatio = 1;
+    this.showRowNumber = view.showRowNumber || false;
+    this.showColumnNumber = view.showColumnNumber || false;
 
 
     this.tileContent = {
@@ -81,8 +81,6 @@ export default class TileState {
     this.fieldWidth = 1200;
     this.fieldHeight = 800;
     this.transform = view.fieldTransform || {x: 0, y: 0, k: 1};
-    this.forceField = {
-      top: 0, right: this.fieldWidth, bottom: this.fieldHeight, left: 0};
     this.viewBox = {
       top: 0, right: this.fieldWidth, bottom: this.fieldHeight, left: 0};
     this.focusArea = {};
@@ -92,7 +90,6 @@ export default class TileState {
     };
 
     this.zoomListener = null;
-    this.updatePanelNotifier = null;
     this.updateItemNotifier = null;
     this.updateItemAttrNotifier = null;
 
@@ -128,40 +125,46 @@ export default class TileState {
   }
 
   setFactor() {
-    const cf = this.panelsPerColumn + this.pColMarginRatio * (this.panelsPerColumn + 1);
-    this.panelColWidth = this.viewBox.right / cf;
-    this.panelColMargin = this.panelColWidth * this.pColMarginRatio;
-    this.columnWidth = this.panelColWidth / this.columnCount;
-    this.rowHeight = this.columnWidth;
+    const cf = this.groupsPerRow + this.groupMarginRatio * (this.groupsPerRow + 1);
+    this.groupWidth = this.viewBox.right / cf;
+    this.groupHeight = this.groupWidth * this.tileAspectRatio;
+    this.groupMarginH = this.groupWidth * this.groupMarginRatio;
+    this.groupMarginV = this.groupHeight * this.groupMarginRatio;
+    this.columnWidth = this.groupWidth / this.columnCount;
+    this.rowHeight = this.columnWidth * this.tileAspectRatio;
   }
 
-  getPos(pageCol, pageRow, column, row) {
-    const x = this.panelColWidth * pageRow + this.panelColMargin * (pageRow + 1) + this.columnWidth * row;
-    const y = this.panelColWidth * pageCol + this.panelColMargin * (pageCol + 1) + this.columnWidth * column;
+  getPos(gCol, gRow, col, row) {
+    const x = this.groupWidth * gCol + this.groupMarginH * (gCol + 1) + this.columnWidth * col;
+    const y = this.groupHeight * gRow + this.groupMarginV * (gRow + 1) + this.rowHeight * row;
     return [x, y];
   }
 
-  pageRecords(pageNum) {
-    const pp = this.panelsPerRow * this.panelsPerColumn;
-    const panels = this.items.contents.slice(pp * pageNum, pp * (pageNum + 1));
+  currentItems() {
     const res = [];
-    panels.forEach((panel, i) => {
-      const pc = Math.floor(i / this.panelsPerColumn);
-      const pr = i % this.panelsPerColumn;
-      const itemCount = this.rowCount * this.columnCount;
-      const tiles = panel.records.slice(0, itemCount);
-      tiles.forEach((tile, j) => {
-        const c = Math.floor(j / this.columnCount);
-        const r = j % this.columnCount;
-        const pos = this.getPos(pc, pr, c, r);
-        const record = {
-          x: pos[0], y: pos[1], panel: panel[this.groupField]
-        };
-        Object.assign(record, tile);
-        res.push(record);
-      });
+    const tileCount = this.columnCount * this.rowCount;
+    this.items.records().forEach((rcd, i) => {
+      const groupIdx = Math.floor(i / tileCount);
+      const tileIdx = i % tileCount;
+      const gRow = Math.floor(groupIdx / this.groupsPerRow);
+      const gCol = groupIdx % this.groupsPerRow;
+      const row = Math.floor(tileIdx / this.columnCount);
+      const col = tileIdx % this.columnCount;
+      const pos = this.getPos(gCol, gRow, col, row);
+      const newrcd = {x: pos[0], y: pos[1]};
+      Object.assign(newrcd, rcd);
+      res.push(newrcd);
     });
     return res;
+  }
+
+  itemsToRender() {
+    return this.currentItems().filter(
+      e => this.focusArea.top < e.y
+        && this.focusArea.left < e.x
+        && this.focusArea.bottom > e.y
+        && this.focusArea.right > e.x
+    );
   }
 
   save() {
@@ -181,8 +184,11 @@ export default class TileState {
       rowCount: this.rowCount,
       columnCount: this.columnCount,
       groupField: this.groupField,
+      groupsPerRow: this.groupsPerRow,
       tileContent: this.tileContent,
-      tileColor: this.tileColor
+      tileColor: this.tileColor,
+      tileText: this.tileText,
+      tileTextColor: this.tileTextColor
     };
   }
 

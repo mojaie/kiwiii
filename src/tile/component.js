@@ -1,10 +1,12 @@
 
 /** @module tile/component */
 
+import {default as scale} from '../common/scale.js';
 
-function updateItems(selection, records, showContent, contentSize) {
+
+function updateItems(selection, state) {
   const items = selection.selectAll('.item')
-    .data(records, d => d.index);
+    .data(state.itemsToRender(), d => d.index);
   items.exit().remove();
   const entered = items.enter()
     .append('g')
@@ -14,19 +16,26 @@ function updateItems(selection, records, showContent, contentSize) {
       .attr('class', 'tile')
       .attr('x', 0)
       .attr('y', 0)
-      .attr('width', contentSize[0])
-      .attr('height', contentSize[1])
-      .style('fill', '#ffffff')
+      .attr('width', state.columnWidth)
+      .attr('height', state.rowHeight)
       .style('stroke-width', 1)
       .style('stroke', '#cccccc');
   entered.append('g')
       .attr('class', 'tile-content');
   const merged = entered.merge(items);
-  if (showContent) {
+  if (state.tileContent.visible) {
     merged.select('.tile-content').html(d => d.structure);
   } else {
     merged.select('.tile-content').select('svg').remove();
   }
+  selection.call(updateItemAttrs, state);
+}
+
+
+function updateItemAttrs(selection, state) {
+  selection.selectAll('.item').select('.tile')
+    .style('fill',
+      d => scale.scaleFunction(state.tileColor)(d[state.tileColor.field]));
 }
 
 
@@ -56,6 +65,7 @@ function resize(selection, state) {
     .call(resizeViewBox, area.offsetWidth, area.offsetHeight);
 }
 
+
 function tileView(selection, state) {
   selection
     .attr('preserveAspectRatio', 'xMinYMin meet')
@@ -80,22 +90,19 @@ function tileView(selection, state) {
       .attr('stroke', '#cccccc');
   const field = selection.append('g')
       .classed('tl-field', true);
-
+  const items = field.append('g').classed('tl-items', true);
   // Set notifiers
-  state.updatePanelNotifier = () => {
-  };
   state.updateItemNotifier = () => {
-    selection.call(updateItems, state);
+    state.setFactor();
+    items.call(updateItems, state);
   };
   state.updateItemAttrNotifier = () => {
   };
-  const items = field.append('g').classed('tl-items', true);
-  const page = state.pageRecords(0);
-  items.call(updateItems, page, true, [state.columnWidth, state.rowHeight]);
+  state.updateItemNotifier();
 }
 
 
 
 export default {
-  updateItems, tileViewFrame, tileView, resize
+  updateItems, updateItemAttrs, tileViewFrame, tileView, resize
 };

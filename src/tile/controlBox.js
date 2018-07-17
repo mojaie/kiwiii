@@ -72,7 +72,7 @@ function updateMainControlBox(selection, state) {
         state.groupsPerRow = box.numberBoxValue(panelGroup.select('.grow'));
         state.showColumnNumber = box.checkBoxValue(panelGroup.select('.showcol'));
         state.showRowNumber = box.checkBoxValue(panelGroup.select('.showrow'));
-        state.updatePanelNotifier();  // TODO:
+        state.updateItemNotifier();  // TODO:
       });
   panelGroup.select('.rowcnt').dispatch('change');
 }
@@ -147,7 +147,7 @@ function updateColorControlBox(selection, colorState, notifier) {
 }
 
 function updateTileColorControlBox(selection, state) {
-  const notifier = state.updateTileAttrNotifier;
+  const notifier = state.updateItemAttrNotifier;
   updateColorControlBox(selection, state.tileColor, notifier);
 }
 

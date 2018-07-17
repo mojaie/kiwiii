@@ -3,6 +3,8 @@
 
 import d3 from 'd3';
 
+import {default as component} from './component.js';
+
 
 function zoomListener(selection, state) {
   return d3.zoom()
@@ -15,6 +17,7 @@ function zoomListener(selection, state) {
       const t = d3.event.transform;
       state.setTransform(t.x, t.y, t.k);
       state.prevTransform = {x: t.x, y: t.y, k: t.k};
+      selection.select('.tl-items').call(component.updateItems, state);
     });
 }
 
