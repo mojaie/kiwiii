@@ -10,7 +10,7 @@ function setFilter(selection, state) {
       .classed('justify-content-end', true)
     .append('div')
       .classed('col-5', true)
-      .call(box.textBox, null, 'Search', 40, null);
+      .call(box.textBox, 'Search', null);
   searchBox.select('label').classed('text-right', true);
   searchBox.select('input')
     .on('keyup', function () {

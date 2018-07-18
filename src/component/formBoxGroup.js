@@ -13,24 +13,22 @@ import {default as scaledef} from '../common/scale.js';
  * Render color range control box group
  * @param {d3.selection} selection - selection of box container (div element)
  */
-function colorRangeGroup(selection, id, palettes, rangeTypes, range, unknown) {
+function colorRangeGroup(selection, palettes, rangeTypes, range, unknown) {
+  const rtype = scaledef.colorRangeTypes.find(e => e.size === range.length).key;
   selection
       .classed('mb-3', true);
   selection.append('div')
       .classed('palette', true)
       .classed('mb-1', true)
-      .call(lbox.selectBox, `${id}-palette`, 'Color palette', palettes, 'hoge');
+      .call(lbox.selectBox, 'Color palette', palettes, '');
   selection.append('div')
       .classed('rangetype', true)
       .classed('mb-1', true)
-      .call(
-        lbox.selectBox, `${id}-rangetype`, 'Range type', rangeTypes,
-        scaledef.colorRangeTypes.find(e => e.size === range.length).key
-      );
+      .call(lbox.selectBox, 'Range type', rangeTypes, rtype);
   selection.append('div')
       .classed('range', true)
       .classed('mb-1', true)
-      .call(rbox.colorScaleBox, `${id}-range`, 'Range', range);
+      .call(rbox.colorScaleBox, 'Range', range);
   selection.append('div')
       .classed('unknown', true)
       .classed('mb-1', true)
@@ -97,21 +95,21 @@ function colorRangeGroupValue(selection) {
  * Render scale and domain control box group
  * @param {d3.selection} selection - selection of box container (div element)
  */
-function scaleBoxGroup(selection, id, presets, scaleTypes, scale, domain) {
+function scaleBoxGroup(selection, presets, scaleTypes, scale, domain) {
   selection
       .classed('mb-3', true);
   selection.append('div')
       .classed('preset', true)
       .classed('mb-1', true)
-      .call(lbox.selectBox, `${id}-preset`, 'Scale preset', presets, '');
+      .call(lbox.selectBox, 'Scale preset', presets, '');
   selection.append('div')
       .classed('scale', true)
       .classed('mb-1', true)
-      .call(lbox.selectBox, `${id}-scale`, 'Scale type', scaleTypes, scale);
+      .call(lbox.selectBox, 'Scale type', scaleTypes, scale);
   selection.append('div')
       .classed('domain', true)
       .classed('mb-1', true)
-      .call(rbox.rangeBox, `${id}-domain`, 'Domain', domain);
+      .call(rbox.rangeBox, 'Domain', domain);
   selection.call(updateScaleBoxGroup, scale, domain);
 }
 

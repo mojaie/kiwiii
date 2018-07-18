@@ -78,7 +78,7 @@ function body(selection) {
     .select('.modal-body')
     .append('table')
       .classed('field', true)
-      .call(table.render, null, null, fields);
+      .call(table.render, null, fields);
 }
 
 

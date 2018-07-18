@@ -30,10 +30,10 @@ function body(selection, resources) {
                  || ['compound_id', 'numeric', 'text'].includes(e.format));
   dialog.select('.modal-body').append('div')
     .classed('key', true)
-    .call(lbox.selectBox, 'filter-field', 'Field', fields, null);
+    .call(lbox.selectBox, 'Field', fields, null);
   dialog.select('.modal-body').append('div')
     .classed('operator', true)
-    .call(lbox.selectBox, 'filter-op', 'Operator',
+    .call(lbox.selectBox, 'Operator',
           [
             {key: 'eq', name: '='},
             {key: 'gt', name: '>'},
@@ -44,12 +44,12 @@ function body(selection, resources) {
           ], 'eq');
   dialog.select('.modal-body').append('div')
     .classed('value', true)
-    .call(box.textBox, 'filter-value', 'Value', null, '');
+    .call(box.textBox, 'Value', '');
   // Targets
   const res = resources.map(d => ({key: d.id, name: d.name}));
   dialog.select('.modal-body').append('div')
       .classed('target', true)
-      .call(lbox.checklistBox, 'struct-target', 'Target databases', res, null);
+      .call(lbox.checklistBox, 'Target databases', res, null);
 }
 
 

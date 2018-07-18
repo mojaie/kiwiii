@@ -5,7 +5,7 @@
 import d3 from 'd3';
 
 
-function textBox(selection, id, label, size, value) {  // TODO: remove size
+function textBox(selection, label, value) {
   selection
       .classed('form-group', true)
       .classed('form-row', true)
@@ -14,15 +14,12 @@ function textBox(selection, id, label, size, value) {  // TODO: remove size
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
       .classed('col-4', true)
-      .attr('for', id)
       .text(label);
   selection.append('input')
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('col-8', true)
-      .attr('id', id)
-      .attr('type', 'text')
-      .attr('size', size);
+      .attr('type', 'text');
   selection.call(updateTextBox, value);
 }
 
@@ -35,7 +32,7 @@ function textBoxValue(selection) {
 }
 
 
-function readonlyBox(selection, id, label, value) {
+function readonlyBox(selection, label, value) {
   selection
       .classed('form-group', true)
       .classed('form-row', true)
@@ -44,20 +41,18 @@ function readonlyBox(selection, id, label, value) {
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
       .classed('col-4', true)
-      .attr('for', id)
       .text(label);
   selection.append('input')
       .classed('form-control-plaintext', true)
       .classed('form-control-sm', true)
       .classed('col-8', true)
-      .attr('id', id)
       .attr('type', 'text')
       .property('readonly', true);
   selection.call(updateTextBox, value);
 }
 
 
-function textareaBox(selection, id, label, rows, placeholder, value) {
+function textareaBox(selection, label, rows, placeholder, value) {
   selection
       .classed('form-group', true)
       .classed('form-row', true);
@@ -65,15 +60,13 @@ function textareaBox(selection, id, label, rows, placeholder, value) {
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
       .classed('col-4', true)
-      .attr('for', id)
       .text(label);
   selection.append('textarea')
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('col-8', true)
       .attr('rows', rows)
-      .attr('placeholder', placeholder)
-      .attr('id', id);
+      .attr('placeholder', placeholder);
   selection.call(updateTextareaBox, value);
 }
 
@@ -98,7 +91,7 @@ function textareaBoxLines(selection) {
 }
 
 
-function checkBox(selection, id, label, checked) {
+function checkBox(selection, label, checked) {
   const box = selection
       .classed('form-group', true)
       .classed('form-row', true)
@@ -108,8 +101,7 @@ function checkBox(selection, id, label, checked) {
       .classed('col-form-label-sm', true);
   box.append('input')
       .classed('form-check-input', true)
-      .attr('type', 'checkbox')
-      .attr('id', id);
+      .attr('type', 'checkbox');
   box.append('span')
       .text(label);
   selection.call(updateCheckBox, checked);
@@ -124,7 +116,7 @@ function checkBoxValue(selection) {
 }
 
 
-function numberBox(selection, id, label, min, max, step, value) {
+function numberBox(selection, label, min, max, step, value) {
   selection
       .classed('form-group', true)
       .classed('form-row', true)
@@ -133,13 +125,11 @@ function numberBox(selection, id, label, min, max, step, value) {
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
       .classed('col-4', true)
-      .attr('for', id)
       .text(label);
   selection.append('input')
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('col-8', true)
-      .attr('id', id)
       .attr('type', 'number')
       .attr('min', min)
       .attr('max', max)
@@ -151,9 +141,14 @@ function updateNumberBox(selection, value) {
   selection.select('input').property('value', value);
 }
 
-function numberBoxValue(selection) {
-  return selection.select('input').property('value');
+function numberBoxIntValue(selection) {
+  return parseInt(selection.select('input').property('value'));
 }
+
+function numberBoxFloatValue(selection) {
+  return parseFloat(selection.select('input').property('value'));
+}
+
 
 /**
  * Render color scale box components
@@ -199,7 +194,7 @@ function colorBoxValue(selection) {
 }
 
 
-function fileInputBox(selection, id, label, accept) {
+function fileInputBox(selection, label, accept) {
 selection
     .classed('form-group', true)
     .classed('form-row', true);
@@ -207,7 +202,6 @@ selection.append('label')
     .classed('col-form-label', true)
     .classed('col-form-label-sm', true)
     .classed('col-4', true)
-    .attr('for', id)
     .text(label);
 selection.append('input')
     .classed('form-control', true)
@@ -215,8 +209,7 @@ selection.append('input')
     .classed('form-control-file', true)
     .classed('col-8', true)
     .attr('type', 'file')
-    .attr('accept', accept)
-    .attr('id', id);
+    .attr('accept', accept);
 }
 
 function fileInputBoxValue(selection) {
@@ -228,7 +221,7 @@ export default {
   textBox, updateTextBox, textBoxValue, readonlyBox,
   textareaBox, updateTextareaBox, textareaBoxValue, textareaBoxLines,
   checkBox, updateCheckBox, checkBoxValue,
-  numberBox, updateNumberBox, numberBoxValue,
+  numberBox, updateNumberBox, numberBoxIntValue, numberBoxFloatValue,
   colorBox, updateColorBox, colorBoxValue,
   fileInputBox, fileInputBoxValue
 };

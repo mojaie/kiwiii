@@ -18,31 +18,31 @@ function mainControlBox(selection, state) {
   panelGroup.append('div')
       .classed('rowcnt', true)
       .classed('mb-1', true)
-      .call(box.numberBox, null, 'Rows', 1, 9999, 1, state.rowCount);
+      .call(box.numberBox, 'Rows', 1, 9999, 1, state.rowCount);
   panelGroup.append('div')
       .classed('colcnt', true)
       .classed('mb-1', true)
-      .call(box.numberBox, null, 'Columns', 1, 9999, 1, state.columnCount);
+      .call(box.numberBox, 'Columns', 1, 9999, 1, state.columnCount);
   panelGroup.append('div')
       .classed('groupby', true)
       .classed('mb-1', true)
       .call(
-        lbox.selectBox, null, 'GroupBy',
+        lbox.selectBox, 'GroupBy',
         state.items.fields.filter(e => misc.sortType(e.format) !== 'none'),
         state.groupField || ''
       );
   panelGroup.append('div')
       .classed('crow', true)
       .classed('mb-1', true)
-      .call(box.numberBox, null, 'ChunksPerRow', 1, 999, 1, state.chunksPerRow);
+      .call(box.numberBox, 'ChunksPerRow', 1, 999, 1, state.chunksPerRow);
   panelGroup.append('div')
       .classed('showcol', true)
       .classed('mb-1', true)
-      .call(box.checkBox, null, 'Show column number', state.showColumnNumber);
+      .call(box.checkBox, 'Show column number', state.showColumnNumber);
   panelGroup.append('div')
       .classed('showrow', true)
       .classed('mb-1', true)
-      .call(box.checkBox, null, 'Show row number', state.showRowNumber);
+      .call(box.checkBox, 'Show row number', state.showRowNumber);
 }
 
 
@@ -63,10 +63,10 @@ function updateMainControlBox(selection, state) {
       .call(box.updateCheckBox, state.showRowNumber);
   panelGroup.selectAll('.rowcnt, .colcnt, .groupby, .crow, .showcol, .showrow')
       .on('change', function () {
-        state.rowCount = parseInt(box.numberBoxValue(panelGroup.select('.rowcnt')));
-        state.columnCount = parseInt(box.numberBoxValue(panelGroup.select('.colcnt')));
+        state.rowCount = box.numberBoxIntValue(panelGroup.select('.rowcnt'));
+        state.columnCount = box.numberBoxIntValue(panelGroup.select('.colcnt'));
         state.groupField = lbox.selectBoxValue(panelGroup.select('.groupby'));
-        state.chunksPerRow = parseInt(box.numberBoxValue(panelGroup.select('.crow')));
+        state.chunksPerRow = box.numberBoxIntValue(panelGroup.select('.crow'));
         state.showColumnNumber = box.checkBoxValue(panelGroup.select('.showcol'));
         state.showRowNumber = box.checkBoxValue(panelGroup.select('.showrow'));
         state.updateFieldNotifier();
@@ -78,17 +78,17 @@ function updateMainControlBox(selection, state) {
 function colorControlBox(selection, colorState, fieldOptions, scaleDefs) {
   selection.append('div')
       .classed('field', true)
-      .call(lbox.selectBox, null, 'Field', fieldOptions, colorState.field || '');
+      .call(lbox.selectBox, 'Field', fieldOptions, colorState.field || '');
   selection.append('div')
       .classed('range', true)
       .call(
-        group.colorRangeGroup, null, scaleDefs.palettes,
+        group.colorRangeGroup, scaleDefs.palettes,
         scaleDefs.ranges, colorState.range, colorState.unknown
       );
   selection.append('div')
       .classed('scale', true)
       .call(
-        group.scaleBoxGroup, null, scaleDefs.presets,
+        group.scaleBoxGroup, scaleDefs.presets,
         scaleDefs.scales, colorState.scale, colorState.domain
       );
 }
@@ -155,32 +155,32 @@ function labelControlBox(selection, labelState,
   selection.append('div')
     .append('div')
       .classed('visible', true)
-      .call(box.checkBox, null, 'Show labels', labelState.visible);
+      .call(box.checkBox, 'Show labels', labelState.visible);
   // nodeLabel
   const labelGroup = selection.append('div')
       .classed('mb-3', true);
   labelGroup.append('div')
       .classed('text', true)
       .classed('mb-1', true)
-      .call(lbox.selectBox, null, 'Text field', fieldOptions, labelState.field || '');
+      .call(lbox.selectBox, 'Text field', fieldOptions, labelState.field || '');
   labelGroup.append('div')
       .classed('size', true)
       .classed('mb-1', true)
-      .call(box.numberBox, null, 'Font size', 6, 100, 1, labelState.size);
+      .call(box.numberBox, 'Font size', 6, 100, 1, labelState.size);
   // nodeLabelColor
   selection.append('div')
       .classed('field', true)
-      .call(lbox.selectBox, null, 'Color field', fieldOptions, colorState.field || '');
+      .call(lbox.selectBox, 'Color field', fieldOptions, colorState.field || '');
   selection.append('div')
       .classed('range', true)
       .call(
-        group.colorRangeGroup, null, scaleDefs.palettes,
+        group.colorRangeGroup, scaleDefs.palettes,
         scaleDefs.ranges, colorState.range, colorState.unknown
       );
   selection.append('div')
       .classed('scale', true)
       .call(
-        group.scaleBoxGroup, null, scaleDefs.presets,
+        group.scaleBoxGroup, scaleDefs.presets,
         scaleDefs.scales, colorState.scale, colorState.domain
       );
 }
@@ -217,7 +217,7 @@ function updateLabelControlBox(selection, labelState, colorState, notifier) {
   selection.select('.size')
       .call(box.updateNumberBox, labelState.size)
       .on('change', function () {
-        labelState.size = box.numberBoxValue(d3.select(this));
+        labelState.size = box.numberBoxIntValue(d3.select(this));
         notifier();
       });
   // nodeLabelColor

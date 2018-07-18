@@ -36,16 +36,16 @@ function body(selection) {
   const dialog = selection.call(modal.submitDialog, id, title);
   dialog.select('.modal-body').append('div')
       .classed('file', true)
-      .call(box.fileInputBox, 'sdf-file', 'File', '.mol,.sdf');
+      .call(box.fileInputBox, 'File', '.mol,.sdf');
   dialog.select('.modal-body').append('div')
       .classed('field', true)
-      .call(lbox.checklistBox, 'sdf-fields', 'Fields', [], null);
+      .call(lbox.checklistBox, 'Fields', [], null);
   dialog.select('.modal-body').append('div')
       .classed('implh', true)
-      .call(box.checkBox, 'sdf-implh', 'Make hydrogens implicit', true);
+      .call(box.checkBox, 'Make hydrogens implicit', true);
   dialog.select('.modal-body').append('div')
       .classed('recalc', true)
-      .call(box.checkBox, 'sdf-recalc', 'Recalculate 2D coords', false);
+      .call(box.checkBox, 'Recalculate 2D coords', false);
 
   dialog.select('.file')
       .on('change', function () {

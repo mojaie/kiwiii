@@ -8,11 +8,10 @@ import d3 from 'd3';
  * Render range box components
  * @param {d3.selection} selection - selection of box container (div element)
  */
-function rangeBox(selection, id, label, range) {
+function rangeBox(selection, label, range) {
   selection
       .classed('form-row', true)
-      .classed('align-items-center', true)
-      .attr('id', id);
+      .classed('align-items-center', true);
   selection.append('div')
       .classed('form-group', true)
       .classed('col-form-label', true)
@@ -30,14 +29,12 @@ function rangeBox(selection, id, label, range) {
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
       .classed('py-0', true)
-      .attr('for', `${id}-from`)
       .text('min');
   f.append('input')
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('min', true)
-      .attr('type', 'text')
-      .attr('id', `${id}-from`);
+      .attr('type', 'text');
   const t = selection.append('div')
       .classed('form-group', true)
       .classed('col-4', true)
@@ -46,14 +43,12 @@ function rangeBox(selection, id, label, range) {
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
       .classed('py-0', true)
-      .attr('for', `${id}-to`)
       .text('max');
   t.append('input')
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('max', true)
-      .attr('type', 'text')
-      .attr('id', `${id}-to`);
+      .attr('type', 'text');
   // TODO: validation
   // not null, undef, text
   // min <= max
@@ -82,11 +77,10 @@ function rangeBoxValue(selection) {
  * Render color scale box components
  * @param {d3.selection} selection - selection of box container (div element)
  */
-function colorScaleBox(selection, id, label, range) {
+function colorScaleBox(selection, label, range) {
   selection
       .classed('form-row', true)
-      .classed('align-items-center', true)
-      .attr('id', id);
+      .classed('align-items-center', true);
   selection.append('div')
       .classed('form-group', true)
       .classed('col-form-label', true)
@@ -104,14 +98,12 @@ function colorScaleBox(selection, id, label, range) {
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
       .classed('py-0', true)
-      .attr('for', `${id}-from`)
       .text('min');
   f.append('input')
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('min', true)
-      .attr('type', 'color')
-      .attr('id', `${id}-from`);
+      .attr('type', 'color');
   const m = selection.append('div')
       .classed('form-group', true)
       .classed('col-form-label', true)
@@ -122,14 +114,12 @@ function colorScaleBox(selection, id, label, range) {
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
       .classed('py-0', true)
-      .attr('for', `${id}-mid`)
       .text('mid');
   m.append('input')
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('mid', true)
-      .attr('type', 'color')
-      .attr('id', `${id}-mid`);
+      .attr('type', 'color');
   const t = selection.append('div')
       .classed('form-group', true)
       .classed('col-form-label', true)
@@ -140,14 +130,12 @@ function colorScaleBox(selection, id, label, range) {
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
       .classed('py-0', true)
-      .attr('for', `${id}-to`)
       .text('max');
   t.append('input')
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('max', true)
-      .attr('type', 'color')
-      .attr('id', `${id}-to`);
+      .attr('type', 'color');
   selection
       .call(updateColorScaleBox, range)
       .on('change', () => {

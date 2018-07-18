@@ -21,14 +21,14 @@ function body(selection) {
   const body = dialog.select('.modal-body');
   body.append('div')
       .classed('key', true)
-      .call(box.textBox, null, 'Field key', 40, null);
+      .call(box.textBox, 'Field key', null);
   const options = [
     {key: 'checkbox', name: 'Checkbox'},
     {key: 'text_field', name: 'Text field'}
   ];
   body.append('div')
       .classed('type', true)
-      .call(lbox.selectBox, null, 'Type', options, 'checkbox');
+      .call(lbox.selectBox, 'Type', options, 'checkbox');
 
 }
 

@@ -14,13 +14,13 @@ import {default as lbox} from '../component/formListBox.js';
  * Render color range control box group
  * @param {d3.selection} selection - selection of box container (div element)
  */
-function queryMolGroup(selection, id, resources) {
+function queryMolGroup(selection, resources) {
   selection
       .classed('mb-3', true);
   selection.append('div')
       .classed('format', true)
       .classed('mb-1', true)
-      .call(lbox.selectBox, `${id}-format`, 'Format',
+      .call(lbox.selectBox, 'Format',
             [
               {key: 'molfile', name: 'MDL Molfile'},
               {key: 'dbid', name: 'Compound ID'}
@@ -29,15 +29,15 @@ function queryMolGroup(selection, id, resources) {
   selection.append('div')
       .classed('source', true)
       .classed('mb-1', true)
-      .call(lbox.selectBox, `${id}-source`, 'Source', res, null);
+      .call(lbox.selectBox, 'Source', res, null);
   selection.append('div')
       .classed('textquery', true)
       .classed('mb-1', true)
-      .call(box.textBox, `${id}-textquery`, 'Query', null, '');
+      .call(box.textBox, 'Query', '');
   selection.append('div')
       .classed('areaquery', true)
       .classed('mb-1', true)
-      .call(box.textareaBox, `${id}-areaquery`, 'Query', 6, null, '');
+      .call(box.textareaBox, 'Query', 6, null, '');
   // Popover
   $(function () {
     $('[data-toggle="popover"]')
@@ -113,19 +113,15 @@ function simOptionGroup(selection, id) {
   collapse.append('div')
       .classed('ignoreh', true)
       .classed('mb-1', true)
-      .call(box.checkBox, `${id}-ignoreh`, 'Ignore explicit hydrogens', true);
+      .call(box.checkBox, 'Ignore explicit hydrogens', true);
   collapse.append('div')
       .classed('timeout', true)
       .classed('mb-1', true)
-      .call(box.numberBox, `${id}-timeout`, 'Timeout', 1, 999, 1, 2);
+      .call(box.numberBox, 'Timeout', 1, 999, 1, 2);
   collapse.append('div')
       .classed('diam', true)
       .classed('mb-1', true)
-      .call(box.numberBox, `${id}-diam`, 'Diameter (MCS-DR/GLS)', 4, 999, 1, 8);
-  collapse.append('div')
-      .classed('tree', true)
-      .classed('mb-1', true)
-      .call(box.numberBox, `${id}-tree`, 'Max tree size (MCS-DR/GLS)', 20, 999, 1, 40);
+      .call(box.numberBox, 'Diameter (MCS-DR/GLS)', 4, 999, 1, 8);
   collapse.selectAll('label.col-form-label')
       .classed('col-4', false)
       .classed('col-6', true);
@@ -137,18 +133,14 @@ function simOptionGroup(selection, id) {
 function simOptionGroupValue(selection) {
   const timeout = selection.select('.timeout');
   const diam = selection.select('.diam');
-  const tree = selection.select('.tree');
   const query = {
     ignoreHs: box.checkBoxValue(selection.select('.ignoreh'))
   };
   if (!timeout.select('input').property('disabled')) {
-    query.timeout = box.numberBoxValue(timeout);
+    query.timeout = box.numberBoxIntValue(timeout);
   }
   if (!diam.select('input').property('disabled')) {
-    query.diameter = box.numberBoxValue(diam);
-  }
-  if (!tree.select('input').property('disabled')) {
-    query.maxTreeSize = box.numberBoxValue(tree);
+    query.diameter = box.numberBoxIntValue(diam);
   }
   return query;
 }

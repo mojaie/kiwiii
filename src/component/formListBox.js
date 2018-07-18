@@ -8,7 +8,7 @@ import d3 from 'd3';
  * Render select box components
  * @param {d3.selection} selection - selection of box container (div element)
  */
-function selectBox(selection, id, label, fields, value) {
+function selectBox(selection, label, fields, value) {
   selection
       .classed('form-group', true)
       .classed('form-row', true)
@@ -17,13 +17,11 @@ function selectBox(selection, id, label, fields, value) {
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
       .classed('col-4', true)
-      .attr('for', id)
       .text(label);
   selection.append('select')
       .classed('form-control', true)
       .classed('form-control-sm', true)
-      .classed('col-8', true)
-      .attr('id', id);
+      .classed('col-8', true);
   if (fields) {
     selection.call(selectBoxItems, fields);
     selection.call(updateSelectBox, value);
@@ -54,7 +52,7 @@ function selectBoxValue(selection) {
  * Render select box components
  * @param {d3.selection} selection - selection of box container (div element)
  */
-function checklistBox(selection, id, label, fields, values) {
+function checklistBox(selection, label, fields, values) {
   // TODO: scroll
   selection
       .classed('form-group', true)
@@ -68,8 +66,7 @@ function checklistBox(selection, id, label, fields, values) {
   selection.append('ul')
       .classed('form-control', true)
       .classed('form-control-sm', true)
-      .classed('col-8', true)
-      .attr('id', id);
+      .classed('col-8', true);
   if (fields) {
     selection.call(checklistBoxItems, fields);
     selection.call(updateChecklistBox, values);

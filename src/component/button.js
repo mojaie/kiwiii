@@ -4,7 +4,7 @@
 import d3 from 'd3';
 
 
-function buttonBox(selection, id, label, type) {
+function buttonBox(selection, label, type) {
   selection
       .classed('form-group', true)
       .classed('mb-1', true)
@@ -12,31 +12,28 @@ function buttonBox(selection, id, label, type) {
       .classed('btn', true)
       .classed(`btn-${type}`, true)
       .classed('btn-sm', true)
-      .attr('id', id)
       .text(label);
 }
 
 
-function menuButton(selection, label, type, id) {
+function menuButton(selection, label, type) {
   selection
       .classed('btn', true)
       .classed(`btn-${type}`, true)
       .classed(`btn-sm`, true)
       .classed('mr-1', true)
-      .attr('id', id)
       .text(label);
 }
 
 
-function menuButtonLink(selection, label, type, icon, id) {
+function menuButtonLink(selection, label, type, icon) {
   selection
       .classed('btn', true)
       .classed(`btn-${type}`, true)
       .classed(`btn-sm`, true)
       .classed('mr-1', true)
       .attr('role', 'button')
-      .attr('href', '#')
-      .attr('id', id);
+      .attr('href', '#');
   selection.append('img')
       .attr('src', icon ? `./assets/icon/${icon}.svg` : null)
       .style('width', '1.25rem')
@@ -47,13 +44,12 @@ function menuButtonLink(selection, label, type, icon, id) {
 }
 
 
-function menuModalLink(selection, target, label, type, icon, id) {
+function menuModalLink(selection, target, label, type, icon) {
   selection
       .classed('btn', true)
       .classed(`btn-${type}`, true)
       .classed(`btn-sm`, true)
       .classed('mr-1', true)
-      .attr('id', id)
       .attr('href', '#')
       .attr('role', 'button')
       .attr('data-toggle', 'modal')
@@ -69,11 +65,10 @@ function menuModalLink(selection, target, label, type, icon, id) {
 }
 
 
-function dropdownMenuButton(selection, label, type, icon, id) {
+function dropdownMenuButton(selection, label, type, icon) {
   selection
       .classed('btn-group', true)
-      .classed('mr-1', true)
-      .attr('id', id);
+      .classed('mr-1', true);
   const button = selection.append('button')
       .classed('btn', true)
       .classed(`btn-${type}`, true)
@@ -92,9 +87,8 @@ function dropdownMenuButton(selection, label, type, icon, id) {
 }
 
 
-function dropdownMenuItem(selection, label, icon, id) {
+function dropdownMenuItem(selection, label, icon) {
   selection.classed('dropdown-item', true)
-      .attr('id', id)
       .attr('href', '#');
   selection.append('img')
       .attr('src', icon ? `./assets/icon/${icon}.svg` : null)
@@ -105,9 +99,8 @@ function dropdownMenuItem(selection, label, icon, id) {
       .text(label);
 }
 
-function dropdownMenuModal(selection, label, target, icon, id) {
+function dropdownMenuModal(selection, label, target, icon) {
   selection.classed('dropdown-item', true)
-      .attr('id', id)
       .attr('href', '#')
       .attr('data-toggle', 'modal')
       .attr('data-target', `#${target}`);
@@ -121,9 +114,8 @@ function dropdownMenuModal(selection, label, target, icon, id) {
 }
 
 
-function dropdownMenuFile(selection, label, accept, icon, id) {
+function dropdownMenuFile(selection, label, accept, icon) {
   selection.classed('dropdown-item', true)
-      .attr('id', id)
       .attr('href', '#')
       .on('click', function () {
         d3.select(this).select('input').node().click();

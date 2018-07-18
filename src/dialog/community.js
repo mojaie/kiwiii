@@ -21,11 +21,11 @@ function body(selection) {
   // Name
   dialog.select('.modal-body').append('div')
       .classed('name', true)
-      .call(box.textBox, 'comm-name', 'New name', 40, 'comm_');
+      .call(box.textBox, 'New name', 'comm_');
   // Assign null to isolated nodes
   dialog.select('.modal-body').append('div')
       .classed('nulliso', true)
-      .call(box.checkBox, 'comm-nulliso', 'Assign null to isolated nodes', true);
+      .call(box.checkBox, 'Assign null to isolated nodes', true);
 }
 
 

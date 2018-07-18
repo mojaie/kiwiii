@@ -21,7 +21,7 @@ function body(selection, placeholder) {
   selection.call(modal.submitDialog, id, title)
     .select('.modal-body').append('div')
       .classed('ids', true)
-      .call(box.textareaBox, 'search-query', 'Query', 20, placeholder, '');
+      .call(box.textareaBox, 'Query', 20, placeholder, '');
 }
 
 

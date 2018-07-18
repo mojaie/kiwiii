@@ -24,7 +24,7 @@ function body(selection) {
   const dialog = selection.call(modal.submitDialog, id, title);
   const fileInput = dialog.select('.modal-body').append('div')
       .classed('file', true)
-      .call(box.fileInputBox, 'fieldfile-file', 'File', '.json,.csv');
+      .call(box.fileInputBox, 'File', '.json,.csv');
   const preview = dialog.select('.modal-body').append('div')
       .classed('preview', true)
       .call(table.render);

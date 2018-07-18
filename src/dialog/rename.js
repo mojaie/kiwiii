@@ -20,7 +20,7 @@ function body(selection, name) {
   selection.call(modal.submitDialog, id, title)
     .select('.modal-body').append('div')
       .classed('rename', true)
-      .call(box.textBox, 'rename', 'New name', 40, name);
+      .call(box.textBox, 'New name', name);
 }
 
 

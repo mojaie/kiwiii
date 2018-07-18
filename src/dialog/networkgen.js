@@ -35,12 +35,11 @@ function body(selection, rdk) {
   }
   dialog.select('.modal-body').append('div')
       .classed('measure', true)
-      .call(lbox.selectBox, 'networkgen-measure', 'Measure', measures, 'gls');
+      .call(lbox.selectBox, 'Measure', measures, 'gls');
   // Threshold
   dialog.select('.modal-body').append('div')
       .classed('thld', true)
-      .call(box.numberBox, 'networkgen-thld', 'Threshold',
-            0.5, 1, 0.01, 0.5);
+      .call(box.numberBox, 'Threshold', 0.5, 1, 0.01, 0.5);
   // Similarity search options
   dialog.select('.modal-body').append('div')
       .classed('option', true)
@@ -49,7 +48,7 @@ function body(selection, rdk) {
   dialog.select('.measure')
       .on('change', function () {
         const value = lbox.selectBoxValue(d3.select(this));
-        dialog.selectAll('.diam, .tree')
+        dialog.selectAll('.diam')
           .select('input')
             .property('disabled', value !== 'gls');
         dialog.select('.timeout')
@@ -68,7 +67,7 @@ function execute(selection, rcds) {
     params.measure = lbox.selectBoxValue(measure);
   }
   if (!thld.select('input').property('disabled')) {
-    params.threshold = box.numberBoxValue(thld);
+    params.threshold = box.numberBoxFloatValue(thld);
   }
   const formData = new FormData();
   // TODO: need updates in flashflood query schema

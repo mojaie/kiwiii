@@ -19,18 +19,18 @@ function mainControlBox(selection, state) {
       .classed('mb-3', true)
     .append('div')
       .classed('fit', true)
-      .call(button.buttonBox, 'fit-to-screen', 'Fit to screen', 'primary');
+      .call(button.buttonBox, 'Fit to screen', 'primary');
   // View modes
   const viewModes = selection.append('div')
       .classed('mb-3', true);
     viewModes.append('div')
       .classed('focused', true)
       .classed('mb-1', true)
-      .call(box.checkBox, 'focused', 'Enable focused view', state.enableFocusedView);
+      .call(box.checkBox, 'Enable focused view', state.enableFocusedView);
     viewModes.append('div')
       .classed('overlook', true)
       .classed('mb-1', true)
-      .call(box.checkBox, 'overlook', 'Enable overlook view', state.enableOverlookView);
+      .call(box.checkBox, 'Enable overlook view', state.enableOverlookView);
   // Network threshold
   const thldGroup = selection.append('div')
       .classed('thld-group', true)
@@ -39,7 +39,7 @@ function mainControlBox(selection, state) {
       .classed('field', true)
       .classed('mb-1', true)
       .call(
-        lbox.selectBox, null, 'Connection',
+        lbox.selectBox, 'Connection',
         state.edges.fields.filter(e => misc.sortType(e.format) !== 'none')
           .filter(e => !['source', 'target'].includes(e.key)),
         state.connThldField
@@ -47,12 +47,12 @@ function mainControlBox(selection, state) {
   thldGroup.append('div')
       .classed('thld', true)
       .classed('mb-1', true)
-      .call(box.numberBox, null, 'Threshold',
+      .call(box.numberBox, 'Threshold',
             state.minConnThld, 1.000, 0.01, state.currentConnThld);
   thldGroup.append('div')
       .classed('logd', true)
       .classed('mb-1', true)
-      .call(box.readonlyBox, 'logd', 'logD', null);
+      .call(box.readonlyBox, 'logD', null);
   // Force layout
   const forceBox = selection.append('div')
       .classed('form-group', true)
@@ -81,13 +81,13 @@ function mainControlBox(selection, state) {
     .append('div')
       .classed('stick', true)
       .classed('mb-1', true)
-      .call(box.checkBox, 'stick-nodes', 'Stick nodes', !state.simulationOnLoad);
+      .call(box.checkBox, 'Stick nodes', !state.simulationOnLoad);
   forceBox.append('div')
       .classed('col-12', true)
     .append('div')
       .classed('restart', true)
       .classed('mb-1', true)
-      .call(button.buttonBox, 'restart-force', 'Activate', 'warning');
+      .call(button.buttonBox, 'Activate', 'warning');
 
   selection.call(updateMainControlBox, state);
 }
@@ -125,7 +125,7 @@ function updateMainControlBox(selection, state) {
   thldGroup.selectAll('.field, .thld')
       .on('change', function () {
         const field = lbox.selectBoxValue(thldGroup.select('.field'));
-        const thld = box.numberBoxValue(thldGroup.select('.thld'));
+        const thld = box.numberBoxFloatValue(thldGroup.select('.thld'));
         state.connThldField = field;
         state.currentConnThld = thld;
         state.updateComponentNotifier();
@@ -177,17 +177,17 @@ function updateMainControlBox(selection, state) {
 function colorControlBox(selection, colorState, fieldOptions, scaledef) {
   selection.append('div')
       .classed('field', true)
-      .call(lbox.selectBox, null, 'Field', fieldOptions, colorState.field || '');
+      .call(lbox.selectBox, 'Field', fieldOptions, colorState.field || '');
   selection.append('div')
       .classed('range', true)
       .call(
-        group.colorRangeGroup, null, scaledef.palettes,
+        group.colorRangeGroup, scaledef.palettes,
         scaledef.ranges, colorState.range, colorState.unknown
       );
   selection.append('div')
       .classed('scale', true)
       .call(
-        group.scaleBoxGroup, null, scaledef.presets,
+        group.scaleBoxGroup, scaledef.presets,
         scaledef.scales, colorState.scale, colorState.domain
       );
 }
@@ -270,15 +270,15 @@ function sizeControlBox(selection, sizeState, fieldOptions, scaledef) {
   selection.append('div')
     .classed('field', true)
     .call(
-      lbox.selectBox, null, 'Field', fieldOptions, sizeState.field || '');
+      lbox.selectBox, 'Field', fieldOptions, sizeState.field || '');
   selection.append('div')
     .classed('range', true)
     .classed('mb-3', true)
-    .call(rbox.rangeBox, null, 'Range', sizeState.range);
+    .call(rbox.rangeBox, 'Range', sizeState.range);
   selection.append('div')
     .classed('scale', true)
     .call(
-      group.scaleBoxGroup, null, scaledef.presets, scaledef.scales,
+      group.scaleBoxGroup, scaledef.presets, scaledef.scales,
       sizeState.scale, sizeState.domain
     );
 }
@@ -345,32 +345,32 @@ function labelControlBox(selection, labelState, colorState, fieldOptions) {
   selection.append('div')
     .append('div')
       .classed('visible', true)
-      .call(box.checkBox, null, 'Show labels', labelState.visible);
+      .call(box.checkBox, 'Show labels', labelState.visible);
   // nodeLabel
   const labelGroup = selection.append('div')
       .classed('mb-3', true);
   labelGroup.append('div')
       .classed('text', true)
       .classed('mb-1', true)
-      .call(lbox.selectBox, null, 'Text field', fieldOptions, labelState.field || '');
+      .call(lbox.selectBox, 'Text field', fieldOptions, labelState.field || '');
   labelGroup.append('div')
       .classed('size', true)
       .classed('mb-1', true)
-      .call(box.numberBox, null, 'Font size', 6, 100, 1, labelState.size);
+      .call(box.numberBox, 'Font size', 6, 100, 1, labelState.size);
   // nodeLabelColor
   selection.append('div')
       .classed('field', true)
-      .call(lbox.selectBox, null, 'Color field', fieldOptions, colorState.field || '');
+      .call(lbox.selectBox, 'Color field', fieldOptions, colorState.field || '');
   selection.append('div')
       .classed('range', true)
       .call(
-        group.colorRangeGroup, null, scaledef.palettes,
+        group.colorRangeGroup, scaledef.palettes,
         scaledef.ranges, colorState.range, colorState.unknown
       );
   selection.append('div')
       .classed('scale', true)
       .call(
-        group.scaleBoxGroup, null, scaledef.presets,
+        group.scaleBoxGroup, scaledef.presets,
         scaledef.scales, colorState.scale, colorState.domain
       );
 }
@@ -421,7 +421,7 @@ function updateLabelControlBox(selection, labelState, colorState, notifier) {
   selection.select('.size')
       .call(box.updateNumberBox, labelState.size)
       .on('change', function () {
-        labelState.size = box.numberBoxValue(d3.select(this));
+        labelState.size = box.numberBoxIntValue(d3.select(this));
         notifier();
       });
   // nodeLabelColor

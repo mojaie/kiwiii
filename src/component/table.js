@@ -10,12 +10,11 @@ import d3 from 'd3';
 import {default as misc} from '../common/misc.js';
 
 
-function render(selection, id, caption, fields, records) {
+function render(selection, caption, fields, records) {
   selection
       .classed('table', true)
       .classed('table-striped', true)
-      .classed('table-hover', true)
-      .attr('id', id);
+      .classed('table-hover', true);
   if (caption) {
     selection.append('caption').text(caption);
   }

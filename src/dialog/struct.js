@@ -26,7 +26,7 @@ function body(selection, resources, rdk) {
   // Query molecule
   dialog.select('.modal-body').append('div')
       .classed('qmol', true)
-      .call(group.queryMolGroup, 'struct', resources, null);
+      .call(group.queryMolGroup, resources);
   // Search type
   const methodList = [
     {key: 'exact', name: 'Exact match'},
@@ -40,11 +40,11 @@ function body(selection, resources, rdk) {
   }
   dialog.select('.modal-body').append('div')
       .classed('method', true)
-      .call(lbox.selectBox, 'struct-method', 'Method', methodList, 'exact');
+      .call(lbox.selectBox, 'Method', methodList, 'exact');
   // Measure
   dialog.select('.modal-body').append('div')
       .classed('measure', true)
-      .call(lbox.selectBox, 'struct-measure', 'Measure',
+      .call(lbox.selectBox, 'Measure',
             [
               {key: 'sim', name: 'Similarity'},
               {key: 'edge', name: 'Edge count'}
@@ -52,8 +52,7 @@ function body(selection, resources, rdk) {
   // Threshold
   dialog.select('.modal-body').append('div')
       .classed('thld', true)
-      .call(box.numberBox, 'struct-thld', 'Threshold',
-            0.5, 1, 0.01, 0.5);
+      .call(box.numberBox, 'Threshold', 0.5, 1, 0.01, 0.5);
   // Similarity search options
   dialog.select('.modal-body').append('div')
       .classed('option', true)
@@ -62,7 +61,7 @@ function body(selection, resources, rdk) {
   const res = resources.map(d => ({key: d.id, name: d.name}));
   dialog.select('.modal-body').append('div')
       .classed('target', true)
-      .call(lbox.checklistBox, 'struct-target', 'Target databases', res, null);
+      .call(lbox.checklistBox, 'Target databases', res, null);
 
   // Events
   dialog.select('.method')
@@ -95,7 +94,7 @@ function execute(selection) {
     params.measure = lbox.selectBoxValue(measure);
   }
   if (!thld.select('input').property('disabled')) {
-    params.threshold = box.numberBoxValue(thld);
+    params.threshold = box.numberBoxFloatValue(thld);
   }
   const query = {
     workflow: lbox.selectBoxValue(selection.select('.method')),
