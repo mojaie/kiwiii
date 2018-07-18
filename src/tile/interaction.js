@@ -8,6 +8,8 @@ import {default as component} from './component.js';
 
 function zoomListener(selection, state) {
   return d3.zoom()
+    .scaleExtent(state.scaleExtent)
+    .translateExtent(state.translateExtent)
     .on('zoom', function() {
       const t = d3.event.transform;
       selection.select('.tl-field')
@@ -24,12 +26,13 @@ function zoomListener(selection, state) {
 
 function setInteraction(selection, state) {
   state.zoomListener = zoomListener(selection, state);
+  state.setFocusArea();
   selection.call(state.zoomListener);
   // Resume zoom event
   const t = state.transform;
-  selection
-      .attr('transform', `translate(${t.x}, ${t.y}) scale(${t.k})`)
-      .call(
+  selection.select('.nw-field')
+      .attr('transform', `translate(${t.x}, ${t.y}) scale(${t.k})`);
+  selection.call(
         d3.zoom().transform,
         d3.zoomIdentity.translate(t.x, t.y).scale(t.k)
       );

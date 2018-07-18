@@ -4,7 +4,7 @@
 import d3 from 'd3';
 
 import {default as misc} from '../common/misc.js';
-import {default as scaledef} from '../common/scale.js';
+import {default as cscale} from '../common/scale.js';
 
 import {default as box} from '../component/formBox.js';
 import {default as lbox} from '../component/formListBox.js';
@@ -12,7 +12,6 @@ import {default as group} from '../component/formBoxGroup.js';
 
 
 function mainControlBox(selection, state) {
-
   const panelGroup = selection.append('div')
       .classed('panel-group', true)
       .classed('mb-3', true);
@@ -30,12 +29,12 @@ function mainControlBox(selection, state) {
       .call(
         lbox.selectBox, null, 'GroupBy',
         state.items.fields.filter(e => misc.sortType(e.format) !== 'none'),
-        state.groupField
+        state.groupField || ''
       );
   panelGroup.append('div')
-      .classed('grow', true)
+      .classed('crow', true)
       .classed('mb-1', true)
-      .call(box.numberBox, null, 'GroupsPerRow', 1, 999, 1, state.groupsPerRow);
+      .call(box.numberBox, null, 'ChunksPerRow', 1, 999, 1, state.chunksPerRow);
   panelGroup.append('div')
       .classed('showcol', true)
       .classed('mb-1', true)
@@ -43,9 +42,7 @@ function mainControlBox(selection, state) {
   panelGroup.append('div')
       .classed('showrow', true)
       .classed('mb-1', true)
-      .call(box.checkBox, null, 'Enable overlook view', state.showRowNumber);
-
-  selection.call(updateMainControlBox, state);
+      .call(box.checkBox, null, 'Show row number', state.showRowNumber);
 }
 
 
@@ -58,50 +55,50 @@ function updateMainControlBox(selection, state) {
       .call(box.updateNumberBox, state.columnCount);
   panelGroup.select('.groupby')
     .call(lbox.updateSelectBox, state.groupField);
-  panelGroup.select('.grow')
-      .call(box.updateNumberBox, state.groupsPerRow);
+  panelGroup.select('.crow')
+      .call(box.updateNumberBox, state.chunksPerRow);
   panelGroup.select('.showcol')
       .call(box.updateCheckBox, state.showColumnNumber);
   panelGroup.select('.showrow')
       .call(box.updateCheckBox, state.showRowNumber);
-  panelGroup.selectAll('.rowcnt, .colcnt, .groupby, .grow')
+  panelGroup.selectAll('.rowcnt, .colcnt, .groupby, .crow, .showcol, .showrow')
       .on('change', function () {
-        state.rowCount = box.numberBoxValue(panelGroup.select('.rowcnt'));
-        state.columnCount = box.numberBoxValue(panelGroup.select('.colcnt'));
+        state.rowCount = parseInt(box.numberBoxValue(panelGroup.select('.rowcnt')));
+        state.columnCount = parseInt(box.numberBoxValue(panelGroup.select('.colcnt')));
         state.groupField = lbox.selectBoxValue(panelGroup.select('.groupby'));
-        state.groupsPerRow = box.numberBoxValue(panelGroup.select('.grow'));
+        state.chunksPerRow = parseInt(box.numberBoxValue(panelGroup.select('.crow')));
         state.showColumnNumber = box.checkBoxValue(panelGroup.select('.showcol'));
         state.showRowNumber = box.checkBoxValue(panelGroup.select('.showrow'));
-        state.updateItemNotifier();  // TODO:
+        state.updateFieldNotifier();
       });
   panelGroup.select('.rowcnt').dispatch('change');
 }
 
 
-function colorControlBox(selection, colorState, fieldOptions, scaledef) {
+function colorControlBox(selection, colorState, fieldOptions, scaleDefs) {
   selection.append('div')
       .classed('field', true)
       .call(lbox.selectBox, null, 'Field', fieldOptions, colorState.field || '');
   selection.append('div')
       .classed('range', true)
       .call(
-        group.colorRangeGroup, null, scaledef.palettes,
-        scaledef.ranges, colorState.range, colorState.unknown
+        group.colorRangeGroup, null, scaleDefs.palettes,
+        scaleDefs.ranges, colorState.range, colorState.unknown
       );
   selection.append('div')
       .classed('scale', true)
       .call(
-        group.scaleBoxGroup, null, scaledef.presets,
-        scaledef.scales, colorState.scale, colorState.domain
+        group.scaleBoxGroup, null, scaleDefs.presets,
+        scaleDefs.scales, colorState.scale, colorState.domain
       );
 }
 
 function tileColorControlBox(selection, state) {
   const scaleDefs = {
-    palettes: scaledef.colorPalettes,
-    ranges: scaledef.colorRangeTypes,
-    presets: scaledef.presets,
-    scales: scaledef.types.filter(e => e.key !== 'ordinal')
+    palettes: cscale.colorPalettes,
+    ranges: cscale.colorRangeTypes,
+    presets: cscale.presets,
+    scales: cscale.types.filter(e => e.key !== 'ordinal')
   };
   const fieldOptions = state.items.fields
     .filter(e => misc.sortType(e.format) !== 'none');
@@ -152,7 +149,8 @@ function updateTileColorControlBox(selection, state) {
 }
 
 
-function labelControlBox(selection, labelState, colorState, fieldOptions) {
+function labelControlBox(selection, labelState,
+                         colorState, fieldOptions, scaleDefs) {
   // nodeLabel.visible
   selection.append('div')
     .append('div')
@@ -176,27 +174,27 @@ function labelControlBox(selection, labelState, colorState, fieldOptions) {
   selection.append('div')
       .classed('range', true)
       .call(
-        group.colorRangeGroup, null, scaledef.palettes,
-        scaledef.ranges, colorState.range, colorState.unknown
+        group.colorRangeGroup, null, scaleDefs.palettes,
+        scaleDefs.ranges, colorState.range, colorState.unknown
       );
   selection.append('div')
       .classed('scale', true)
       .call(
-        group.scaleBoxGroup, null, scaledef.presets,
-        scaledef.scales, colorState.scale, colorState.domain
+        group.scaleBoxGroup, null, scaleDefs.presets,
+        scaleDefs.scales, colorState.scale, colorState.domain
       );
 }
 
-function tileTextControlBox(selection, state) {
+function tileValueControlBox(selection, state) {
   const scaleDefs = {
-    palettes: scaledef.colorPalettes,
-    ranges: scaledef.colorRangeTypes,
-    presets: scaledef.presets,
-    scales: scaledef.types.filter(e => e.key !== 'ordinal')
+    palettes: cscale.colorPalettes,
+    ranges: cscale.colorRangeTypes,
+    presets: cscale.presets,
+    scales: cscale.types.filter(e => e.key !== 'ordinal')
   };
   const fieldOptions = state.items.fields
     .filter(e => misc.sortType(e.format) !== 'none');
-  labelControlBox(selection, state.tileText, state.tileTextColor,
+  labelControlBox(selection, state.tileValue, state.tileValueColor,
                   fieldOptions, scaleDefs);
 }
 
@@ -259,10 +257,10 @@ function updateLabelControlBox(selection, labelState, colorState, notifier) {
     );
 }
 
-function updateTileTextControlBox(selection, state) {
+function updateTileValueControlBox(selection, state) {
   const notifier = state.updateItemAttrNotifier;
   updateLabelControlBox(
-    selection, state.tileText, state.tileTextColor, notifier);
+    selection, state.tileValue, state.tileValueColor, notifier);
 }
 
 
@@ -339,11 +337,11 @@ function controlBox(selection, state) {
 
   // Text
   tabs.append('a')
-      .call(controlBoxNav, 'control-label', 'Label');
+      .call(controlBoxNav, 'control-value', 'Value');
   content.append('div')
-      .classed('control-label', true)
-      .call(controlBoxItem, 'control-label')
-      .call(tileTextControlBox, state);
+      .classed('control-value', true)
+      .call(controlBoxItem, 'control-value')
+      .call(tileValueControlBox, state);
 
   selection.call(updateControlBox, state);
 }
@@ -354,8 +352,8 @@ function updateControlBox(selection, state) {
       .call(updateMainControlBox, state);
   selection.select('.control-color')
       .call(updateTileColorControlBox, state);
-  selection.select('.control-label')
-      .call(updateTileTextControlBox, state);
+  selection.select('.control-value')
+      .call(updateTileValueControlBox, state);
 }
 
 

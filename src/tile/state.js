@@ -1,6 +1,7 @@
 
 /** @module tile/state */
 
+import _ from 'lodash';
 
 import Collection from '../common/collection.js';
 import {default as idb} from '../common/idb.js';
@@ -9,7 +10,11 @@ import {default as idb} from '../common/idb.js';
 export default class TileState {
   constructor(view, items) {
     /* Settings */
-    this.groupMarginRatio = 0.05;
+    this.chunkMarginRatio = 0.05;
+
+    this.focusedViewThreshold = 200;
+    this.enableFocusedView = true;
+    this.focusedView = false;
 
     /* Attributes */
 
@@ -17,6 +22,7 @@ export default class TileState {
     this.name = view.name;
 
     this.items = new Collection(items);
+    this.its = JSON.parse(JSON.stringify(this.items.records()));
 
 
     /* Appearance */
@@ -24,7 +30,7 @@ export default class TileState {
     this.rowCount = view.rowCount || 8;
     this.columnCount = view.columnCount || 12;
     this.groupField = view.groupField || null;
-    this.groupsPerRow = view.groupsPerRow || 1;
+    this.chunksPerRow = view.chunksPerRow || 1;
     this.fixRowCount = view.fixRowCount || false;
     this.fixColumnCount = view.fixColumnCount || false;
     this.tileAspectRatio = 1;
@@ -52,27 +58,27 @@ export default class TileState {
       this.tileColor.unknown = view.tileColor.unknown;
     }
 
-    this.tileText = {
+    this.tileValue = {
       field: null, size: 12, visible: false
     };
-    if (view.hasOwnProperty('tileText')) {
-      this.tileText.field = view.tileText.field;
-      this.tileText.size = view.tileText.size;
-      this.tileText.visible = view.tileText.visible;
-      this.tileText.halign = view.tileText.halign;
-      this.tileText.valign = view.tileText.valign;
+    if (view.hasOwnProperty('tileValue')) {
+      this.tileValue.field = view.tileValue.field;
+      this.tileValue.size = view.tileValue.size;
+      this.tileValue.visible = view.tileValue.visible;
+      this.tileValue.halign = view.tileValue.halign;
+      this.tileValue.valign = view.tileValue.valign;
     }
 
-    this.tileTextColor = {
+    this.tileValueColor = {
       field: null, scale: 'linear', domain: [0, 1],
       range: ['#7fffd4', '#7fffd4'], unknown: '#7fffd4'
     };
-    if (view.hasOwnProperty('tileTextColor')) {
-      this.tileTextColor.field = view.tileTextColor.field;
-      this.tileTextColor.scale = view.tileTextColor.scale;
-      this.tileTextColor.domain = view.tileTextColor.domain;
-      this.tileTextColor.range = view.tileTextColor.range;
-      this.tileTextColor.unknown = view.tileTextColor.unknown;
+    if (view.hasOwnProperty('tileValueColor')) {
+      this.tileValueColor.field = view.tileValueColor.field;
+      this.tileValueColor.scale = view.tileValueColor.scale;
+      this.tileValueColor.domain = view.tileValueColor.domain;
+      this.tileValueColor.range = view.tileValueColor.range;
+      this.tileValueColor.unknown = view.tileValueColor.unknown;
     }
 
     // Drawing
@@ -88,13 +94,20 @@ export default class TileState {
     this.prevTransform = {
       x: this.transform.x, y: this.transform.y, k: this.transform.k
     };
+    this.scaleExtent = [1, Infinity];
+    this.translateExtent = [[0, 0], [this.fieldWidth, Infinity]];
+
+    this.chunkWidth = null;
+    this.chunkHeight = null;
+    this.chunkMarginH = null;
+    this.chunkMarginV = null;
+    this.columnWidth = null;
+    this.rowHeight = null;
 
     this.zoomListener = null;
+    this.updateFieldNotifier = null;
     this.updateItemNotifier = null;
     this.updateItemAttrNotifier = null;
-
-    this.setFactor();
-    this.setFocusArea();
   }
 
   setFocusArea() {
@@ -124,42 +137,46 @@ export default class TileState {
     this.setFocusArea();
   }
 
-  setFactor() {
-    const cf = this.groupsPerRow + this.groupMarginRatio * (this.groupsPerRow + 1);
-    this.groupWidth = this.viewBox.right / cf;
-    this.groupHeight = this.groupWidth * this.tileAspectRatio;
-    this.groupMarginH = this.groupWidth * this.groupMarginRatio;
-    this.groupMarginV = this.groupHeight * this.groupMarginRatio;
-    this.columnWidth = this.groupWidth / this.columnCount;
-    this.rowHeight = this.columnWidth * this.tileAspectRatio;
-  }
-
-  getPos(gCol, gRow, col, row) {
-    const x = this.groupWidth * gCol + this.groupMarginH * (gCol + 1) + this.columnWidth * col;
-    const y = this.groupHeight * gRow + this.groupMarginV * (gRow + 1) + this.rowHeight * row;
-    return [x, y];
-  }
-
-  currentItems() {
-    const res = [];
-    const tileCount = this.columnCount * this.rowCount;
-    this.items.records().forEach((rcd, i) => {
-      const groupIdx = Math.floor(i / tileCount);
-      const tileIdx = i % tileCount;
-      const gRow = Math.floor(groupIdx / this.groupsPerRow);
-      const gCol = groupIdx % this.groupsPerRow;
-      const row = Math.floor(tileIdx / this.columnCount);
-      const col = tileIdx % this.columnCount;
-      const pos = this.getPos(gCol, gRow, col, row);
-      const newrcd = {x: pos[0], y: pos[1]};
-      Object.assign(newrcd, rcd);
-      res.push(newrcd);
+  setCoords() {
+    this.its.forEach(item => {
+      const cRow = Math.floor(item.chunk / this.chunksPerRow);
+      const cCol = item.chunk % this.chunksPerRow;
+      item.x = this.chunkWidth * cCol + this.chunkMarginH * (cCol + 1) + this.columnWidth * item.col;
+      item.y = this.chunkHeight * cRow + this.chunkMarginV * (cRow + 1) + this.rowHeight * item.row;
     });
-    return res;
+  }
+
+  setIndices() {
+    const tileCount = this.columnCount * this.rowCount;
+    let totalChunks = 0;
+    Object.entries(_.groupBy(this.its, this.groupBy))
+      .sort(group => group[0])
+      .forEach((group, i) => {
+        group[1].forEach((rcd, j) => {
+          const tileIdx = j % tileCount;
+          rcd.group = i;
+          rcd.chunk = Math.floor(j / tileCount) + totalChunks;
+          rcd.row = Math.floor(tileIdx / this.columnCount);
+          rcd.col = tileIdx % this.columnCount;
+        });
+        totalChunks += Math.ceil(group[1].length / tileCount);
+    });
+    this.setCoords();
+  }
+
+  setFieldSize() {
+    this.chunkWidth = this.fieldWidth /
+      (this.chunksPerRow + this.chunkMarginRatio * (this.chunksPerRow + 1));
+    this.chunkHeight = this.chunkWidth * this.tileAspectRatio;
+    this.chunkMarginH = this.chunkWidth * this.chunkMarginRatio;
+    this.chunkMarginV = this.chunkHeight * this.chunkMarginRatio;
+    this.columnWidth = this.chunkWidth / this.columnCount;
+    this.rowHeight = this.columnWidth * this.tileAspectRatio;
+    this.setIndices();
   }
 
   itemsToRender() {
-    return this.currentItems().filter(
+    return this.its.filter(
       e => this.focusArea.top < e.y
         && this.focusArea.left < e.x
         && this.focusArea.bottom > e.y
@@ -184,11 +201,12 @@ export default class TileState {
       rowCount: this.rowCount,
       columnCount: this.columnCount,
       groupField: this.groupField,
-      groupsPerRow: this.groupsPerRow,
+      chunksPerRow: this.chunksPerRow,
       tileContent: this.tileContent,
       tileColor: this.tileColor,
-      tileText: this.tileText,
-      tileTextColor: this.tileTextColor
+      tileValue: this.tileValue,
+      tileValueColor: this.tileValueColor,
+      fieldTransform: this.transform
     };
   }
 
