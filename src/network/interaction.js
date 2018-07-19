@@ -3,6 +3,8 @@
 
 import d3 from 'd3';
 
+import {default as transform} from '../component/transform.js';
+
 import {default as component} from './component.js';
 
 
@@ -21,7 +23,7 @@ function zoomListener(selection, state) {
   return d3.zoom()
     .on('zoom', function() {
       const t = d3.event.transform;
-      selection.call(component.transform, t.x, t.y, t.k);
+      selection.call(transform.transform, t.x, t.y, t.k);
       // Smooth transition
       if (!state.focusedView) {
         const p = state.prevTransform;
@@ -59,7 +61,7 @@ function setInteraction(selection, state) {
   // Resume zoom event
   const t = state.transform;
   selection
-      .call(component.transform, t.x, t.y, t.k)
+      .call(transform.transform, t.x, t.y, t.k)
       .call(
         d3.zoom().transform,
         d3.zoomIdentity.translate(t.x, t.y).scale(t.k)
@@ -82,7 +84,7 @@ function fit(selection, state) {
   state.setTransform(tx, ty, scale);
   selection
       .call(component.updateComponents, state)
-      .call(component.transform, tx, ty, scale)
+      .call(transform.transform, tx, ty, scale)
       .call(
         d3.zoom().transform,
         d3.zoomIdentity.translate(tx, ty).scale(scale)

@@ -4,6 +4,8 @@
 import {default as scale} from '../common/scale.js';
 import {default as misc} from '../common/misc.js';
 
+import {default as transform} from '../component/transform.js';
+
 
 function updateItems(selection, state) {
   const itemsToRender = state.itemsToRender();
@@ -69,59 +71,10 @@ function updateItemAttrs(selection, state) {
 }
 
 
-function resizeViewBox(selection, width, height) {
-  selection.attr('viewBox', `0 0 ${width} ${height}`);
-  selection.select('.tl-view-boundary')
-    .attr('width', width)
-    .attr('height', height);
-}
-
-
-function tileViewFrame(selection, state) {
-  selection
-    .style('width', '100%')
-    .style('height', '100%');
-  selection.select('.tl-view').remove(); // Clean up
-  selection.append('svg')
-    .classed('tl-view', true);
-  selection.call(resize, state);
-}
-
-
-function resize(selection, state) {
-  const area = selection.node();
-  state.setViewBox(area.offsetWidth, area.offsetHeight);
-  selection.select('.tl-view')
-    .call(resizeViewBox, area.offsetWidth, area.offsetHeight);
-}
-
-
 function tileView(selection, state) {
-  selection
-    .attr('preserveAspectRatio', 'xMinYMin meet')
-    .attr('pointer-events', 'all')
-    .attr('viewBox', `0 0 ${state.viewBox.right} ${state.viewBox.bottom}`)
-    .style('width', '100%')
-    .style('height', '100%');
-
-  // Clean up
-  selection.select('.tl-view-boundary').remove();
-  selection.select('.tl-field').remove();
-
-  // Render
-  selection.append('rect')
-      .classed('tl-view-boundary', true)
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', state.viewBox.right)
-      .attr('height', state.viewBox.bottom)
-      .attr('fill', '#ffffff')
-      .attr('stroke-width', 1)
-      .attr('stroke', '#cccccc');
-  const field = selection.append('g')
-      .classed('tl-field', true);
-  const items = field.append('g').classed('tl-items', true);
-  // Set notifiers
+  selection.call(transform.view, state);
+  const items = selection.select('.field')
+    .append('g').classed('tl-items', true);
   state.updateFieldNotifier = () => {
     state.setFieldSize();
     items.call(updateItems, state);
@@ -136,7 +89,6 @@ function tileView(selection, state) {
 }
 
 
-
 export default {
-  updateItems, updateItemAttrs, tileViewFrame, tileView, resize
+  updateItems, updateItemAttrs, tileView
 };

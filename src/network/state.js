@@ -1,14 +1,15 @@
 
 /** @module network/state */
 
-import d3 from 'd3';
-
 import Collection from '../common/collection.js';
+import TransformState from  '../common/transform.js';
 import {default as idb} from '../common/idb.js';
 
 
-export default class NetworkState {
+export default class NetworkState extends TransformState {
   constructor(view, nodes, edges) {
+    super(1200, 1200, view.fieldTransform);
+
     /* Settings */
 
     // Focused view mode (num of nodes displayed are less than the thld)
@@ -22,10 +23,6 @@ export default class NetworkState {
     this.overlookViewThreshold = 500;
     this.enableOverlookView = true;
     this.overlookView = false;
-
-    this.fieldWidth = 1200;
-    this.fieldHeight = 1200;
-
 
     /* Attributes */
 
@@ -133,9 +130,6 @@ export default class NetworkState {
     this.minConnThld = view.minConnThld;
     this.currentConnThld = view.currentConnThld || view.minConnThld;
 
-    // Transform
-    this.transform = view.fieldTransform || {x: 0, y: 0, k: 1};
-
     // Force
     this.forcePreset = view.forcePreset || 'aggregate';
 
@@ -183,21 +177,12 @@ export default class NetworkState {
     });
 
     // Drawing
-    this.forceField = {
-      top: 0, right: this.fieldWidth, bottom: this.fieldHeight, left: 0};
-    this.viewBox = {
-      top: 0, right: this.fieldWidth, bottom: this.fieldHeight, left: 0};
-    this.focusArea = {};
     this.boundary = {};
-    this.prevTransform = {
-      x: this.transform.x, y: this.transform.y, k: this.transform.k
-    };
 
     if (view.coords) {
       this.simulationOnLoad = false;
       // Set default state
       this.setAllCoords(view.coords);
-      this.setFocusArea();
       this.setBoundary();
     } else {
       this.simulationOnLoad = true;
@@ -212,33 +197,6 @@ export default class NetworkState {
     this.boundary.bottom = Math.max.apply(null, ys);
     this.boundary.right = Math.max.apply(null, xs);
     // this.showBoundary(); // debug
-  }
-
-  setFocusArea() {
-    const tx = this.transform.x;
-    const ty = this.transform.y;
-    const tk = this.transform.k;
-    const margin = 50;
-    this.focusArea.top = (this.viewBox.top - ty) / tk - margin;
-    this.focusArea.left = (this.viewBox.left - tx) / tk - margin;
-    this.focusArea.bottom = (this.viewBox.bottom - ty) / tk + margin;
-    this.focusArea.right = (this.viewBox.right - tx) / tk + margin;
-    // this.showFocusArea();  // debug
-  }
-
-  setTransform(tx, ty, tk) {
-    this.transform.x = tx;
-    this.transform.y = ty;
-    this.transform.k = tk;
-    // this.showTransform(); // debug
-    this.setFocusArea();
-  }
-
-  setViewBox(width, height) {
-    this.viewBox.right = width;
-    this.viewBox.bottom = height;
-    // this.showViewBox();  // debug
-    this.setFocusArea();
   }
 
   setAllCoords(coordsList) {
@@ -328,26 +286,5 @@ export default class NetworkState {
       fieldTransform: this.transform,
       coords: this.ns.map(e => ({x: e.x, y: e.y}))
     }));
-  }
-
-
-  showTransform() {
-    d3.select('#debug-transform')
-      .text(JSON.stringify(this.transform));
-  }
-
-  showBoundary() {
-    d3.select('#debug-boundary')
-      .text(JSON.stringify(this.boundary));
-  }
-
-  showFocusArea() {
-    d3.select('#debug-focusarea')
-      .text(JSON.stringify(this.focusArea));
-  }
-
-  showViewBox() {
-    d3.select('#debug-viewbox')
-      .text(JSON.stringify(this.viewBox));
   }
 }

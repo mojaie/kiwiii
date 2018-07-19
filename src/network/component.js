@@ -6,6 +6,8 @@ import d3 from 'd3';
 import {default as scale} from '../common/scale.js';
 import {default as misc} from '../common/misc.js';
 
+import {default as transform} from '../component/transform.js';
+
 
 const svgWidth = 180;  //TODO
 const svgHeight = 180;  //TODO
@@ -177,71 +179,12 @@ function move(selection, node, x, y) {
 }
 
 
-function transform(selection, tx, ty, tk) {
-  selection.select('.nw-field')
-    .attr('transform', `translate(${tx}, ${ty}) scale(${tk})`);
-}
-
-
-function resizeViewBox(selection, width, height) {
-  selection.attr('viewBox', `0 0 ${width} ${height}`);
-  selection.select('.nw-view-boundary')
-    .attr('width', width)
-    .attr('height', height);
-}
-
-
-function networkViewFrame(selection, state) {
-  selection
-    .style('width', '100%')
-    .style('height', '100%');
-  selection.select('.nw-view').remove(); // Clean up
-  selection.append('svg')
-    .classed('nw-view', true);
-  selection.call(resize, state);
-}
-
-
-function resize(selection, state) {
-  const area = selection.node();
-  state.setViewBox(area.offsetWidth, area.offsetHeight);
-  selection.select('.nw-view')
-    .call(resizeViewBox, area.offsetWidth, area.offsetHeight);
-}
-
-
 function networkView(selection, state) {
-  selection
-    .attr('preserveAspectRatio', 'xMinYMin meet')
-    .attr('pointer-events', 'all')
-    .attr('viewBox', `0 0 ${state.viewBox.right} ${state.viewBox.bottom}`)
-    .style('width', '100%')
-    .style('height', '100%');
-
-  // Clean up
-  selection.select('.nw-view-boundary').remove();
-  selection.select('.nw-field').remove();
-
-  // Render
-  selection.append('rect')
-      .classed('nw-view-boundary', true)
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', state.viewBox.right)
-      .attr('height', state.viewBox.bottom)
-      .attr('fill', '#ffffff')
-      .attr('stroke-width', 1)
-      .attr('stroke', '#cccccc');
-  const field = selection.append('g')
-      .classed('nw-field', true)
-      .style('opacity', 1e-6);
-  field.transition()
-      .duration(1000)
-      .style('opacity', 1);
+  selection.call(transform.view, state);
+  const field = selection.select('.field');
   const edges = field.append('g').classed('nw-edges', true);
   const nodes = field.append('g').classed('nw-nodes', true);
 
-  // Set notifiers
   state.updateComponentNotifier = () => {
     selection.call(updateComponents, state);
   };
@@ -257,15 +200,12 @@ function networkView(selection, state) {
   state.updateEdgeAttrNotifier = () => {
     edges.call(updateEdgeAttrs, state);
   };
-
-  // Update graph components
-  selection.call(updateComponents, state);
+  state.updateComponentNotifier();
 }
 
 
 export default {
   updateNodes, updateEdges, updateNodeCoords, updateEdgeCoords,
   updateNodeAttrs, updateEdgeAttrs, updateAttrs, updateComponents,
-  move, transform, resizeViewBox,
-  networkViewFrame, resize, networkView
+  move, networkView
 };

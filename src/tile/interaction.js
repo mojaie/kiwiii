@@ -3,6 +3,8 @@
 
 import d3 from 'd3';
 
+import {default as transform} from '../component/transform.js';
+
 import {default as component} from './component.js';
 
 
@@ -12,8 +14,7 @@ function zoomListener(selection, state) {
     .translateExtent(state.translateExtent)
     .on('zoom', function() {
       const t = d3.event.transform;
-      selection.select('.tl-field')
-        .attr('transform', `translate(${t.x}, ${t.y}) scale(${t.k})`);
+      selection.call(transform.transform, t.x, t.y, t.k);
     })
     .on('end', function() {
       const t = d3.event.transform;
@@ -30,9 +31,9 @@ function setInteraction(selection, state) {
   selection.call(state.zoomListener);
   // Resume zoom event
   const t = state.transform;
-  selection.select('.nw-field')
-      .attr('transform', `translate(${t.x}, ${t.y}) scale(${t.k})`);
-  selection.call(
+  selection
+      .call(transform.transform, t.x, t.y, t.k)
+      .call(
         d3.zoom().transform,
         d3.zoomIdentity.translate(t.x, t.y).scale(t.k)
       );

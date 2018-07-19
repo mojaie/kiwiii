@@ -10,6 +10,7 @@ import {default as sw} from './common/sw.js';
 
 import {default as button} from './component/button.js';
 import {default as modal} from './component/modal.js';
+import {default as transform} from './component/transform.js';
 
 import {default as communityDialog} from './dialog/community.js';
 import {default as renameDialog} from './dialog/rename.js';
@@ -88,8 +89,8 @@ function app(view, nodes, edges) {
     state.forcePreset, state.fieldWidth, state.fieldHeight);
   // Contents
   const frame = d3.select('#nw-frame')
-      .call(component.networkViewFrame, state);
-  frame.select('.nw-view')
+      .call(transform.viewFrame, state);
+  frame.select('.view')
       .call(component.networkView, state)
       .call(interaction.setInteraction, state)
       .call(force.activate, simulation, state);
@@ -98,7 +99,7 @@ function app(view, nodes, edges) {
 
   // Resize window
   window.onresize = () =>
-    d3.select('#nw-frame').call(component.resize, state);
+    d3.select('#nw-frame').call(transform.resize, state);
 
   // Update
   updateApp(state);

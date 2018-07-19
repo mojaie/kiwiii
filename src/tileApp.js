@@ -8,6 +8,7 @@ import {default as misc} from './common/misc.js';
 import {default as sw} from './common/sw.js';
 
 import {default as button} from './component/button.js';
+import {default as transform} from './component/transform.js';
 
 import {default as renameDialog} from './dialog/rename.js';
 
@@ -47,8 +48,8 @@ function app(view, coll) {
 
   // Contents
   const frame = d3.select('#tl-frame')
-      .call(component.tileViewFrame, state);
-  frame.select('.tl-view')
+      .call(transform.viewFrame, state);
+  frame.select('.view')
       .call(component.tileView, state)
       .call(interaction.setInteraction, state);
   d3.select('#tl-control')
@@ -56,7 +57,7 @@ function app(view, coll) {
 
   // Resize window
   window.onresize = () =>
-    d3.select('#tl-frame').call(component.resize, state);
+    d3.select('#tl-frame').call(transform.resize, state);
 
   // Update
   updateApp(state);
