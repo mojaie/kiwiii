@@ -11,12 +11,15 @@ import {default as idb} from '../common/idb.js';
 export default class TileState extends TransformState {
   constructor(view, items) {
     super(1200, 800, view.fieldTransform);
+
     /* Settings */
+
     this.chunkMarginRatio = 0.05;
 
     this.focusedViewThreshold = 200;
     this.enableFocusedView = true;
     this.focusedView = false;
+
 
     /* Attributes */
 
@@ -38,7 +41,6 @@ export default class TileState extends TransformState {
     this.tileAspectRatio = 1;
     this.showRowNumber = view.showRowNumber || false;
     this.showColumnNumber = view.showColumnNumber || false;
-
 
     this.tileContent = {
       field: null, visible: false
@@ -94,10 +96,25 @@ export default class TileState extends TransformState {
     this.columnWidth = null;
     this.rowHeight = null;
 
+    // Event listener
     this.zoomListener = null;
+
+    // Event notifiers
     this.updateFieldNotifier = null;
     this.updateItemNotifier = null;
     this.updateItemAttrNotifier = null;
+  }
+
+  setViewBox(width, height) {
+    this.viewBox.right = width;
+    this.viewBox.bottom = height;
+    // this.showViewBox();  // debug
+    const vw = this.viewBox.right;
+    const bw = this.boundary.right - this.boundary.left;
+    this.scaleExtent = [vw / bw, Infinity];
+    this.translateExtent = [[0, 0], [bw, Infinity]];
+    this.setTransform(0, 0, vw / bw);
+    this.setFocusArea();
   }
 
   setCoords() {

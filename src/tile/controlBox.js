@@ -1,29 +1,27 @@
 
 /** @module tile/controlBox */
 
-import d3 from 'd3';
-
 import {default as misc} from '../common/misc.js';
 import {default as cscale} from '../common/scale.js';
 
 import {default as box} from '../component/formBox.js';
+import {default as cbox} from '../component/controlBox.js';
 import {default as lbox} from '../component/formListBox.js';
-import {default as group} from '../component/formBoxGroup.js';
 
 
 function mainControlBox(selection, state) {
-  const panelGroup = selection.append('div')
+  const chunkGroup = selection.append('div')
       .classed('panel-group', true)
       .classed('mb-3', true);
-  panelGroup.append('div')
+  chunkGroup.append('div')
       .classed('rowcnt', true)
       .classed('mb-1', true)
       .call(box.numberBox, 'Rows', 1, 9999, 1, state.rowCount);
-  panelGroup.append('div')
+  chunkGroup.append('div')
       .classed('colcnt', true)
       .classed('mb-1', true)
       .call(box.numberBox, 'Columns', 1, 9999, 1, state.columnCount);
-  panelGroup.append('div')
+  chunkGroup.append('div')
       .classed('groupby', true)
       .classed('mb-1', true)
       .call(
@@ -31,15 +29,15 @@ function mainControlBox(selection, state) {
         state.items.fields.filter(e => misc.sortType(e.format) !== 'none'),
         state.groupField || ''
       );
-  panelGroup.append('div')
+  chunkGroup.append('div')
       .classed('crow', true)
       .classed('mb-1', true)
       .call(box.numberBox, 'ChunksPerRow', 1, 999, 1, state.chunksPerRow);
-  panelGroup.append('div')
+  chunkGroup.append('div')
       .classed('showcol', true)
       .classed('mb-1', true)
       .call(box.checkBox, 'Show column number', state.showColumnNumber);
-  panelGroup.append('div')
+  chunkGroup.append('div')
       .classed('showrow', true)
       .classed('mb-1', true)
       .call(box.checkBox, 'Show row number', state.showRowNumber);
@@ -48,50 +46,31 @@ function mainControlBox(selection, state) {
 
 function updateMainControlBox(selection, state) {
   // Network threshold
-  const panelGroup = selection.select('.panel-group');
-  panelGroup.select('.rowcnt')
+  const chunkGroup = selection.select('.panel-group');
+  chunkGroup.select('.rowcnt')
       .call(box.updateNumberBox, state.rowCount);
-  panelGroup.select('.colcnt')
+  chunkGroup.select('.colcnt')
       .call(box.updateNumberBox, state.columnCount);
-  panelGroup.select('.groupby')
+  chunkGroup.select('.groupby')
     .call(lbox.updateSelectBox, state.groupField);
-  panelGroup.select('.crow')
+  chunkGroup.select('.crow')
       .call(box.updateNumberBox, state.chunksPerRow);
-  panelGroup.select('.showcol')
+  chunkGroup.select('.showcol')
       .call(box.updateCheckBox, state.showColumnNumber);
-  panelGroup.select('.showrow')
+  chunkGroup.select('.showrow')
       .call(box.updateCheckBox, state.showRowNumber);
-  panelGroup.selectAll('.rowcnt, .colcnt, .groupby, .crow, .showcol, .showrow')
+  chunkGroup.selectAll('.rowcnt, .colcnt, .groupby, .crow, .showcol, .showrow')
       .on('change', function () {
-        state.rowCount = box.numberBoxIntValue(panelGroup.select('.rowcnt'));
-        state.columnCount = box.numberBoxIntValue(panelGroup.select('.colcnt'));
-        state.groupField = lbox.selectBoxValue(panelGroup.select('.groupby'));
-        state.chunksPerRow = box.numberBoxIntValue(panelGroup.select('.crow'));
-        state.showColumnNumber = box.checkBoxValue(panelGroup.select('.showcol'));
-        state.showRowNumber = box.checkBoxValue(panelGroup.select('.showrow'));
+        state.rowCount = box.numberBoxIntValue(chunkGroup.select('.rowcnt'));
+        state.columnCount = box.numberBoxIntValue(chunkGroup.select('.colcnt'));
+        state.groupField = lbox.selectBoxValue(chunkGroup.select('.groupby'));
+        state.chunksPerRow = box.numberBoxIntValue(chunkGroup.select('.crow'));
+        state.showColumnNumber = box.checkBoxValue(chunkGroup.select('.showcol'));
+        state.showRowNumber = box.checkBoxValue(chunkGroup.select('.showrow'));
         state.updateFieldNotifier();
       });
-  panelGroup.select('.rowcnt').dispatch('change');
 }
 
-
-function colorControlBox(selection, colorState, fieldOptions, scaleDefs) {
-  selection.append('div')
-      .classed('field', true)
-      .call(lbox.selectBox, 'Field', fieldOptions, colorState.field || '');
-  selection.append('div')
-      .classed('range', true)
-      .call(
-        group.colorRangeGroup, scaleDefs.palettes,
-        scaleDefs.ranges, colorState.range, colorState.unknown
-      );
-  selection.append('div')
-      .classed('scale', true)
-      .call(
-        group.scaleBoxGroup, scaleDefs.presets,
-        scaleDefs.scales, colorState.scale, colorState.domain
-      );
-}
 
 function tileColorControlBox(selection, state) {
   const scaleDefs = {
@@ -102,88 +81,15 @@ function tileColorControlBox(selection, state) {
   };
   const fieldOptions = state.items.fields
     .filter(e => misc.sortType(e.format) !== 'none');
-  colorControlBox(selection, state.tileColor, fieldOptions, scaleDefs);
+  cbox.colorControlBox(selection, state.tileColor, fieldOptions, scaleDefs);
 }
 
-
-function updateColorControlBox(selection, colorState, notifier) {
-  selection.select('.field')
-    .call(lbox.updateSelectBox, colorState.field)
-    .on('change', function () {
-      colorState.field = lbox.selectBoxValue(d3.select(this));
-      notifier();
-    });
-  selection.select('.range')
-    .call(group.updateColorRangeGroup, colorState.range, colorState.unknown)
-    .on('change', function () {
-      const values = group.colorRangeGroupValue(d3.select(this));
-      colorState.range = values.range;
-      colorState.unknown = values.unknown;
-      if (values.range.length > 3) {
-        colorState.scale = 'ordinal';
-        selection.select('.scale').selectAll('select,input')
-          .property('disabled', true)
-          .style('opacity', 0.3);
-      } else {
-        selection.select('.scale').selectAll('select,input')
-          .property('disabled', false)
-          .style('opacity', null);
-      }
-      notifier();
-    }
-  );
-  selection.select('.scale')
-    .call(group.updateScaleBoxGroup, colorState.scale, colorState.domain)
-    .on('change', function () {
-      const values = group.scaleBoxGroupValue(d3.select(this));
-      colorState.scale = values.scale;
-      colorState.domain = values.domain;
-      notifier();
-    }
-  );
-}
 
 function updateTileColorControlBox(selection, state) {
   const notifier = state.updateItemAttrNotifier;
-  updateColorControlBox(selection, state.tileColor, notifier);
+  cbox.updateColorControlBox(selection, state.tileColor, notifier);
 }
 
-
-function labelControlBox(selection, labelState,
-                         colorState, fieldOptions, scaleDefs) {
-  // nodeLabel.visible
-  selection.append('div')
-    .append('div')
-      .classed('visible', true)
-      .call(box.checkBox, 'Show labels', labelState.visible);
-  // nodeLabel
-  const labelGroup = selection.append('div')
-      .classed('mb-3', true);
-  labelGroup.append('div')
-      .classed('text', true)
-      .classed('mb-1', true)
-      .call(lbox.selectBox, 'Text field', fieldOptions, labelState.field || '');
-  labelGroup.append('div')
-      .classed('size', true)
-      .classed('mb-1', true)
-      .call(box.numberBox, 'Font size', 6, 100, 1, labelState.size);
-  // nodeLabelColor
-  selection.append('div')
-      .classed('field', true)
-      .call(lbox.selectBox, 'Color field', fieldOptions, colorState.field || '');
-  selection.append('div')
-      .classed('range', true)
-      .call(
-        group.colorRangeGroup, scaleDefs.palettes,
-        scaleDefs.ranges, colorState.range, colorState.unknown
-      );
-  selection.append('div')
-      .classed('scale', true)
-      .call(
-        group.scaleBoxGroup, scaleDefs.presets,
-        scaleDefs.scales, colorState.scale, colorState.domain
-      );
-}
 
 function tileValueControlBox(selection, state) {
   const scaleDefs = {
@@ -194,114 +100,15 @@ function tileValueControlBox(selection, state) {
   };
   const fieldOptions = state.items.fields
     .filter(e => misc.sortType(e.format) !== 'none');
-  labelControlBox(selection, state.tileValue, state.tileValueColor,
-                  fieldOptions, scaleDefs);
+  cbox.labelControlBox(selection, state.tileValue, state.tileValueColor,
+                       fieldOptions, scaleDefs);
 }
 
-
-function updateLabelControlBox(selection, labelState, colorState, notifier) {
-  // nodeLabel.visible
-  selection.select('.visible')
-      .call(box.updateCheckBox, labelState.visible)
-      .on('change', function () {
-        labelState.visible = box.checkBoxValue(d3.select(this));
-        notifier();
-      });
-  // nodeLabel
-  selection.select('.text')
-      .call(lbox.updateSelectBox, labelState.field)
-      .on('change', function () {
-        labelState.field = lbox.selectBoxValue(d3.select(this));
-        notifier();
-      });
-  selection.select('.size')
-      .call(box.updateNumberBox, labelState.size)
-      .on('change', function () {
-        labelState.size = box.numberBoxIntValue(d3.select(this));
-        notifier();
-      });
-  // nodeLabelColor
-  selection.select('.field')
-      .call(lbox.updateSelectBox, colorState.field)
-      .on('change', function () {
-        colorState.field = lbox.selectBoxValue(d3.select(this));
-        notifier();
-      });
-  selection.select('.range')
-      .call(group.updateColorRangeGroup, colorState.range, colorState.unknown)
-      .on('change', function () {
-        const values = group.colorRangeGroupValue(d3.select(this));
-        colorState.range = values.range;
-        colorState.unknown = values.unknown;
-        if (values.range.length > 3) {
-          colorState.scale = 'ordinal';
-          selection.select('.scale').selectAll('select,input')
-            .property('disabled', true)
-            .style('opacity', 0.3);
-        } else {
-          colorState.scale = lbox.selectBoxValue(selection.select('.range'));
-          selection.select('.scale').selectAll('select,input')
-            .property('disabled', false)
-            .style('opacity', null);
-        }
-        notifier();
-      });
-  selection.select('.scale')
-      .call(group.updateScaleBoxGroup, colorState.scale, colorState.domain)
-      .on('change', function () {
-        const values = group.scaleBoxGroupValue(d3.select(this));
-        colorState.scale = values.scale;
-        colorState.domain = values.domain;
-        notifier();
-      }
-    );
-}
 
 function updateTileValueControlBox(selection, state) {
   const notifier = state.updateItemAttrNotifier;
-  updateLabelControlBox(
+  cbox.updateLabelControlBox(
     selection, state.tileValue, state.tileValueColor, notifier);
-}
-
-
-function controlBoxFrame(selection, navID, contentID) {
-  selection.append('nav')
-    .append('div')
-      .classed('nav', true)
-      .classed('nav-tabs', true)
-      .attr('id', navID)
-      .attr('role', 'tablist');
-  selection.append('div')
-      .classed('tab-content', true)
-      .classed('p-2', true)
-      .attr('id', contentID);
-}
-
-
-function controlBoxNav(selection, id, label) {
-  selection
-      .classed('nav-item', true)
-      .classed('nav-link', true)
-      .classed('py-1', true)
-      .attr('id', `${id}-tab`)
-      .attr('data-toggle', 'tab')
-      .attr('href', `#${id}`)
-      .attr('role', 'tab')
-      .attr('aria-controls', id)
-      .attr('aria-selected', 'false')
-      .text(label);
-}
-
-
-function controlBoxItem(selection, id) {
-  selection
-      .classed('tab-pane', true)
-      .classed('fade', true)
-      .classed('container', true)
-      .classed('px-0', true)
-      .attr('id', id)
-      .attr('role', 'tabpanel')
-      .attr('aria-labelledby', `${id}-tab`);
 }
 
 
@@ -311,7 +118,7 @@ function controlBox(selection, state) {
   selection.select('.tab-content').remove();
 
   selection.call(
-    controlBoxFrame, 'control-frame-nav', 'control-frame-content');
+    cbox.controlBoxFrame, 'control-frame-nav', 'control-frame-content');
   const tabs = selection.select('.nav-tabs');
   const content = selection.select('.tab-content');
 
@@ -319,28 +126,28 @@ function controlBox(selection, state) {
   tabs.append('a')
       .classed('active', true)
       .attr('aria-selected', 'true')
-      .call(controlBoxNav, 'control-main', 'Main');
+      .call(cbox.controlBoxNav, 'control-main', 'Main');
   content.append('div')
       .classed('show', true)
       .classed('active', true)
       .classed('control-main', true)
-      .call(controlBoxItem, 'control-main')
+      .call(cbox.controlBoxItem, 'control-main')
       .call(mainControlBox, state);
 
   // Color
   tabs.append('a')
-      .call(controlBoxNav, 'control-color', 'Color');
+      .call(cbox.controlBoxNav, 'control-color', 'Color');
   content.append('div')
       .classed('control-color', true)
-      .call(controlBoxItem, 'control-color')
+      .call(cbox.controlBoxItem, 'control-color')
       .call(tileColorControlBox, state);
 
   // Text
   tabs.append('a')
-      .call(controlBoxNav, 'control-value', 'Value');
+      .call(cbox.controlBoxNav, 'control-value', 'Value');
   content.append('div')
       .classed('control-value', true)
-      .call(controlBoxItem, 'control-value')
+      .call(cbox.controlBoxItem, 'control-value')
       .call(tileValueControlBox, state);
 
   selection.call(updateControlBox, state);

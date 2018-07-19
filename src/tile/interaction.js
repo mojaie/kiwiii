@@ -5,8 +5,6 @@ import d3 from 'd3';
 
 import {default as transform} from '../component/transform.js';
 
-import {default as component} from './component.js';
-
 
 function zoomListener(selection, state) {
   return d3.zoom()
@@ -20,15 +18,18 @@ function zoomListener(selection, state) {
       const t = d3.event.transform;
       state.setTransform(t.x, t.y, t.k);
       state.prevTransform = {x: t.x, y: t.y, k: t.k};
-      selection.select('.tl-items').call(component.updateItems, state);
+      state.updateItemNotifier();
     });
 }
 
 
 function setInteraction(selection, state) {
   state.zoomListener = zoomListener(selection, state);
-  state.setFocusArea();
   selection.call(state.zoomListener);
+  state.resizeNotifier = () => {
+    selection.call(setInteraction, state);
+    state.updateItemNotifier();
+  };
   // Resume zoom event
   const t = state.transform;
   selection

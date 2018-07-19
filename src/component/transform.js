@@ -7,17 +7,20 @@ function transform(selection, tx, ty, tk) {
     .attr('transform', `translate(${tx}, ${ty}) scale(${tk})`);
 }
 
+
 function resize(selection, state) {
   const area = selection.node();
   const width = area.offsetWidth;
   const height = area.offsetHeight;
-  state.setViewBox(width, height);
   selection.select('.view')
       .attr('viewBox', `0 0 ${width} ${height}`)
     .select('.boundary')
       .attr('width', width)
       .attr('height', height);
+  state.setViewBox(width, height);
+  state.resizeNotifier();
 }
+
 
 function viewFrame(selection, state) {
   selection
@@ -28,6 +31,7 @@ function viewFrame(selection, state) {
     .classed('view', true);
   selection.call(resize, state);
 }
+
 
 function view(selection, state) {
   selection

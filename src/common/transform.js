@@ -19,6 +19,13 @@ export default class TransformState {
     this.focusArea = {};
     this.focusAreaMargin = 50;
 
+    this.boundary = {
+      top: 0,
+      right: this.fieldWidth,
+      bottom: this.fieldHeight,
+      left: 0
+    };
+
     this.transform = transform || {x: 0, y: 0, k: 1};
     this.prevTransform = {
       x: this.transform.x,
@@ -26,7 +33,7 @@ export default class TransformState {
       k: this.transform.k
     };
 
-    this.setFocusArea();
+    this.resizeNotifier = () => {};
   }
 
   setFocusArea() {
@@ -41,6 +48,13 @@ export default class TransformState {
     // this.showFocusArea();  // debug
   }
 
+  setViewBox(width, height) {
+    this.viewBox.right = width;
+    this.viewBox.bottom = height;
+    // this.showViewBox();  // debug
+    this.setFocusArea();
+  }
+
   setTransform(tx, ty, tk) {
     this.transform.x = tx;
     this.transform.y = ty;
@@ -49,11 +63,20 @@ export default class TransformState {
     this.setFocusArea();
   }
 
-  setViewBox(width, height) {
-    this.viewBox.right = width;
-    this.viewBox.bottom = height;
-    // this.showViewBox();  // debug
-    this.setFocusArea();
+  fitTransform() {
+    const vh = this.viewBox.bottom;
+    const vw = this.viewBox.right;
+    const vr = vw / vh;
+    const bh = this.boundary.bottom - this.boundary.top;
+    const bw = this.boundary.right - this.boundary.left;
+    const br = bw / bh;
+    const isPortrait = vr >= br;
+    const tk = isPortrait ? vh / bh : vw / bw;
+    const adjustH = isPortrait ? (vw - bw) / 2 : 0;
+    const adjustV = isPortrait ? 0 : (vh - bh) / 2;
+    const tx = -(this.boundary.left + adjustH) * tk;
+    const ty = -(this.boundary.top + adjustV) * tk;
+    this.setTransform(tx, ty, tk);
   }
 
   showTransform() {

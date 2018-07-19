@@ -133,23 +133,17 @@ export default class NetworkState extends TransformState {
     // Force
     this.forcePreset = view.forcePreset || 'aggregate';
 
-    /* Event listener */
-
+    // Event listeners
     this.zoomListener = null;
     this.dragListener = null;
 
-    // Update notifier
+    // Event notifiers
     this.updateComponentNotifier = null;
     this.updateNodeNotifier = null;
     this.updateEdgeNotifier = null;
     this.updateNodeAttrNotifier = null;
     this.updateEdgeAttrNotifier = null;
-
-    this.snapShotNotifier = null;
-
     this.fitNotifier = null;
-
-    // Force control
     this.setForceNotifier = null;
     this.stickNotifier = null;
     this.relaxNotifier = null;
@@ -175,9 +169,6 @@ export default class NetworkState extends TransformState {
       this.ns[e.source].adjacency.push([e.target, i]);
       this.ns[e.target].adjacency.push([e.source, i]);
     });
-
-    // Drawing
-    this.boundary = {};
 
     if (view.coords) {
       this.simulationOnLoad = false;

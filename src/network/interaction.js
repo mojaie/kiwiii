@@ -71,23 +71,14 @@ function setInteraction(selection, state) {
 
 
 function fit(selection, state) {
-  const viewBox = selection.select('.nw-view-boundary').node().getBBox();
-  const viewBoxRatio = viewBox.width / viewBox.height;
-  const boundaryHeight = state.boundary.bottom - state.boundary.top;
-  const boundaryWidth = state.boundary.right - state.boundary.left;
-  const boundaryRatio = boundaryWidth / boundaryHeight;
-  const scale = viewBoxRatio >= boundaryRatio
-    ? viewBox.height / boundaryHeight
-    : viewBox.width / boundaryWidth;
-  const tx = -state.boundary.left * scale;
-  const ty = -state.boundary.top * scale;
-  state.setTransform(tx, ty, scale);
+  state.fitTransform();
+  const t = state.transform;
   selection
       .call(component.updateComponents, state)
-      .call(transform.transform, tx, ty, scale)
+      .call(transform.transform, t.x, t.y, t.k)
       .call(
         d3.zoom().transform,
-        d3.zoomIdentity.translate(tx, ty).scale(scale)
+        d3.zoomIdentity.translate(t.x, t.y).scale(t.k)
       );
 }
 
