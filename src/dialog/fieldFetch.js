@@ -67,12 +67,12 @@ function body(selection, schema, fields) {
   fdstate = new DatagridState({}, data);
   const body = dialog.select('.modal-body');
   body.selectAll('div').remove();  // Clean up
-  const filter = body.append('div').classed('fetchd-filter', true);
-  const dg = body.append('div').classed('fetchd-dg', true);
-  dg.call(component.datagrid, fdstate);
+  const filter = body.append('div').attr('id', 'fetchd-filter');
+  const dg = body.append('div').attr('id', 'fetchd-dg');
   filter.call(rowf.setFilter, fdstate);
+  dg.call(component.datagrid, fdstate);
   fdstate.fixedViewportHeight = 300;
-  dg.call(component.resizeViewport, fdstate);
+  selection.select('.dg-viewport').style('height', `${fdstate.viewportHeight}px`);
 }
 
 

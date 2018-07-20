@@ -7,6 +7,7 @@ import Collection from '../common/collection.js';
 import {default as idb} from '../common/idb.js';
 import {default as misc} from '../common/misc.js';
 
+import {default as component} from './component.js';
 import {default as factory} from './rowFactory.js';
 
 
@@ -33,17 +34,14 @@ export default class DatagridState {
 
     // Size
     this.rowHeight = null;
-    this.contentWidth = null;
     this.bodyHeight = null;
 
     // Viewport
     this.viewportHeight = null;
     this.numViewportRows = null;
-    this.previousNumViewportRows = null;
-    this.viewportTop = null;
-    this.previousVieportTop = null;
+    this.viewportTop = 0;
+    this.previousViewportTop = null;
     this.viewportBottom = null;
-    this.currentScrollTop = 0;
 
     this.fixedViewportHeight = null;
 
@@ -51,13 +49,42 @@ export default class DatagridState {
     this.updateContentsNotifier = null;
     this.updateFilterNotifier = null;
 
+    this.headerCellRenderer = component.headerCellRenderer;
     this.rowFactory = () => factory.rowFactory(this.visibleFields);
-
-    // Initialize
-    this.applyData();
   }
 
-  applyData() {
+  /**
+   * Set viewport height and number of rows to show
+   * @param {int} height - viewport height
+   */
+  setViewportSize(height) {
+    this.viewportHeight = this.fixedViewportHeight || height;
+  }
+
+  /**
+   * Set range of the row indices to show
+   * @param {int} position - Index of the top row to show
+   */
+  setScrollPosition(position) {
+    this.previousViewportTop = this.viewportTop;
+    this.viewportTop = position;
+    this.viewportBottom = Math.min(
+      this.viewportTop + this.numViewportRows, this.filteredRecords.length);
+  }
+
+  setNumViewportRows() {
+    this.numViewportRows = Math.ceil(this.viewportHeight / this.rowHeight) + 1;
+  }
+
+  resizeViewport(height) {
+    this.setViewportSize(height);
+    this.setNumViewportRows();
+  }
+
+  /**
+   * Apply header data
+   */
+  applyHeader() {
     this.visibleFields = this.rows.fields.filter(e => e.visible);
     const widthfSum = this.visibleFields.reduce((a, c) => a + (c.widthf || 1), 0);
     this.visibleFields = this.visibleFields.map(e => {
@@ -69,6 +96,18 @@ export default class DatagridState {
     });
     this.rowHeight = this.visibleFields
       .reduce((a, b) => a.height > b.height ? a : b).height;
+  }
+
+  /**
+   * Apply row data
+   * 1. applyHeader: define fields and set rowHeight
+   * 2. resize: measure actual window size and calc viewportHeight
+   * 3. applyData: calc number of rows from rowHeight and viewportHeight
+   * 4. setScrollPosition: calc row index range
+   * 5. recordsToShow: slice rows to show
+   */
+  applyData() {
+    this.setNumViewportRows();
     this.applyOrder();
   }
 
@@ -99,19 +138,6 @@ export default class DatagridState {
     this.bodyHeight = this.filteredRecords.length * this.rowHeight;
   }
 
-  setViewportSize(height) {
-    this.viewportHeight = this.fixedViewportHeight || height;
-    this.previousNumViewportRows = this.numViewportRows;
-    this.numViewportRows = Math.ceil(this.viewportHeight / this.rowHeight) + 1;
-  }
-
-  setScrollPosition(position) {
-    this.previousViewportTop = this.viewportTop;
-    this.viewportTop = position;
-    this.viewportBottom = Math.min(
-      this.viewportTop + this.numViewportRows, this.filteredRecords.length);
-  }
-
   setSortOrder(key, order) {
     const ki  = this.sortOrder.findIndex(e => e.key);
     const obj = {key: key, order: order};
@@ -127,13 +153,11 @@ export default class DatagridState {
 
   updateFields(fs) {
     this.rows.updateFields(fs);
-    this.updateContentsNotifier();
   }
 
   joinFields(mapping) {
     this.rows.joinFields(mapping);
     this.applyData();
-    this.updateContentsNotifier();
   }
 
   recordsToShow() {
@@ -158,5 +182,4 @@ export default class DatagridState {
       filterText: this.filterText
     };
   }
-
 }

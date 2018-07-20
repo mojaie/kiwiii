@@ -131,15 +131,17 @@ function app(view, coll) {
       );
 
   // Contents
-  d3.select('#datagrid')
-      .call(dg.datagrid, state)
-      .call(sort.setSort, state);
   d3.select('#dg-search')
       .call(rowf.setFilter, state);
+  d3.select('#datagrid')
+      .call(sort.setSort, state)
+      .call(dg.datagrid, state);
 
   // Resize window
-  d3.select('#datagrid').dispatch('resize');
-  window.onresize = () => d3.select('#datagrid').dispatch('resize');
+  window.onresize = () => {
+    d3.select('#datagrid').call(dg.resize, state)
+      .call(dg.updateViewport, state, state.viewportTop);
+  };
 
   // Server bound tasks
   return fetcher.serverStatus()
@@ -195,6 +197,7 @@ function updateApp(state) {
       .on('submit', function () {
         const values = fieldConfigDialog.value(d3.select(this));
         state.updateFields(values);
+        state.updateContentsNotifier();
         updateApp(state);
       });
 
@@ -204,6 +207,7 @@ function updateApp(state) {
         return fieldFileDialog.readFile(d3.select(this))
           .then(data => {
             state.joinFields(data);
+            state.updateContentsNotifier();
             updateApp(state);
           });
       });
@@ -216,7 +220,6 @@ function updateApp(state) {
         state.rows.records().forEach(e => {
           e[value.field.key] = value.default;
         });
-        state.applyData();
         state.updateContentsNotifier();
         updateApp(state);
       });
@@ -242,6 +245,7 @@ function updateApp(state) {
           .execute(d3.select(this), compounds, state.resourceSchema)
           .then(res => {
             state.joinFields(res);
+            state.updateContentsNotifier();
             updateApp(state);
           });
       });
