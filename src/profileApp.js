@@ -7,11 +7,8 @@ import {default as misc} from './common/misc.js';
 import {default as fetcher} from './common/fetcher.js';
 
 import {default as button} from './component/button.js';
-import {default as table} from './component/table.js';
 
-import DatagridState from './datagrid/state.js';
-import {default as dg} from './datagrid/component.js';
-import {default as rowf} from './datagrid/rowfilter.js';
+import {default as table} from './datagrid/table.js';
 
 
 function fetchProfile(compoundID, resources) {
@@ -104,54 +101,29 @@ function render(compoundID) {
       const contents = d3.select('#contents')
           .style('padding-left', '10%')
           .style('padding-right', '10%');
-      contents.append('h2').classed('mt-5', true)
-          .text('Compound ID');
-      contents.append('div').classed('mb-5', true)
-          .text(res.cid);
-      contents.append('h2').classed('mt-5', true)
-          .text('Name');
-      contents.append('div').classed('mb-5', true)
-          .text(res.name);
-      contents.append('h2').classed('mt-5', true)
-          .text('Source');
-      contents.append('div').classed('mb-5', true)
-          .text(res.src);
-      contents.append('h2').classed('mt-5', true)
-          .text('Structure');
-      contents.append('div').classed('mb-5', true)
-          .html(res.struct);
-      contents.append('h2').classed('mt-5', true)
-          .text('Chemical properties');
-      contents.append('div').classed('mb-5', true)
-        .append('table')
-          .call(
-            table.render, null, null, res.compound.fields, res.compound.records)
-          .style('width', '400px');
-      contents.append('h2').classed('mt-5', true)
-          .text('Aliases');
-      contents.append('div').classed('mb-5', true)
-          .attr('id', 'aliases');
-      contents.append('h2').classed('mt-5', true)
-          .text('Assay results');
-      contents.append('div').classed('mb-5', true)
-          .attr('id', 'assays');
-      const aliasState = new DatagridState({}, res.aliases);
-      const aliasFilter = d3.select('#aliases').append('div')
-          .classed('alias-filter', true);
-      const aliasdg = d3.select('#aliases').append('div')
-          .classed('alias-dg', true);
-      aliasState.fixedViewportHeight = 150;
-      aliasdg.call(dg.datagrid, aliasState);
-      aliasFilter.call(rowf.setFilter, aliasState);
+      contents.append('h2').classed('mt-5', true).text('Compound ID');
+      contents.append('div').classed('mb-5', true).text(res.cid);
+      contents.append('h2').classed('mt-5', true).text('Name');
+      contents.append('div').classed('mb-5', true).text(res.name);
+      contents.append('h2').classed('mt-5', true).text('Source');
+      contents.append('div').classed('mb-5', true).text(res.src);
+      contents.append('h2').classed('mt-5', true).text('Structure');
+      contents.append('div').classed('mb-5', true).html(res.struct);
 
-      const assayState = new DatagridState({}, res.assays);
-      const assayFilter = d3.select('#assays').append('div')
-          .classed('assay-filter', true);
-      const assaydg = d3.select('#assays').append('div')
-          .classed('assay-dg', true);
-      assayState.fixedViewportHeight = 400;
-      assaydg.call(dg.datagrid, assayState);
-      assayFilter.call(rowf.setFilter, assayState);
+      contents.append('h2').classed('mt-5', true).text('Chemical properties');
+      contents.append('div').classed('mb-5', true)
+        .call(table.table, res.compound.fields, res.compound.records,
+              null, 150);
+
+      contents.append('h2').classed('mt-5', true).text('Aliases');
+      contents.append('div').classed('mb-5', true)
+        .call(table.table, res.aliases.fields, res.aliases.records,
+              null, 150);
+
+      contents.append('h2').classed('mt-5', true).text('Assay results');
+      contents.append('div').classed('mb-5', true)
+        .call(table.filterSortTable, res.assays.fields, res.assays.records,
+              null, 400);
     });
 }
 

@@ -2,8 +2,9 @@
 /** @module datagrid/table */
 
 import DatagridState from './state.js';
-import {default as rowf} from './rowFilter.js';
 import {default as component} from './component.js';
+import {default as rowf} from './rowFilter.js';
+import {default as sort} from './sort.js';
 
 
 function table(selection, fields, records, rowFactory, height) {
@@ -13,8 +14,10 @@ function table(selection, fields, records, rowFactory, height) {
   };
   const state = new DatagridState({}, data);
   state.keyFunc = d => d;
-  state.rowFactory = () => rowFactory(state.visibleFields);
-  state.fixedViewportHeight = height;
+  if (rowFactory) {
+    state.rowFactory = () => rowFactory(state.visibleFields);
+  }
+  state.fixedViewportHeight = height || 300;
   selection.append('div')
     .classed('table', true)
     .call(component.datagrid, state);
@@ -22,13 +25,16 @@ function table(selection, fields, records, rowFactory, height) {
 }
 
 
-function filterTable(selection, fields, records) {
+function filterTable(selection, fields, records, rowFactory, height) {
   const data = {
     fields: fields,
     records: records
   };
   const state = new DatagridState({}, data);
-  state.fixedViewportHeight = 300;
+  if (rowFactory) {
+    state.rowFactory = () => rowFactory(state.visibleFields);
+  }
+  state.fixedViewportHeight = height || 300;
   selection.append('div')
     .classed('search', true)
     .call(rowf.setFilter, state);
@@ -38,6 +44,36 @@ function filterTable(selection, fields, records) {
   selection.datum(state);
 }
 
+
+function filterSortTable(selection, fields, records, rowFactory, height) {
+  const data = {
+    fields: fields,
+    records: records
+  };
+  const state = new DatagridState({}, data);
+  if (rowFactory) {
+    state.rowFactory = () => rowFactory(state.visibleFields);
+  }
+  state.fixedViewportHeight = height || 300;
+  selection.append('div')
+    .classed('search', true)
+    .call(rowf.setFilter, state);
+  selection.append('div')
+    .classed('table', true)
+    .call(sort.setSort, state)
+    .call(component.datagrid, state);
+  selection.datum(state);
+}
+
+
+function updateRecords(selection, records) {
+  const state = selection.datum();
+  state.rows.contents[0].records = records;
+  state.applyData();
+  state.updateContentsNotifier();
+}
+
+
 function tableRecords(selection) {
   const state = selection.datum();
   return state.rows.records();
@@ -45,5 +81,5 @@ function tableRecords(selection) {
 
 
 export default {
-  table, filterTable, tableRecords
+  table, filterTable, filterSortTable, updateRecords, tableRecords
 };
