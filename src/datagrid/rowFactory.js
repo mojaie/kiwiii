@@ -78,15 +78,20 @@ const cellFunc = {
 };
 
 
+function rowCell(selection) {
+  selection.classed('dg-cell', true)
+    .classed('align-middle', true)
+    .classed('text-truncate', true)
+    .style('display', 'inline-block');
+}
+
+
 function rowFactory(fields) {
   return (selection, record) => {
     fields.forEach(field => {
       const cell = selection.append('div')
-        .classed('dg-cell', true)
-        .classed('align-middle', true)
-        .classed('text-truncate', true)
-        .style('display', 'inline-block')
-        .style('width', `${field.width}%`);
+          .call(rowCell)
+          .style('width', `${field.width}%`);
       if (!record.hasOwnProperty(field.key)) return;
       cell.call(cellFunc[field.format], record, field);
     });
@@ -95,5 +100,6 @@ function rowFactory(fields) {
 
 
 export default {
-  d3Format, text, html, compound_id, image, checkbox, textField, call, rowFactory
+  d3Format, text, html, compound_id, image, checkbox, textField, call,
+  rowCell, rowFactory
 };

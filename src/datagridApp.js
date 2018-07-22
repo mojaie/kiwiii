@@ -108,8 +108,7 @@ function app(view, coll) {
 
   // Dialogs
   dialogs.append('div')
-      .classed('fieldconfd', true)
-      .call(fieldConfigDialog.body);
+      .classed('fieldconfd', true);
   dialogs.append('div')
       .classed('fieldfetchd', true);
   dialogs.append('div')
@@ -193,11 +192,12 @@ function updateApp(state) {
 
   // Field config dialog
   dialogs.select('.fieldconfd')
-      .call(fieldConfigDialog.updateBody, state)
+      .call(fieldConfigDialog.body, state.rows.fields)
       .on('submit', function () {
         const values = fieldConfigDialog.value(d3.select(this));
         state.updateFields(values);
         state.updateContentsNotifier();
+        $('#fieldconf-dialog').modal('hide');  // TODO:
         updateApp(state);
       });
 
