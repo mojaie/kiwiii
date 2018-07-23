@@ -204,7 +204,7 @@ function updateApp(state) {
 
   // Import fields dialog
   dialogs.select('.fieldfiled')
-      .call(fieldFileDialog.updateBody)
+      .call(fieldFileDialog.updateBody, state.visibleFields)
       .on('submit', function () {
         return fieldFileDialog.readFile(d3.select(this))
           .then(data => {
