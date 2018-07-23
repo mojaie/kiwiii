@@ -1,6 +1,8 @@
 
 /** @module dialog/fieldFile */
 
+import d3 from 'd3';
+
 import {default as mapper} from '../common/mapper.js';
 import {default as hfile} from '../common/file.js';
 import {default as himg} from '../common/image.js';
@@ -8,7 +10,8 @@ import {default as himg} from '../common/image.js';
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as modal} from '../component/modal.js';
-import {default as table} from '../component/table.js';
+
+import {default as table} from '../datagrid/table.js';
 
 
 const id = 'fieldfile-dialog';
@@ -22,21 +25,27 @@ function menuLink(selection) {
 
 function body(selection) {
   const dialog = selection.call(modal.submitDialog, id, title);
-  const fileInput = dialog.select('.modal-body').append('div')
+  dialog.select('.modal-body').append('div')
       .classed('file', true)
       .call(box.fileInputBox, 'File', '.json,.csv');
-  const preview = dialog.select('.modal-body').append('div')
+  dialog.select('.modal-body').append('div')
       .classed('preview', true)
-      .call(table.render);
-  fileInput
-      .on('change', () => {
-        const file = box.fileInputBoxValue(fileInput);
+      .call(table.table, [], []);
+
+}
+
+
+function updateBody(selection) {
+  selection.select('.file')
+      .on('change', function () {
+        const file = box.fileInputBoxValue(d3.select(this));
         const isCsv = file.name.split('.').pop() === 'csv';
         hfile.readFile(file)
           .then(res => {
             const mapping = isCsv ? mapper.csvToMapping(res) : JSON.parse(res);
             const tbl = mapper.mappingToTable(mapping);
-            preview.call(table.updateHeader, tbl.fields, tbl.records.slice(0, 5));
+            selection.select('.preview')
+              .call(table.update, tbl.fields, tbl.records.slice(0, 5));
           });
       });
 }
@@ -78,5 +87,5 @@ function readFile(selection) {
 
 
 export default {
-  menuLink, body, readFile
+  menuLink, body, updateBody, readFile
 };

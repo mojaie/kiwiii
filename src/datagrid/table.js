@@ -1,6 +1,8 @@
 
 /** @module datagrid/table */
 
+import Collection from '../common/collection.js';
+
 import DatagridState from './state.js';
 import {default as component} from './component.js';
 import {default as rowf} from './rowFilter.js';
@@ -66,10 +68,20 @@ function filterSortTable(selection, fields, records, rowFactory, height) {
 }
 
 
+function update(selection, fields, records) {
+  const data = {
+    fields: fields,
+    records: records
+  };
+  const state = selection.datum();
+  state.rows = new Collection(data);
+  state.updateContentsNotifier();
+}
+
+
 function updateRecords(selection, records) {
   const state = selection.datum();
   state.rows.contents[0].records = records;
-  state.applyData();
   state.updateContentsNotifier();
 }
 
@@ -81,5 +93,5 @@ function tableRecords(selection) {
 
 
 export default {
-  table, filterTable, filterSortTable, updateRecords, tableRecords
+  table, filterTable, filterSortTable, update, updateRecords, tableRecords
 };

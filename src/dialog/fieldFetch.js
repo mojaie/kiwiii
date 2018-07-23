@@ -21,7 +21,24 @@ function menuLink(selection) {
 }
 
 
-function body(selection, schema, dgfields) {
+function body(selection) {
+  const fields = [
+    {key: 'check', name: 'Check', format: 'checkbox',
+     widthf: 0.5, height: 40, disabled: 'check_d'},
+    {key: 'assay_id', name: 'Assay ID', format: 'assay_id'},
+    {key: 'name', name: 'Name', format: 'text'},
+    {key: 'value_type', name: 'Value type', format: 'text'},
+    {key: 'tags', name: 'Tags', format: 'list', widthf: 2}
+  ];
+  const dialog = selection.call(modal.submitDialog, id, title);
+  dialog.select('.modal-dialog').classed('modal-lg', true);
+  dialog.select('.modal-body').append('div')
+    .classed('assays', true)
+    .call(table.filterTable, fields, []);
+}
+
+
+function updateBody(selection, schema, dgfields) {
   const assays = _.flatten(
     schema.resources.filter(e => e.domain === 'assay').map(e => e.data)
   );
@@ -42,14 +59,6 @@ function body(selection, schema, dgfields) {
       }
       done[e.assay_id].push(e.value_type);
     });
-  const fields = [
-    {key: 'check', name: 'Check', format: 'checkbox',
-     widthf: 0.5, height: 40, disabled: 'check_d'},
-    {key: 'assay_id', name: 'Assay ID', format: 'assay_id'},
-    {key: 'name', name: 'Name', format: 'text'},
-    {key: 'value_type', name: 'Value type', format: 'text'},
-    {key: 'tags', name: 'Tags', format: 'list', widthf: 2}
-  ];
   const records = items.map(item => {
     const d = done.hasOwnProperty(item.assay_id)
         && done[item.assay_id].includes(item.value_type);
@@ -57,18 +66,15 @@ function body(selection, schema, dgfields) {
     item.check_d = d;
     return item;
   });
-  const dialog = selection.call(modal.submitDialog, id, title);
-  dialog.select('.modal-dialog').classed('modal-lg', true);
-  const body = dialog.select('.modal-body');
-  body.selectAll('div').remove();  // Clean up
-  body.call(table.filterTable, fields, records);
+  selection.select('.assays')
+    .call(table.updateRecords, records);
 }
 
 
 function execute(selection, compounds, schema) {
   const targets = schema.resources
     .filter(e => e.domain === 'activity').map(e => e.id);
-  const queries = table.tableRecords(selection.select('.modal-body'))
+  const queries = table.tableRecords(selection.select('.assays'))
     .filter(e => e.check && !e.check_d)
     .map(e => {
       return {
@@ -99,5 +105,5 @@ function execute(selection, compounds, schema) {
 
 
 export default {
-  menuLink, body, execute
+  menuLink, body, updateBody, execute
 };

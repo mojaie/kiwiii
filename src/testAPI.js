@@ -5,8 +5,6 @@ import d3 from 'd3';
 
 import {default as fetcher} from './common/fetcher.js';
 
-import {default as table} from './component/table.js';
-
 
 const testCases = [];
 
@@ -82,7 +80,7 @@ testCases.push(() =>
     }).then(fetcher.json)
       .then(res => {
         setTimeout(() => {
-          const query = {id: res.reference.workflow, command: 'abort'};
+          const query = {id: res.workflowID, command: 'abort'};
           fetcher.get('progress', query).then(fetcher.json).then(rows => r([res, rows]));
         }, 2000);
       });
@@ -100,7 +98,7 @@ testCases.push(() =>
     }).then(fetcher.json)
       .then(res => {
         setTimeout(() => {
-          const query = {id: res.reference.workflow, command: 'abort'};
+          const query = {id: res.workflowID, command: 'abort'};
           fetcher.get('progress', query).then(fetcher.json).then(rows => r([res, rows]));
         }, 2000);
       });
@@ -119,17 +117,16 @@ testCases.push(() =>
     .then(res =>
       new Promise(r => {
         const params = {
-          threshold: 0.25, ignoreHs: true,
-          diameter: 8, maxTreeSize: 40, timeout: 1
+          threshold: 0.25, ignoreHs: true, diameter: 8, timeout: 1
         };
         const formData = new FormData();
-        formData.append('contents', new Blob([JSON.stringify(res)]));
+        formData.append('contents', new Blob([JSON.stringify(res.records)]));
         formData.append('params', JSON.stringify(params));
         fetcher.post('glsnet', formData)
           .then(fetcher.json)
           .then(res => {
             setTimeout(() => {
-              const query = {id: res.reference.workflow, command: 'abort'};
+              const query = {id: res.workflowID, command: 'abort'};
               fetcher.get('progress', query).then(fetcher.json).then(rows => r([res, rows]));
             }, 2000);
           });
@@ -139,14 +136,11 @@ testCases.push(() =>
 );
 
 function run() {
-  const fields = [
-    {key: 'test', name: 'Test', format: 'text'},
-    {key: 'result', name: 'Result', format: 'html'}
-  ];
-  const records = [];
-  const results = d3.select('#results')
-    .append('table')
-      .call(table.render, null, null, fields, records);
+  const table = d3.select('#results').append('table');
+  const header = table.append('thead').append('tr');
+  header.append('th').text('Test');
+  header.append('th').text('Result');
+  const body = table.append('tbody');
   testCases.reduce((ps, curr) => {
     return () => ps()
       .then(curr)
@@ -154,8 +148,9 @@ function run() {
         console.info(res.test);
         console.info(res.output);
         const pass = res.pass ? 'OK' : '<span class="text-danger">NG<span>';
-        records.push({'test': res.test, 'result': pass});
-        results.call(table.updateHeader, fields, records);
+        const row = body.append('tr');
+        row.append('td').text(res.test);
+        row.append('td').text(pass);
       })
       ;
   }, () => Promise.resolve())();

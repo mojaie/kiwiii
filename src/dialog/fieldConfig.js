@@ -64,7 +64,7 @@ function rowFactory(fields) {
 }
 
 
-function body(selection, dgfields) {
+function body(selection) {
   const fields = [
     {key: 'name', name: 'Name', format: 'text'},
     {key: 'visible', name: 'Visible', format: 'checkbox',
@@ -75,20 +75,25 @@ function body(selection, dgfields) {
     {key: 'd3_format', name: 'D3 format', format: 'text_field',
      height: 40}
   ];
-  const records = dgfields;
   const dialog = selection.call(modal.submitDialog, id, title);
   dialog.select('.modal-dialog').classed('modal-lg', true);
-  const body = dialog.select('.modal-body');
-  body.selectAll('div').remove();  // Clean up
-  body.call(table.table, fields, records, rowFactory, 300);
+  dialog.select('.modal-body').append('div')
+    .classed('dgfields', true)
+    .call(table.table, fields, [], rowFactory, 300);
+}
+
+
+function updateBody(selection, dgfields) {
+  selection.select('.dgfields')
+    .call(table.updateRecords, dgfields);
 }
 
 
 function value(selection) {
-  return table.tableRecords(selection.select('.modal-body'));
+  return table.tableRecords(selection.select('.dgfields'));
 }
 
 
 export default {
-  menuLink, body, value
+  menuLink, body, updateBody, value
 };

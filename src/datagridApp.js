@@ -108,9 +108,11 @@ function app(view, coll) {
 
   // Dialogs
   dialogs.append('div')
-      .classed('fieldconfd', true);
+      .classed('fieldconfd', true)
+      .call(fieldConfigDialog.body);
   dialogs.append('div')
-      .classed('fieldfetchd', true);
+      .classed('fieldfetchd', true)
+      .call(fieldFetchDialog.body);
   dialogs.append('div')
       .classed('fieldfiled', true)
       .call(fieldFileDialog.body);
@@ -192,17 +194,17 @@ function updateApp(state) {
 
   // Field config dialog
   dialogs.select('.fieldconfd')
-      .call(fieldConfigDialog.body, state.rows.fields)
+      .call(fieldConfigDialog.updateBody, state.rows.fields)
       .on('submit', function () {
         const values = fieldConfigDialog.value(d3.select(this));
         state.updateFields(values);
         state.updateContentsNotifier();
-        $('#fieldconf-dialog').modal('hide');  // TODO:
         updateApp(state);
       });
 
   // Import fields dialog
   dialogs.select('.fieldfiled')
+      .call(fieldFileDialog.updateBody)
       .on('submit', function () {
         return fieldFileDialog.readFile(d3.select(this))
           .then(data => {
@@ -238,7 +240,8 @@ function updateApp(state) {
 
   // Fetch db fields dialog
   dialogs.select('.fieldfetchd')
-      .call(fieldFetchDialog.body, state.resourceSchema, state.rows.fields)
+      .call(fieldFetchDialog.updateBody,
+            state.resourceSchema, state.rows.fields)
       .on('submit', function () {
         const compounds = state.rows.records().map(e => e.compound_id);
         fieldFetchDialog

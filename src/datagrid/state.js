@@ -95,7 +95,7 @@ export default class DatagridState {
       return Object.assign(field, e);
     });
     this.rowHeight = this.visibleFields
-      .reduce((a, b) => a.height > b.height ? a : b).height;
+      .reduce((a, b) => a.height > b.height ? a : b, 0).height;
   }
 
   /**
