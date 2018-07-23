@@ -15,6 +15,12 @@ function text(selection, record, field) {
 }
 
 
+function date(selection, record, field) {
+  // TODO; formatter
+  selection.text(record[field.key]);
+}
+
+
 function html(selection, record, field) {
   selection.html(record[field.key]);
 }
@@ -63,6 +69,7 @@ function call(selection, value) {
 const cellFunc = {
   numeric: text,
   text: text,
+  date: date,
   raw: text,
   d3_format: d3Format,
   compound_id: compound_id,

@@ -194,20 +194,21 @@ function app() {
   ];
   contents.append('h5').classed('mt-5', true).text('Packages on local storage');
   contents.append('div').classed('mb-5', true).classed('stored', true)
-    .call(table.table, storeFields, [], rowFactory, 150);
+    .call(table.table, storeFields, [], rowFactory, 300);
   updateStoredData();
 
   // Server calc jobs
+  // TODO: only for admin
   const calcFields = [
     {key: 'id', name: 'Workflow ID', format: 'text'},
     {key: 'size', name: 'File size', format: 'd3_format', d3_format: '.3s'},
     {key: 'status', name: 'Status', format: 'text'},
-    {key: 'created', name: 'Created', format: 'date'},
-    {key: 'expires', name: 'Expires', format: 'date'}
+    {key: 'created', name: 'Created', format: 'date', height: 40},
+    {key: 'expires', name: 'Expires', format: 'date', height: 40}
   ];
   contents.append('h5').classed('mt-5', true).text('Server calculation job');
   contents.append('div').classed('mb-5', true).classed('calc', true)
-  .call(table.table, calcFields, [], null, 150);
+  .call(table.table, calcFields, [], null, 300);
 
   // Server status
   const serverFields = [
@@ -216,7 +217,7 @@ function app() {
   ];
   contents.append('h5').classed('mt-5', true).text('Server status');
   contents.append('div').classed('mb-5', true).classed('server', true)
-  .call(table.table, serverFields, [], null, 150);
+  .call(table.table, serverFields, [], null, 300);
 
   // Dialogs
   const dialogs = d3.select('#dialogs');
