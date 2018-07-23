@@ -246,7 +246,7 @@ function app() {
     updateServerStatus(response.server);
     const chemrsrc = response.schema.resources.filter(e => e.domain === 'chemical');
     dialogs.append('div')
-        .call(searchDialog.body, response.schema.compoundIDPlaceholder)
+        .call(searchDialog.body, chemrsrc, response.schema.compoundIDPlaceholder)
         .on('submit', function () {
           searchDialog.execute(d3.select(this), chemrsrc)
             .then(newData);
