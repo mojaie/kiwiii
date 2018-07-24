@@ -103,8 +103,12 @@ function checklistBoxValue(selection) {
   return selection.selectAll('input:checked').data().map(d => d.key);
 }
 
+function anyChecked(selection) {
+  return checklistBoxValue(selection).length > 0;
+}
 
 export default {
   selectBox, selectBoxItems, updateSelectBox, selectBoxValue,
-  checklistBox, checklistBoxItems, updateChecklistBox, checklistBoxValue
+  checklistBox, checklistBoxItems, updateChecklistBox, checklistBoxValue,
+  anyChecked
 };

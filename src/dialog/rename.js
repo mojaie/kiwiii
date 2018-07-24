@@ -1,6 +1,7 @@
 
 /** @module dialog/rename */
 
+import d3 from 'd3';
 
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
@@ -26,7 +27,12 @@ function body(selection, name) {
 
 function updateBody(selection, state) {
   selection.select('.rename')
-      .call(box.updateTextBox, state.name);
+      .call(box.updateTextBox, state.name)
+      .on('input', function () {  // Validation
+        const keyValid = box.textBoxValue(d3.select(this)) !== '';
+        selection.select('.submit').property('disabled', !keyValid);
+      })
+      .dispatch('input');
 }
 
 

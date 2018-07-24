@@ -39,6 +39,9 @@ function body(selection) {
       .call(lbox.selectBox, 'File ID')
     .select('select')
       .property('disabled', true);
+  body.append('h5')
+      .classed('mt-2', true)
+      .text('Preview');
   body.append('div')
       .classed('preview', true)
       .call(table.table, [], [], null, 210);
@@ -55,6 +58,7 @@ function updateBody(selection, fields) {
   selection.select('.file')
       .on('change', function () {
         const file = box.fileInputBoxValue(d3.select(this));
+        d3.select(this).dispatch('validate');
         const isCsv = file.name.split('.').pop() === 'csv';
         hfile.readFile(file)
           .then(res => {
@@ -67,7 +71,13 @@ function updateBody(selection, fields) {
             selection.select('.preview')
               .call(table.update, tbl.fields, tbl.records.slice(0, 5));
           });
-      });
+      })
+      .on('validate', function () { // Input validation
+        const fileSelected = box.fileInputBoxValue(d3.select(this));
+        selection.select('.submit')
+          .property('disabled', !fileSelected);
+      })
+      .dispatch('validate');
 }
 
 

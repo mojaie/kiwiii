@@ -1,6 +1,8 @@
 
 /** @module dialog/fieldInput */
 
+import d3 from 'd3';
+
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as lbox} from '../component/formListBox.js';
@@ -35,7 +37,12 @@ function body(selection) {
 
 function updateBody(selection) {
   selection.select('.key')
-      .call(box.updateTextBox, null);
+      .call(box.updateTextBox, null)
+      .on('input', function () {  // Validation
+        const keyValid = box.textBoxValue(d3.select(this)) !== '';
+        selection.select('.submit').property('disabled', !keyValid);
+      })
+      .dispatch('input');
   selection.select('.type')
       .call(lbox.updateSelectBox, 'checkbox');
 }

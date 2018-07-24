@@ -133,6 +133,7 @@ function updateApp(state) {
 
   // Community detection dialog
   dialogs.select('.communityd')
+      .call(communityDialog.updateBody)
       .on('submit', function () {
         const value = communityDialog.value(d3.select(this));
         const ns = state.nodes.records();

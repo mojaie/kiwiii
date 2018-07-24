@@ -90,9 +90,9 @@ function body(selection, resources, rdk) {
   dialog.selectAll('.qmol,.target')
       .on('validate', function () {
         const qmolValid = group.queryMolGroupValid(dialog.select('.qmol'));
-        const target = lbox.checklistBoxValue(dialog.select('.target'));
+        const targetChecked = lbox.anyChecked(dialog.select('.target'));
         dialog.select('.submit')
-          .property('disabled', !qmolValid || !target.length);
+          .property('disabled', !(qmolValid && targetChecked));
       })
       .dispatch('validate');
 }

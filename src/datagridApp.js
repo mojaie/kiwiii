@@ -216,6 +216,7 @@ function updateApp(state) {
 
   // Input field dialog
   dialogs.select('.fieldinputd')
+      .call(fieldInputDialog.updateBody)
       .on('submit', function () {
         const value = fieldInputDialog.value(d3.select(this));
         state.rows.addField(value.field);

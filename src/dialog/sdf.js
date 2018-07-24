@@ -39,7 +39,10 @@ function body(selection) {
       .call(box.fileInputBox, 'File', '.mol,.sdf');
   dialog.select('.modal-body').append('div')
       .classed('field', true)
-      .call(lbox.checklistBox, 'Fields', [], null);
+      .call(lbox.checklistBox, 'Fields', [], null)
+      .on('change', function () {
+        d3.select(this).dispatch('validate');
+      });
   dialog.select('.modal-body').append('div')
       .classed('implh', true)
       .call(box.checkBox, 'Make hydrogens implicit', true);
@@ -50,6 +53,7 @@ function body(selection) {
   dialog.select('.file')
       .on('change', function () {
         const file = box.fileInputBoxValue(d3.select(this));
+        d3.select(this).dispatch('validate');
         // Scan only first 100mb of the file due to memory limit.
         return hfile.readFile(file, 100 * 1024 * 1024, false)
           .then(data => {
@@ -59,6 +63,15 @@ function body(selection) {
               .call(lbox.checklistBoxItems, fields);
           });
       });
+  // Input validation
+  dialog.selectAll('.field,.file')
+      .on('validate', function () {
+        const fileSelected = box.fileInputBoxValue(dialog.select('.file'));
+        const fieldChecked = lbox.anyChecked(dialog.select('.field'));
+        dialog.select('.submit')
+          .property('disabled', !(fileSelected && fieldChecked));
+      })
+      .dispatch('validate');
 }
 
 

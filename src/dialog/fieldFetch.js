@@ -2,6 +2,7 @@
 /** @module dialog/fieldFetch */
 
 import _ from 'lodash';
+import d3 from 'd3';
 
 import {default as fetcher} from '../common/fetcher.js';
 import {default as mapper} from '../common/mapper.js';
@@ -67,7 +68,13 @@ function updateBody(selection, schema, dgfields) {
     return item;
   });
   selection.select('.assays')
-    .call(table.updateRecords, records);
+    .call(table.updateRecords, records)
+    .on('change', function () {  // Validation
+      const anyChecked = table.tableRecords(d3.select(this))
+        .filter(e => e.check && !e.check_d).length;
+      selection.select('.submit').property('disabled', !anyChecked);
+    })
+    .dispatch('change');
 }
 
 

@@ -1,6 +1,7 @@
 
 /** @module dialog/community */
 
+import d3 from 'd3';
 
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
@@ -21,11 +22,24 @@ function body(selection) {
   // Name
   dialog.select('.modal-body').append('div')
       .classed('name', true)
-      .call(box.textBox, 'New name', 'comm_');
+      .call(box.textBox, 'New name', null);
   // Assign null to isolated nodes
   dialog.select('.modal-body').append('div')
       .classed('nulliso', true)
       .call(box.checkBox, 'Assign null to isolated nodes', true);
+}
+
+
+function updateBody(selection) {
+  selection.select('.name')
+      .call(box.updateTextBox, null)
+      .on('input', function () {  // Validation
+        const keyValid = box.textBoxValue(d3.select(this)) !== '';
+        selection.select('.submit').property('disabled', !keyValid);
+      })
+      .dispatch('input');
+  selection.select('.nulliso')
+      .call(box.updateCheckBox, true);
 }
 
 
@@ -38,5 +52,5 @@ function value(selection) {
 
 
 export default {
-  menuLink, body, value
+  menuLink, body, updateBody, value
 };

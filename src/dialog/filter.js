@@ -2,6 +2,7 @@
 /** @module dialog/filter */
 
 import _ from 'lodash';
+import d3 from 'd3';
 
 import {default as fetcher} from '../common/fetcher.js';
 
@@ -44,12 +45,27 @@ function body(selection, resources) {
           ], 'eq');
   dialog.select('.modal-body').append('div')
     .classed('value', true)
-    .call(box.textBox, 'Value', '');
+    .call(box.textBox, 'Value', '')
+    .on('input', function () {
+      d3.select(this).dispatch('validate');
+    });
   // Targets
   const res = resources.map(d => ({key: d.id, name: d.name}));
   dialog.select('.modal-body').append('div')
       .classed('target', true)
-      .call(lbox.checklistBox, 'Target databases', res, null);
+      .call(lbox.checklistBox, 'Target databases', res, null)
+      .on('change', function () {
+        d3.select(this).dispatch('validate');
+      });
+  // Input validation
+  dialog.selectAll('.value,.target')
+      .on('validate', function () {
+        const textValid = box.textBoxValue(dialog.select('.value')) !== '';
+        const targetChecked = lbox.anyChecked(dialog.select('.target'));
+        dialog.select('.submit')
+          .property('disabled', !(textValid && targetChecked));
+      })
+      .dispatch('validate');
 }
 
 
