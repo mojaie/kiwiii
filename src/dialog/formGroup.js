@@ -75,6 +75,14 @@ function updateQueryMolGroup(selection) {
         .then(fetcher.text)
         .then(res => d3.select('#previmg').html(res), fetcher.error);
     });
+  selection.select('.textquery')
+    .on('input', function() {
+      selection.dispatch('validate');
+    });
+  selection.select('.areaquery')
+    .on('input', function() {
+      selection.dispatch('validate');
+    });
 }
 
 function queryMolGroupValue(selection) {
@@ -87,6 +95,13 @@ function queryMolGroupValue(selection) {
     source: format === 'dbid' ? source : null,
     value: format === 'molfile' ? areaquery : textquery
   };
+}
+
+function queryMolGroupValid(selection) {
+  const format = lbox.selectBoxValue(selection.select('.format'));
+  const textquery = box.textBoxValue(selection.select('.textquery'));
+  const areaquery = box.textareaBoxLines(selection.select('.areaquery'));
+  return format === 'molfile' ? areaquery.length : textquery !== '';
 }
 
 
@@ -147,6 +162,6 @@ function simOptionGroupValue(selection) {
 
 
 export default {
-  queryMolGroup, updateQueryMolGroup, queryMolGroupValue,
+  queryMolGroup, updateQueryMolGroup, queryMolGroupValue, queryMolGroupValid,
   simOptionGroup, simOptionGroupValue
 };

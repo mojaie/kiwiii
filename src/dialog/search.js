@@ -37,8 +37,7 @@ function body(selection, resources, placeholder) {
   mbody.append('div')
       .classed('query', true)
       .call(box.textareaBox, 'Query', 20, placeholder, '')
-      .on('input', function() {
-        // Validation
+      .on('input', function() {  // Validation
         const values = box.textareaBoxLines(d3.select(this));
         selection.select('.submit').property('disabled', !values.length);
       });

@@ -61,7 +61,10 @@ function body(selection, resources, rdk) {
   const res = resources.map(d => ({key: d.id, name: d.name}));
   dialog.select('.modal-body').append('div')
       .classed('target', true)
-      .call(lbox.checklistBox, 'Target databases', res, null);
+      .call(lbox.checklistBox, 'Target databases', res, null)
+      .on('change', function() {
+        d3.select(this).dispatch('validate');
+      });
 
   // Events
   dialog.select('.method')
@@ -75,7 +78,7 @@ function body(selection, resources, rdk) {
         dialog.selectAll('.thld')
           .select('input')
             .property('disabled', ['exact', 'substr', 'supstr'].includes(value));
-        dialog.selectAll('.diam, .tree')
+        dialog.selectAll('.diam')
           .select('input')
             .property('disabled', value !== 'gls');
         dialog.select('.timeout')
@@ -83,6 +86,15 @@ function body(selection, resources, rdk) {
             .property('disabled', !mcs);
       })
       .dispatch('change');
+  // Input validation
+  dialog.selectAll('.qmol,.target')
+      .on('validate', function () {
+        const qmolValid = group.queryMolGroupValid(dialog.select('.qmol'));
+        const target = lbox.checklistBoxValue(dialog.select('.target'));
+        dialog.select('.submit')
+          .property('disabled', !qmolValid || !target.length);
+      })
+      .dispatch('validate');
 }
 
 
