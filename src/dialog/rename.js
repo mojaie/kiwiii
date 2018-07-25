@@ -25,9 +25,9 @@ function body(selection, name) {
 }
 
 
-function updateBody(selection, state) {
+function updateBody(selection, name) {
   selection.select('.rename')
-      .call(box.updateTextBox, state.name)
+      .call(box.updateTextBox, name)
       .on('input', function () {  // Validation
         const keyValid = box.textBoxValue(d3.select(this)) !== '';
         selection.select('.submit').property('disabled', !keyValid);

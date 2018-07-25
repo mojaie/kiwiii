@@ -164,7 +164,7 @@ function updateApp(state) {
 
   // Rename dialog
   dialogs.select('.renamed')
-      .call(renameDialog.updateBody, state)
+      .call(renameDialog.updateBody, state.name)
       .on('submit', function () {
         state.name = renameDialog.value(d3.select(this));
         updateApp(state);

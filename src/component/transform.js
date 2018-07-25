@@ -1,5 +1,5 @@
 
-/** @module network/component */
+/** @module component/transform */
 
 
 function transform(selection, tx, ty, tk) {

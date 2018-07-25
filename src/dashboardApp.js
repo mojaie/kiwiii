@@ -19,6 +19,8 @@ import {default as searchDialog} from './dialog/search.js';
 import {default as structDialog} from './dialog/struct.js';
 import {default as filterDialog} from './dialog/filter.js';
 import {default as sdfDialog} from './dialog/sdf.js';
+import {default as renameDialog} from './dialog/rename.js';
+
 
 import {default as rowf} from './datagrid/rowFactory.js';
 import {default as table} from './datagrid/table.js';
@@ -79,6 +81,19 @@ function rowFactory(fields) {
     const action = selection.append('div')
         .call(rowf.rowCell)
         .style('width', `${fields[2].width}%`);
+    action.append('a')
+        .call(button.menuModalLink, 'rename-dialog', 'Rename',
+              'outline-primary', 'edittext')
+        .on('click', () =>{
+          d3.select('#rename-dialog')
+            .call(renameDialog.updateBody, record.name)
+            .on('submit', function () {
+              idb.updateItem(record.storeID, pkg => {
+                pkg.name = renameDialog.value(d3.select(this));
+              })
+              .then(updateStoredData);
+            });
+        });
     action.append('a')
         .call(button.menuButtonLink, 'Export', 'outline-primary', 'export')
         .on('click', () => {
@@ -221,6 +236,8 @@ function app() {
 
   // Dialogs
   const dialogs = d3.select('#dialogs');
+  dialogs.append('div')
+      .call(renameDialog.body, null);
   dialogs.append('div')
       .call(modal.confirmDialog, 'reset-dialog',
             'Are you sure you want to delete all local tables and reset the datastore ?')
