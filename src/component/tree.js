@@ -4,15 +4,16 @@
 import d3 from 'd3';
 
 
-function nextLevel(selection, node, renderNodeFunc) {
+function nextLevel(selection, node, nodeFactory) {
   node.children.forEach(child => {
     const item = selection.append('li').datum(child.data);  // Bind data record
-    const content = item.append('span');
+    const content = item.append('span')
+      .style('display', 'inline-block');
     const arrow = child.hasOwnProperty('children') ? '▼ ' : '';
     content.append('span')
         .classed('arrow', true)
         .text(arrow);
-    content.call(renderNodeFunc, child.data);
+    content.call(nodeFactory, child.data);
 
     // Collapse on click
     content.select('.arrow')
@@ -28,36 +29,41 @@ function nextLevel(selection, node, renderNodeFunc) {
     if (!child.hasOwnProperty('children')) return;
     item.append('ul')
         .style('list-style-type', 'none')
-        .call(nextLevel, child, renderNodeFunc);
+        .call(nextLevel, child, nodeFactory);
   });
 }
 
 
  // Generate tree view
-function tree(selection, items, renderNodeFunc) {
+function tree(selection) {
   selection
       .classed('viewport', true)
       .style('overflow-y', 'scroll')
-      .style('height', '500px')
+      .style('height', '400px')
     .append('div')
-      .classed('body', true)
-      .style('transform', 'scale(1.5)')
-      .style('transform-origin', 'top left');
-  if (items) {
-    selection.call(treeItems, items, renderNodeFunc);
-  }
+      .classed('body', true);
+}
+
+
+// Generate tree view
+function setHeight(selection, height) {
+  selection.style('height', `${height}px`);
 }
 
 
 // Update tree data
-function treeItems(selection, items, renderNodeFunc) {
+function treeItems(selection, items, keyFunc, nodeFactory) {
   const root = d3.stratify()
-      .id(d => d.id)
+      .id(keyFunc)
       .parentId(d => d.parent)(items);
+  selection.select('ul').remove();
   selection.select('.body').append('ul')
+      .classed('root', true)
       .style('padding-left', 0)
       .style('list-style-type', 'none')
-      .call(nextLevel, root, renderNodeFunc);
+      .call(nextLevel, root, nodeFactory);
+  selection.selectAll('ul.root > li')
+      .classed('my-2', true);
 }
 
 
@@ -84,5 +90,5 @@ function checkboxValues(selection) {
 
 
 export default {
-  tree, treeItems, checkboxNode, checkboxValues
+  tree, treeItems, setHeight, checkboxNode, checkboxValues
 };

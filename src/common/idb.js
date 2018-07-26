@@ -114,6 +114,21 @@ function updateView(viewID, viewObj) {
 
 
 /**
+ * Delete a data object from the store
+ * @param {string} storeID - store ID
+ * @return {integer} - number of deleted items
+ */
+function deleteView(viewID) {
+  // TODO: prune orphaned collections
+  return getPos(viewID, 'viewID', 'views').then(pos => {
+    return updateItem(pos[0], item => {
+      item.views.splice(pos[1], 1);
+    });
+  });
+}
+
+
+/**
  * Returns all collections
  * @return {array} Collection objects
  */
@@ -223,7 +238,7 @@ function reset() {
 
 export default {
   getAllItems, getItem, putItem, updateItem, deleteItem,
-  getAllViews, getView, appendView, updateView,
+  getAllViews, getView, appendView, updateView, deleteView,
   getAllCollections, getCollection, appendCollection, updateCollection,
   reset
 };
