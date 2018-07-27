@@ -79,6 +79,7 @@ function app(view, nodes, edges) {
       .classed('renamed', true)
       .call(renameDialog.body, state.name);
   dialogs.append('div')
+      .classed('abortd', true)
       .call(
         modal.confirmDialog, 'abort-dialog',
         'Are you sure you want to abort this calculation job?'
@@ -173,7 +174,8 @@ function updateApp(state) {
   // Abort dialog
   dialogs.select('.abortd')
       .on('submit', function () {
-        state.edges.abort().then(() => updateApp(state));
+        state.edges.abort().then(() =>
+          app(state.export(), state.nodes.export(), state.edges.export()));
       });
 }
 

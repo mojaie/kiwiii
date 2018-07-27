@@ -134,6 +134,7 @@ export default class Collection {
     if (this.contents.some(e => e.status === 'queued')) return 'queued';
     if (this.contents.some(e => e.status === 'ready')) return 'ready';
     if (this.contents.some(e => e.status === 'aborted')) return 'aborted';
+    if (this.contents.some(e => e.status === 'failure')) return 'failure';
     return 'done';
   }
 

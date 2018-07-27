@@ -57,6 +57,7 @@ function treeItems(selection, items, keyFunc, nodeFactory) {
       .id(keyFunc)
       .parentId(d => d.parent)(items);
   selection.select('ul').remove();
+  if (!root.hasOwnProperty('children')) return;
   selection.select('.body').append('ul')
       .classed('root', true)
       .style('padding-left', 0)

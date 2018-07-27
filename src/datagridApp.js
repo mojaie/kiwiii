@@ -92,7 +92,10 @@ function app(view, coll) {
       .call(button.menuButtonLink,
             'Refresh', 'outline-secondary', 'refresh-gray')
       .on('click', function () {
-        return state.rows.pull().then(() => updateApp(state));
+        return state.rows.pull().then(() => {
+          state.updateContentsNotifier();
+          updateApp(state);
+        });
       });
   menubar.append('a')
       .classed('abort', true)
@@ -289,7 +292,10 @@ function updateApp(state) {
   // Abort dialog
   dialogs.select('.abortd')
       .on('submit', function () {
-        state.rows.abort().then(() => updateApp(state));
+        state.rows.abort().then(() => {
+          state.updateContentsNotifier();
+          updateApp(state)
+        });
       });
 }
 

@@ -10,6 +10,7 @@ import {default as hfile} from './common/file.js';
 import {default as idb} from './common/idb.js';
 import {default as legacy} from './common/legacySchema.js';
 import {default as misc} from './common/misc.js';
+import {default as specs} from './common/specs.js';
 import {default as sw} from './common/sw.js';
 
 import {default as button} from './component/button.js';
@@ -60,43 +61,32 @@ function newData(response) {
 
 
 function nodeFactory(selection, record) {
-  if (record.viewID) {
-    // View
-    const iconv = {'datagrid': 'table-gray', 'network': 'network', 'tile': 'painting'};
-    const icon = iconv[record.viewType];
-    const link = selection.append('a')
-        .attr('href', `${record.viewType}.html?view=${record.viewID}`)
-        .attr('target', '_blank');
-    link.append('img')
+  const iconv = {'datagrid': 'table-gray', 'network': 'network', 'tile': 'painting'};
+  const icon = record.viewID ? iconv[record.viewType] : 'export';
+  const node = record.viewID
+    ? selection.append('a')
+          .attr('href', `${record.viewType}.html?view=${record.viewID}`)
+          .attr('target', '_blank')
+    : selection;
+    node.append('img')
         .attr('src', icon ? `./assets/icon/${icon}.svg` : null)
-        .style('width', '2rem')
-        .style('height', '2rem');
-    link.append('span')
-      .text(record.name);
-  } else {
-    // Package
-    selection.append('img')
-        .attr('src', './assets/icon/export.svg')
         .classed('mr-1', true)
         .style('width', '2rem')
-        .style('height', '2rem')
-    selection.append('span')
+        .style('height', '2rem');
+    node.append('span')
+      .classed('mr-1', true)
       .text(record.name);
-  }
   const action = selection.append('span')
-    .classed('ml-2', true)
     .classed('p-1', true)
     .style('border', '1px solid #999999')
     .style('border-radius', '5px');
+  const actionIcon = (sel, icon) => sel.append('img')
+      .attr('src', `./assets/icon/${icon}.svg`)
+      .classed('mx-1', true)
+      .style('width', '1.25rem')
+      .style('height', '1.25rem');
   if (!record.viewID) {
-    const colls = record.dataset.map(e => new Collection(e));
-    const ongoing = colls.some(e => e.ongoing());
-    action.append('a')
-      .append('img')
-        .attr('src', './assets/icon/export.svg')
-        .classed('mr-1', true)
-        .style('width', '1.25rem')
-        .style('height', '1.25rem')
+    action.append('a').call(actionIcon, 'export')
         .on('click', () => {
           const data = JSON.parse(JSON.stringify(record));
           delete data.storeID;
@@ -116,78 +106,40 @@ function nodeFactory(selection, record) {
           });
           hfile.downloadJSON(data, data.name);
         });
-    action.append('a')
-      .append('img')
-        .attr('src', './assets/icon/edittext.svg')
-        .classed('mr-1', true)
-        .style('width', '1.25rem')
-        .style('height', '1.25rem')
-        .on('click', () =>{
-          d3.select('#rename-dialog')
-            .call(renameDialog.updateBody, record.name)
-            .on('submit', function () {
-              idb.updateItem(record.storeID, pkg => {
-                pkg.name = renameDialog.value(d3.select(this));
-              })
-              .then(updateStoredData);
-            });
-        });
-    action.append('a')
-      .append('img')
-        .attr('src', './assets/icon/delete-gray.svg')
-        .classed('mr-1', true)
-        .style('width', '1.25rem')
-        .style('height', '1.25rem')
-        .property('disabled', ongoing)
-        .on('click', () =>{
-          d3.select('#delete-dialog')
-            .select('.message')
-              .text(`Are you sure you want to delete ${record.name} ?`);
-          d3.select('#delete-dialog')
-            .select('.ok')
-            .on('click', () => idb.deleteItem(record.storeID).then(updateStoredData));
-        });
-  } else {
-    action.append('a')
-      .append('img')
-        .attr('src', './assets/icon/edittext.svg')
-        .classed('mr-1', true)
-        .style('width', '1.25rem')
-        .style('height', '1.25rem')
-        .on('click', () =>{
-          d3.select('#rename-dialog')
-            .call(renameDialog.updateBody, record.name)
-            .on('submit', function () {
-              idb.updateView(record.viewID, view => {
-                view.name = renameDialog.value(d3.select(this));
-              })
-              .then(updateStoredData);
-            });
-        });
-    idb.getCollection(record.rows || record.items || record.edges)
-      .then(data => {
-        const coll = new Collection(data);
-        const ongoing = coll.ongoing();
-        const link = action.append('a')
-          .attr('href', '#')
-          .attr('role', 'button')
-          .attr('data-toggle', 'modal')
-          .attr('data-target', '#delete-dialog')
-          .property('disabled', ongoing)
-          .append('img')
-            .attr('src', './assets/icon/delete-gray.svg')
-            .classed('mr-1', true)
-            .style('width', '1.25rem')
-            .style('height', '1.25rem');
-        link.on('click', () =>{
-          d3.select('#delete-dialog')
-            .select('.message')
-              .text(`Are you sure you want to delete ${record.name} ?`);
-          d3.select('#delete-dialog')
-            .select('.ok')
-            .on('click', () => idb.deleteView(record.viewID).then(updateStoredData));
-        });
+  }
+  action.append('a')
+      .attr('data-toggle', 'modal')
+      .attr('data-target', '#rename-dialog')
+      .call(actionIcon, 'edittext')
+      .on('click', () =>{
+        d3.select('#rename-dialog')
+          .call(renameDialog.updateBody, record.name)
+          .on('submit', function () {
+            const upd = record.viewID ? idb.updateView : idb.updateItem;
+            const id = record.viewID ? record.viewID : record.storeID;
+            upd(id, item => {
+              item.name = renameDialog.value(d3.select(this));
+            })
+            .then(updateStoredData);
+          });
       });
+  if (!record.ongoing) {
+    action.append('a')
+        .attr('data-toggle', 'modal')
+        .attr('data-target', '#delete-dialog')
+        .call(actionIcon, 'delete-gray')
+        .on('click', () =>{
+          d3.select('#delete-dialog')
+            .select('.message')
+              .text(`Are you sure you want to delete ${record.name} ?`);
+          d3.select('#delete-dialog')
+            .select('.ok')
+            .on('click', () => {
+              const del = record.viewID ? idb.deleteView : idb.deleteItem;
+              const id = record.viewID ? record.viewID : record.storeID;
+              del(id).then(updateStoredData);
+            });
+        });
   }
   action.selectAll('img')
     .on('mouseenter', function() {
@@ -205,9 +157,11 @@ function updateStoredData() {
       const treeNodes = [{storeID: 'root'}];
       items.forEach(pkg => {
         pkg.parent = 'root';
+        pkg.ongoing = specs.isRunning(pkg);
         treeNodes.push(pkg);
         pkg.views.forEach(view => {
           view.parent = pkg.storeID;
+          view.ongoing = pkg.ongoing;
           treeNodes.push(view);
         });
       });
