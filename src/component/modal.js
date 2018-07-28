@@ -12,7 +12,6 @@ function dialogBase(selection, id) {
       .attr('aria-labelledby', '')
       .attr('aria-hidden', true)
       .attr('id', id);
-  selection.select('.modal-dialog').remove();  // Clean up
   selection.append('div')
       .classed('modal-dialog', true)
       .attr('role', 'document')
@@ -55,6 +54,11 @@ function confirmDialog(selection, id, message) {
 }
 
 
+function updateConfirmDialog(selection, message) {
+  selection.select('.message').text(message);
+}
+
+
 function submitDialog(selection, id, title) {
   const base = selection.call(dialogBase, id)
       .select('.modal-content');
@@ -94,5 +98,5 @@ function submitDialog(selection, id, title) {
 
 
 export default {
-  confirmDialog, submitDialog
+  confirmDialog, updateConfirmDialog, submitDialog
 };

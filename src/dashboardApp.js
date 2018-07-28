@@ -130,11 +130,9 @@ function nodeFactory(selection, record) {
         .call(actionIcon, 'delete-gray')
         .on('click', () =>{
           d3.select('#delete-dialog')
-            .select('.message')
-              .text(`Are you sure you want to delete ${record.name} ?`);
-          d3.select('#delete-dialog')
-            .select('.ok')
-            .on('click', () => {
+            .call(modal.updateConfirmDialog,
+                  `Are you sure you want to delete ${record.name} ?`)
+            .on('submit', () => {
               const del = record.viewID ? idb.deleteView : idb.deleteItem;
               const id = record.viewID ? record.viewID : record.storeID;
               del(id).then(updateStoredData);
@@ -269,8 +267,7 @@ function app() {
   dialogs.append('div')
       .call(modal.confirmDialog, 'reset-dialog',
             'Are you sure you want to delete all local tables and reset the datastore ?')
-    .select('.ok')
-      .on('click', () => idb.reset().then(updateStoredData));
+      .on('submit', () => idb.reset().then(updateStoredData));
   dialogs.append('div')
       .call(modal.confirmDialog, 'delete-dialog', null);
 

@@ -294,7 +294,7 @@ function updateApp(state) {
       .on('submit', function () {
         state.rows.abort().then(() => {
           state.updateContentsNotifier();
-          updateApp(state)
+          updateApp(state);
         });
       });
 }
