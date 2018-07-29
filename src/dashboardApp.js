@@ -8,8 +8,6 @@ import Collection from './common/collection.js';
 import {default as fetcher} from './common/fetcher.js';
 import {default as hfile} from './common/file.js';
 import {default as idb} from './common/idb.js';
-import {default as legacy} from './common/legacySchema.js';
-import {default as misc} from './common/misc.js';
 import {default as specs} from './common/specs.js';
 import {default as sw} from './common/sw.js';
 
@@ -24,40 +22,6 @@ import {default as sdfDialog} from './dialog/sdf.js';
 import {default as renameDialog} from './dialog/rename.js';
 
 import {default as table} from './datagrid/table.js';
-
-
-function newData(response) {
-  const now = new Date();
-  const collectionID = response.workflowID.slice(0, 8);
-  const viewID = misc.uuidv4().slice(0, 8);
-  const data = {
-    $schema: "https://mojaie.github.io/kiwiii/specs/package_v1.0.json",
-    name: viewID,
-    views: [
-      {
-        $schema: "https://mojaie.github.io/kiwiii/specs/datagrid_v1.0.json",
-        viewID: viewID,
-        name: viewID,
-        viewType: "datagrid",
-        rows: collectionID,
-        checkpoints: [
-          {type: 'creation', date: now.toString()}
-        ]
-      }
-    ],
-    dataset: [
-      {
-        $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
-        collectionID: collectionID,
-        contents: [response]
-      }
-    ],
-    sessionStarted: now.toString()
-  };
-  return idb.putItem(data).then(() => {
-    window.open(`datagrid.html?view=${viewID}`, '_blank');
-  });
-}
 
 
 function nodeFactory(selection, record) {
@@ -91,18 +55,8 @@ function nodeFactory(selection, record) {
           const data = JSON.parse(JSON.stringify(record));
           delete data.storeID;
           delete data.sessionStarted;
-          // reindex
-          data.dataset.forEach(coll => {
-            const newCollID = misc.uuidv4().slice(0, 8);
-            data.views.forEach(view => {
-              ['rows', 'nodes', 'edges'].filter(e => view.hasOwnProperty(e))
-                .forEach(type => {
-                  if (view[type] === coll.collectionID) {
-                    view[type] = newCollID;
-                  }
-                });
-            });
-            coll.collectionID = newCollID;
+          data.views.forEach(view => {
+            delete view.viewID;
           });
           hfile.downloadJSON(data, data.name);
         });
@@ -201,15 +155,7 @@ function app() {
       .on('change', function () {
         const file = button.dropdownMenuFileValue(d3.select(this));
         hfile.loadJSON(file)
-          .then(data => {
-            if (!data.hasOwnProperty('views')) {
-              data = legacy.convertPackage(data);
-            }
-            const now = new Date();
-            data.sessionStarted = now.toString();
-            return data;
-          })
-          .then(idb.putItem)
+          .then(idb.importItem)
           .then(updateStoredData);
       });
 
@@ -291,25 +237,37 @@ function app() {
         .call(searchDialog.body, chemrsrc, response.schema.compoundIDPlaceholder)
         .on('submit', function () {
           searchDialog.execute(d3.select(this), chemrsrc)
-            .then(newData);
+            .then(idb.newDatagrid)
+            .then(viewID => {
+                window.open(`datagrid.html?view=${viewID}`, '_blank');
+            });
         });
     dialogs.append('div')
         .call(structDialog.body, chemrsrc, response.server.rdkit)
         .on('submit', function () {
           structDialog.execute(d3.select(this))
-            .then(newData);
+            .then(idb.newDatagrid)
+            .then(viewID => {
+                window.open(`datagrid.html?view=${viewID}`, '_blank');
+            });
         });
     dialogs.append('div')
         .call(filterDialog.body, chemrsrc)
         .on('submit', function () {
           filterDialog.execute(d3.select(this))
-            .then(newData);
+            .then(idb.newDatagrid)
+            .then(viewID => {
+                window.open(`datagrid.html?view=${viewID}`, '_blank');
+            });
         });
     dialogs.append('div')
         .call(sdfDialog.body, chemrsrc)
         .on('submit', function () {
           sdfDialog.execute(d3.select(this))
-            .then(newData);
+            .then(idb.newDatagrid)
+            .then(viewID => {
+                window.open(`datagrid.html?view=${viewID}`, '_blank');
+            });
         });
   })
   .catch(err => {

@@ -80,15 +80,15 @@ export default class Collection {
         return fetcher.get('progress', query)
           .then(fetcher.json)
           .then(data => {
-            if (data.status === 'failure') {  // No data found on server
-              return idb.updateCollection(this.collectionID, coll => {
+            return idb.updateCollection(this.collectionID, coll => {
+              if (data.status === 'failure') {  // No data found on server
                 const c = coll.contents.find(e => e.workflowID === query.id);
                 c.status = 'failure';
-              });
-            }
-            return idb.updateCollection(this.collectionID, coll => {
-              const i = coll.contents.findIndex(e => e.workflowID === query.id);
-              coll.contents[i] = data;
+              } else {
+                const i = coll.contents
+                  .findIndex(e => e.workflowID === query.id);
+                coll.contents[i] = data;
+              }
             });
           });
       });
