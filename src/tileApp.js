@@ -101,12 +101,13 @@ function run() {
   } else {
     sw.registerServiceWorker();
   }
+  const storeID = misc.URLQuery().store || null;
   const viewID = misc.URLQuery().view || null;
-  return idb.getView(viewID)
+  return idb.getView(storeID, viewID)
     .then(view => {
       if (!view) throw('ERROR: invalid URL');
-      const collID = view.items;
-      return idb.getCollection(collID)
+      view.storeID = storeID;
+      return idb.getCollection(storeID, view.items)
         .then(coll => app(view, coll));
     })
     .catch(err => {

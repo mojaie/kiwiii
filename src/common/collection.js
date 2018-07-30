@@ -19,6 +19,7 @@ export default class Collection {
     this.autoIndex = 'index';  // enumerate records
 
     this.collectionID = coll.collectionID || null;
+    this.storeID = coll.storeID || null;
     this.name = coll.name || null;
     this.contents = coll.contents || [coll];
     this.fields = [];
@@ -80,20 +81,19 @@ export default class Collection {
         return fetcher.get('progress', query)
           .then(fetcher.json)
           .then(data => {
-            return idb.updateCollection(this.collectionID, coll => {
+            return idb.updateCollection(this.storeID, this.collectionID, coll => {
+              const i = coll.contents
+                .findIndex(e => e.workflowID === query.id);
               if (data.status === 'failure') {  // No data found on server
-                const c = coll.contents.find(e => e.workflowID === query.id);
-                c.status = 'failure';
+                coll.contents[i].status = 'failure';
               } else {
-                const i = coll.contents
-                  .findIndex(e => e.workflowID === query.id);
                 coll.contents[i] = data;
               }
             });
           });
       });
     return Promise.all(fs)
-      .then(() => idb.getCollection(this.collectionID))
+      .then(() => idb.getCollection(this.storeID, this.collectionID))
       .then(coll => {
         this.contents = coll.contents;
       });

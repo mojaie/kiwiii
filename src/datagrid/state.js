@@ -13,6 +13,7 @@ import {default as factory} from './rowFactory.js';
 
 export default class DatagridState {
   constructor(view, coll) {
+    this.storeID = view.storeID || null;
     this.viewID = view.viewID || null;
     this.name = view.name || null;
     this.sortOrder = view.sortOrder || [];
@@ -165,10 +166,13 @@ export default class DatagridState {
   }
 
   save() {
-    return Promise.all([
-      idb.updateCollection(this.rows.collectionID, this.rows.export()),
-      idb.updateView(this.viewID, this.export())
-    ]);
+    idb.updateItem(this.storeID, item => {
+      const ci = item.dataset
+        .findIndex(e => e.collectionID === this.rows.collectionID);
+      item.dataset[ci] = this.rows.export();
+      const vi = item.views.findIndex(e => e.viewID === this.viewID);
+      item.views[vi] = this.export();
+    });
   }
 
   export() {

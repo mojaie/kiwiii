@@ -26,7 +26,8 @@ export default class NetworkState extends TransformState {
 
     /* Attributes */
 
-    this.viewID = view.viewID;
+    this.viewID = view.viewID || null;
+    this.storeID = view.storeID || null;
     this.name = view.name;
 
     this.nodes = new Collection(nodes);
@@ -131,6 +132,7 @@ export default class NetworkState extends TransformState {
     this.currentConnThld = view.currentConnThld || view.minConnThld;
 
     // Force
+    this.simulationOnLoad = true;
     this.forcePreset = view.forcePreset || 'aggregate';
 
     // Event listeners
@@ -138,45 +140,41 @@ export default class NetworkState extends TransformState {
     this.dragListener = null;
 
     // Event notifiers
+    this.updateAllNotifier = null;
     this.updateComponentNotifier = null;
     this.updateNodeNotifier = null;
     this.updateEdgeNotifier = null;
     this.updateNodeAttrNotifier = null;
     this.updateEdgeAttrNotifier = null;
-    this.fitNotifier = null;
-    this.setForceNotifier = null;
-    this.stickNotifier = null;
-    this.relaxNotifier = null;
-    this.restartNotifier = null;
+    this.updateControlBoxNotifier = () => {};
+    this.fitNotifier = () => {};
+    this.setForceNotifier = () => {};
+    this.stickNotifier = () => {};
+    this.relaxNotifier = () => {};
+    this.restartNotifier = () => {};
     this.tickCallback = () => {};
-
-
-    /* Working memory */
 
     // Working copies
     // D3.force does some destructive operations
-    this.ns = JSON.parse(JSON.stringify(this.nodes.records()));
-    this.es = JSON.parse(JSON.stringify(this.edges.records()));
+    this.ns = null;
+    this.es = null;
+    this.coords = view.coords;
 
-    // Adjacency
-    // Assuming that the network is undirected graph and
-    // source index < target index
-    this.ns.forEach(n => {
-      n.adjacency = [];
-    });
+    // Init
+    this.updateWorkingCopy();
+  }
+
+  updateWorkingCopy() {
+    this.ns = JSON.parse(JSON.stringify(this.nodes.records()));
+    this.ns.forEach(n => { n.adjacency = []; });
+    this.es = JSON.parse(JSON.stringify(this.edges.records()));
     this.es.forEach((e, i) => {
       e.num = i;  // e.index will be overwritten by d3-force
       this.ns[e.source].adjacency.push([e.target, i]);
       this.ns[e.target].adjacency.push([e.source, i]);
     });
-
-    if (view.coords) {
-      this.simulationOnLoad = false;
-      // Set default state
-      this.setAllCoords(view.coords);
-      this.setBoundary();
-    } else {
-      this.simulationOnLoad = true;
+    if (this.coords) {
+      this.setAllCoords(this.coords);
     }
   }
 
@@ -207,6 +205,7 @@ export default class NetworkState extends TransformState {
         }
       });
     });
+    this.simulationOnLoad = false;
     this.setBoundary();
   }
 
@@ -248,14 +247,21 @@ export default class NetworkState extends TransformState {
   }
 
   save() {
-    return Promise.all([
-      idb.updateCollection(this.nodes.collectionID, this.nodes.export()),
-      idb.updateCollection(this.edges.collectionID, this.edges.export()),
-      idb.updateView(this.viewID, this.export())
-    ]);
+    return idb.updateItem(this.storeID, item => {
+      const ni = item.dataset
+        .findIndex(e => e.collectionID === this.nodes.collectionID);
+      item.dataset[ni] = this.nodes.export();
+      const ei = item.dataset
+        .findIndex(e => e.collectionID === this.edges.collectionID);
+      item.dataset[ei] = this.edges.export();
+      const vi = item.views
+        .findIndex(e => e.viewID === this.viewID);
+      item.views[vi] = this.export();
+    });
   }
 
   export() {
+    this.coords = this.ns.map(e => ({x: e.x, y: e.y}));
     // TODO: need deep copy?
     return JSON.parse(JSON.stringify({
       $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
@@ -275,7 +281,7 @@ export default class NetworkState extends TransformState {
       currentConnThld: this.currentConnThld,
       minConnThld: this.minConnThld,
       fieldTransform: this.transform,
-      coords: this.ns.map(e => ({x: e.x, y: e.y}))
+      coords: this.coords
     }));
   }
 }

@@ -46,11 +46,11 @@ function app(view, coll) {
   menu.append('a')
       .call(button.dropdownMenuItem, 'Generate tile view', 'painting')
       .on('click', function () {
-        const newID = misc.uuidv4();
-        idb.appendView(state.viewID, {
+        const viewID = misc.uuidv4();
+        idb.appendView(state.storeID, state.viewID, {
           $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
-          viewID: newID,
-          name: newID,
+          viewID: viewID,
+          name: viewID,
           viewType: 'tile',
           items: state.rows.collectionID,
           rowCount: 5,
@@ -58,7 +58,8 @@ function app(view, coll) {
           tileContent: {field: 'structure', visible: true}
         }).then(() => {
           d3.select('#loading-icon').style('display', 'none');
-          window.open(`tile.html?view=${newID}`, '_blank');
+          window.open(
+            `tile.html?store=${state.storeID}&view=${viewID}`, '_blank');
         });
       });
   menu.append('a')
@@ -266,7 +267,7 @@ function updateApp(state) {
           .then(data => {
             const wid = data.workflowID.slice(0, 8);
             return Promise.all([
-              idb.appendView(state.viewID, {
+              idb.appendView(state.storeID, state.viewID, {
                 $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
                 viewID: wid,
                 name: wid,
@@ -275,7 +276,7 @@ function updateApp(state) {
                 edges: wid,
                 minConnThld: data.query.params.threshold
               }),
-              idb.appendCollection(state.rows.collectionID, {
+              idb.appendCollection(state.storeID, state.rows.collectionID, {
                 $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
                 collectionID: wid,
                 name: wid,
@@ -284,7 +285,7 @@ function updateApp(state) {
             ])
             .then(() => {
               d3.select('#loading-icon').style('display', 'none');
-              window.open(`network.html?view=${wid}`, '_blank');
+              window.open(`network.html?store=${state.storeID}&view=${wid}`, '_blank');
             });
           });
       });
@@ -308,12 +309,13 @@ function run() {
   } else {
     sw.registerServiceWorker();
   }
+  const storeID = misc.URLQuery().store || null;
   const viewID = misc.URLQuery().view || null;
-  return idb.getView(viewID)
+  return idb.getView(storeID, viewID)
     .then(view => {
       if (!view) throw('ERROR: invalid URL');
-      const collID = view.rows;
-      return idb.getCollection(collID)
+      view.storeID = storeID;
+      return idb.getCollection(storeID, view.rows)
         .then(coll => app(view, coll));
     })
     .catch(err => {

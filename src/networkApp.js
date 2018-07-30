@@ -56,8 +56,10 @@ function app(view, nodes, edges) {
       .call(button.menuButtonLink,
             'Refresh', 'outline-secondary', 'refresh-gray')
       .on('click', function () {
-        return state.edges.pull().then(() =>
-          app(state.export(), state.nodes.export(), state.edges.export()));
+        return state.edges.pull().then(() => {
+          state.updateAllNotifier();
+          updateApp(state);
+        });
       });
   menubar.append('a')
       .classed('abort', true)
@@ -91,18 +93,25 @@ function app(view, nodes, edges) {
   // Contents
   const frame = d3.select('#nw-frame')
       .call(transform.viewFrame, state);
-  frame.select('.view')
-      .call(component.networkView, state)
-      .call(interaction.setInteraction, state)
-      .call(force.activate, simulation, state);
+  const nwview = frame.select('.view')
+      .call(component.networkView, state);
   d3.select('#nw-control')
       .call(control.controlBox, state);
 
+  state.updateAllNotifier = () => {
+    state.updateWorkingCopy();
+    nwview
+      .call(component.updateComponents, state)
+      .call(control.updateControlBox, state)
+      .call(interaction.setInteraction, state)
+      .call(force.activate, simulation, state);
+  };
   // Resize window
   window.onresize = () =>
     d3.select('#nw-frame').call(transform.resize, state);
 
   // Update
+  state.updateAllNotifier();
   updateApp(state);
 }
 
@@ -160,7 +169,9 @@ function updateApp(state) {
         };
         $('#community-dialog').modal('hide');  // TODO:
         d3.select('#loading-icon').style('display', 'none');
-        app(state.export(), state.nodes.export(), state.edges.export());
+        state.updateAllNotifier();
+        updateApp(state);
+        // app(state.export(), state.nodes.export(), state.edges.export());
       });
 
   // Rename dialog
@@ -174,8 +185,10 @@ function updateApp(state) {
   // Abort dialog
   dialogs.select('.abortd')
       .on('submit', function () {
-        state.edges.abort().then(() =>
-          app(state.export(), state.nodes.export(), state.edges.export()));
+        state.edges.abort().then(() => {
+          state.updateAllNotifier();
+          updateApp(state);
+        });
       });
 }
 
@@ -189,20 +202,23 @@ function run() {
   } else {
     sw.registerServiceWorker();
   }
+  const storeID = misc.URLQuery().store || null;
   const viewID = misc.URLQuery().view || null;
-  return idb.getView(viewID)
+  return idb.getView(storeID, viewID)
     .then(view => {
+      if (!view) throw('ERROR: invalid URL');
+      view.storeID = storeID;
       return Promise.all([
-        idb.getCollection(view.nodes),
-        idb.getCollection(view.edges)
+        idb.getCollection(storeID, view.nodes),
+        idb.getCollection(storeID, view.edges)
       ])
       .then(colls => app(view, colls[0], colls[1]));
     })
     .catch(err => {
       console.error(err);
-      d3.select('#datagrid')
+      d3.select('#nw-frame')
         .style('color', 'red')
-        .text('ERROR: invalid URL');
+        .text(err);
     });
 }
 

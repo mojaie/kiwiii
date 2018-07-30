@@ -23,7 +23,8 @@ export default class TileState extends TransformState {
 
     /* Attributes */
 
-    this.viewID = view.viewID;
+    this.viewID = view.viewID || null;
+    this.storeID = view.storeID || null;
     this.name = view.name;
 
     this.items = new Collection(items);
@@ -165,10 +166,13 @@ export default class TileState extends TransformState {
   }
 
   save() {
-    return Promise.all([
-      idb.updateCollection(this.items.collectionID, this.items.export()),
-      idb.updateView(this.viewID, this.export())
-    ]);
+    idb.updateItem(this.storeID, item => {
+      const i = item.items
+        .findIndex(e => e.collectionID === this.items.collectionID);
+      item.items[i] = this.items.export();
+      const vi = item.views.findIndex(e => e.viewID === this.viewID);
+      item.views[vi] = this.export();
+    });
   }
 
   export() {

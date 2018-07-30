@@ -185,6 +185,10 @@ function networkView(selection, state) {
   const edges = field.append('g').classed('nw-edges', true);
   const nodes = field.append('g').classed('nw-nodes', true);
 
+  state.updateAllNotifier = () => {
+    state.updateWorkingCopy();
+    selection.call(updateComponents, state);
+  };
   state.updateComponentNotifier = () => {
     selection.call(updateComponents, state);
   };
@@ -200,7 +204,6 @@ function networkView(selection, state) {
   state.updateEdgeAttrNotifier = () => {
     edges.call(updateEdgeAttrs, state);
   };
-  state.updateComponentNotifier();
 }
 
 

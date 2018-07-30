@@ -25,25 +25,30 @@ import {default as table} from './datagrid/table.js';
 
 
 function nodeFactory(selection, record) {
-  const iconv = {'datagrid': 'table-gray', 'network': 'network', 'tile': 'painting'};
+  const iconv = {
+    'datagrid': 'table-gray', 'network': 'network', 'tile': 'painting'};
   const icon = record.viewID ? iconv[record.viewType] : 'export';
+  const storeID = record.storeID || record.parent;
   const node = record.viewID
     ? selection.append('a')
-          .attr('href', `${record.viewType}.html?view=${record.viewID}`)
-          .attr('target', '_blank')
+      .attr(
+        'href',
+        `${record.viewType}.html?store=${storeID}&view=${record.viewID}`
+      )
+      .attr('target', '_blank')
     : selection;
-    node.append('img')
-        .attr('src', icon ? `./assets/icon/${icon}.svg` : null)
-        .classed('mr-1', true)
-        .style('width', '2rem')
-        .style('height', '2rem');
-    node.append('span')
+  node.append('img')
+      .attr('src', icon ? `./assets/icon/${icon}.svg` : null)
+      .classed('mr-1', true)
+      .style('width', '2rem')
+      .style('height', '2rem');
+  node.append('span')
       .classed('mr-1', true)
       .text(record.name);
   const action = selection.append('span')
-    .classed('p-1', true)
-    .style('border', '1px solid #999999')
-    .style('border-radius', '5px');
+      .classed('p-1', true)
+      .style('border', '1px solid #999999')
+      .style('border-radius', '5px');
   const actionIcon = (sel, icon) => sel.append('img')
       .attr('src', `./assets/icon/${icon}.svg`)
       .classed('mx-1', true)
@@ -55,9 +60,6 @@ function nodeFactory(selection, record) {
           const data = JSON.parse(JSON.stringify(record));
           delete data.storeID;
           delete data.sessionStarted;
-          data.views.forEach(view => {
-            delete view.viewID;
-          });
           hfile.downloadJSON(data, data.name);
         });
   }
@@ -69,27 +71,39 @@ function nodeFactory(selection, record) {
         d3.select('#rename-dialog')
           .call(renameDialog.updateBody, record.name)
           .on('submit', function () {
-            const upd = record.viewID ? idb.updateView : idb.updateItem;
-            const id = record.viewID ? record.viewID : record.storeID;
-            upd(id, item => {
-              item.name = renameDialog.value(d3.select(this));
-            })
-            .then(updateStoredData);
+            if (record.viewID) {
+              idb.updateView(record.parent, record.viewID, view => {
+                view.name = renameDialog.value(d3.select(this));
+              }).then(updateStoredData);
+            } else {
+              idb.updateItem(record.storeID, item => {
+                item.name = renameDialog.value(d3.select(this));
+              }).then(updateStoredData);
+            }
           });
       });
   if (!record.ongoing) {
+    const recordType = record.viewID ? record.viewType : 'package';
+    const deleteType = record.alone ? 'package' : recordType;
+    const deleteName = record.alone ? record.parentName : record.name;
     action.append('a')
         .attr('data-toggle', 'modal')
         .attr('data-target', '#delete-dialog')
         .call(actionIcon, 'delete-gray')
         .on('click', () =>{
           d3.select('#delete-dialog')
-            .call(modal.updateConfirmDialog,
-                  `Are you sure you want to delete ${record.name} ?`)
+            .call(
+              modal.updateConfirmDialog,
+              `Are you sure you want to delete ${deleteType} ${deleteName} ?`
+            )
             .on('submit', () => {
-              const del = record.viewID ? idb.deleteView : idb.deleteItem;
-              const id = record.viewID ? record.viewID : record.storeID;
-              del(id).then(updateStoredData);
+              if (record.viewID && !record.alone) {
+                idb.deleteView(record.parent, record.viewID)
+                  .then(updateStoredData);
+              } else {
+                idb.deleteItem(record.storeID || record.parent)
+                  .then(updateStoredData);
+              }
             });
         });
   }
@@ -114,6 +128,8 @@ function updateStoredData() {
         pkg.views.forEach(view => {
           view.parent = pkg.storeID;
           view.ongoing = pkg.ongoing;
+          view.alone = pkg.views.length <= 1;
+          view.parentName = pkg.name;
           treeNodes.push(view);
         });
       });
@@ -238,8 +254,9 @@ function app() {
         .on('submit', function () {
           searchDialog.execute(d3.select(this), chemrsrc)
             .then(idb.newDatagrid)
-            .then(viewID => {
-                window.open(`datagrid.html?view=${viewID}`, '_blank');
+            .then(r => {
+              window.open(
+                `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
             });
         });
     dialogs.append('div')
@@ -247,8 +264,9 @@ function app() {
         .on('submit', function () {
           structDialog.execute(d3.select(this))
             .then(idb.newDatagrid)
-            .then(viewID => {
-                window.open(`datagrid.html?view=${viewID}`, '_blank');
+            .then(r => {
+              window.open(
+                `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
             });
         });
     dialogs.append('div')
@@ -256,8 +274,9 @@ function app() {
         .on('submit', function () {
           filterDialog.execute(d3.select(this))
             .then(idb.newDatagrid)
-            .then(viewID => {
-                window.open(`datagrid.html?view=${viewID}`, '_blank');
+            .then(r => {
+              window.open(
+                `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
             });
         });
     dialogs.append('div')
@@ -265,8 +284,9 @@ function app() {
         .on('submit', function () {
           sdfDialog.execute(d3.select(this))
             .then(idb.newDatagrid)
-            .then(viewID => {
-                window.open(`datagrid.html?view=${viewID}`, '_blank');
+            .then(r => {
+              window.open(
+                `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
             });
         });
   })

@@ -361,7 +361,9 @@ function controlBox(selection, state) {
       .call(cbox.controlBoxItem, 'control-edgelabel')
       .call(edgeLabelControlBox, state);
 
-  selection.call(updateControlBox, state);
+  state.updateControlBoxNotifier = () => {
+    selection.call(updateControlBox, state);
+  };
 }
 
 
