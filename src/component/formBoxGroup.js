@@ -51,6 +51,7 @@ function updateColorRangeGroup(selection, range, unknown) {
         selection.select('.range').call(rbox.updateColorScaleBox, p.range);
       });
   selection.select('.rangetype')
+      // TODO: set color range type .call(lbox.updateSelectBox, range)
       .on('change', function () {
         const value = lbox.selectBoxValue(d3.select(this));
         const size = scaledef.colorRangeTypes.find(e => e.key === value).size;

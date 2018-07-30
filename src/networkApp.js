@@ -95,16 +95,17 @@ function app(view, nodes, edges) {
       .call(transform.viewFrame, state);
   const nwview = frame.select('.view')
       .call(component.networkView, state);
-  d3.select('#nw-control')
+  const controlBox = d3.select('#nw-control')
       .call(control.controlBox, state);
 
   state.updateAllNotifier = () => {
     state.updateWorkingCopy();
     nwview
       .call(component.updateComponents, state)
-      .call(control.updateControlBox, state)
       .call(interaction.setInteraction, state)
       .call(force.activate, simulation, state);
+    controlBox
+      .call(control.updateControlBox, state);
   };
   // Resize window
   window.onresize = () =>

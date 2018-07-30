@@ -9,10 +9,10 @@ import {default as rbox} from '../component/formRangeBox.js';
 import {default as group} from '../component/formBoxGroup.js';
 
 
-function colorControlBox(selection, colorState, fieldOptions, scaledef, fieldName) {
+function colorControlBox(selection, colorState, scaledef, fieldName) {
   selection.append('div')
       .classed('field', true)
-      .call(lbox.selectBox, fieldName || 'Field', fieldOptions, colorState.field || '');
+      .call(lbox.selectBox, fieldName || 'Field', null, colorState.field || '');
   selection.append('div')
       .classed('range', true)
       .call(
@@ -28,8 +28,9 @@ function colorControlBox(selection, colorState, fieldOptions, scaledef, fieldNam
 }
 
 
-function updateColorControlBox(selection, colorState, notifier) {
+function updateColorControlBox(selection, fieldOptions, colorState, notifier) {
   selection.select('.field')
+    .call(lbox.selectBoxItems, fieldOptions)
     .call(lbox.updateSelectBox, colorState.field)
     .on('change', function () {
       colorState.field = lbox.selectBoxValue(d3.select(this));
@@ -66,11 +67,11 @@ function updateColorControlBox(selection, colorState, notifier) {
 }
 
 
-function sizeControlBox(selection, sizeState, fieldOptions, scaledef, fieldName) {
+function sizeControlBox(selection, sizeState, scaledef, fieldName) {
   selection.append('div')
     .classed('field', true)
     .call(
-      lbox.selectBox, fieldName || 'Field', fieldOptions, sizeState.field || '');
+      lbox.selectBox, fieldName || 'Field', null, sizeState.field || '');
   selection.append('div')
     .classed('range', true)
     .classed('mb-3', true)
@@ -84,8 +85,9 @@ function sizeControlBox(selection, sizeState, fieldOptions, scaledef, fieldName)
 }
 
 
-function updateSizeControlBox(selection, sizeState, notifier) {
+function updateSizeControlBox(selection, fieldOptions, sizeState, notifier) {
   selection.select('.field')
+    .call(lbox.selectBoxItems, fieldOptions)
     .call(lbox.updateSelectBox, sizeState.field)
     .on('change', function () {
       sizeState.field = lbox.selectBoxValue(d3.select(this));
@@ -109,7 +111,7 @@ function updateSizeControlBox(selection, sizeState, notifier) {
 }
 
 
-function labelControlBox(selection, labelState, colorState, fieldOptions, scaledef) {
+function labelControlBox(selection, labelState, colorState, scaledef) {
   // nodeLabel.visible
   selection.append('div')
     .append('div')
@@ -121,17 +123,17 @@ function labelControlBox(selection, labelState, colorState, fieldOptions, scaled
   labelGroup.append('div')
       .classed('text', true)
       .classed('mb-1', true)
-      .call(lbox.selectBox, 'Text field', fieldOptions, labelState.field || '');
+      .call(lbox.selectBox, 'Text field', null, labelState.field || '');
   labelGroup.append('div')
       .classed('size', true)
       .classed('mb-1', true)
       .call(box.numberBox, 'Font size', 6, 100, 1, labelState.size);
   // nodeLabelColor
-  colorControlBox(selection, colorState, fieldOptions, scaledef, 'Color field');
+  colorControlBox(selection, colorState, scaledef, 'Color field');
 }
 
 
-function updateLabelControlBox(selection, labelState, colorState, notifier) {
+function updateLabelControlBox(selection, fieldOptions, labelState, colorState, notifier) {
   // nodeLabel.visible
   selection.select('.visible')
       .call(box.updateCheckBox, labelState.visible)
@@ -141,6 +143,7 @@ function updateLabelControlBox(selection, labelState, colorState, notifier) {
       });
   // nodeLabel
   selection.select('.text')
+      .call(lbox.selectBoxItems, fieldOptions)
       .call(lbox.updateSelectBox, labelState.field)
       .on('change', function () {
         labelState.field = lbox.selectBoxValue(d3.select(this));
@@ -153,7 +156,7 @@ function updateLabelControlBox(selection, labelState, colorState, notifier) {
         notifier();
       });
   // nodeLabelColor
-  updateColorControlBox(selection, colorState, notifier);
+  updateColorControlBox(selection, fieldOptions, colorState, notifier);
 }
 
 
