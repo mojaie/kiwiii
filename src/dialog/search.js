@@ -17,11 +17,23 @@ const title = 'Search by compound ID';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, title, id, 'searchtext');
+  selection.call(button.dropdownMenuModal, title, id, 'menu-searchtext');
 }
 
 
-function body(selection, resources, placeholder) {
+function body(selection) {
+  const mbody = selection.call(modal.submitDialog, id, title)
+    .select('.modal-body');
+  mbody.append('div')
+      .classed('field', true)
+      .call(lbox.selectBox, 'Field');
+  mbody.append('div')
+      .classed('query', true)
+      .call(box.textareaBox, 'Query', 20);
+}
+
+
+function updateBody(selection, resources, placeholder) {
   const fields = _(resources.map(e => e.fields))
     .flatten()
     .uniqBy('key')
@@ -29,14 +41,12 @@ function body(selection, resources, placeholder) {
     .filter(e => e.hasOwnProperty('d3_format')
                  || ['compound_id', 'numeric', 'text'].includes(e.format));
   const def = fields.find(e => e.format === 'compound_id') || fields[0];
-  const mbody = selection.call(modal.submitDialog, id, title)
-    .select('.modal-body');
-  mbody.append('div')
-      .classed('field', true)
-      .call(lbox.selectBox, 'Field', fields, def.key);
-  mbody.append('div')
-      .classed('query', true)
-      .call(box.textareaBox, 'Query', 20, placeholder, '')
+  selection.select('.field')
+      .call(lbox.selectBoxItems, fields)
+      .call(lbox.updateSelectBox, def.key);
+  selection.select('.query')
+      .call(box.updateTextareaBox, '')
+      .call(box.updateTextareaPlaceholder, placeholder)
       .on('input', function() {  // Validation
         const values = box.textareaBoxLines(d3.select(this));
         selection.select('.submit').property('disabled', !values.length);
@@ -57,5 +67,5 @@ function execute(selection, resources) {
 
 
 export default {
-  menuLink, body, execute
+  menuLink, body, updateBody, execute
 };

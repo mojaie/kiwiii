@@ -43,48 +43,57 @@ export default class TileState extends TransformState {
     this.showRowNumber = view.showRowNumber || false;
     this.showColumnNumber = view.showColumnNumber || false;
 
-    this.tileContent = {
+    /* Appearance */
+    const defaultTileField = this.items.fields[0].key || null;
+    const fillIfNull = (obj, updater) => {
+      Object.entries(updater).forEach(e => {
+        if (!obj.hasOwnProperty(e[0])) {
+          obj[e[0]] = e[1];
+        }
+      });
+    };
+
+    this.tileContent = {};
+    const defaultTileContent = {
       field: null, visible: false
     };
     if (view.hasOwnProperty('tileContent')) {
-      this.tileContent.field = view.tileContent.field;
-      this.tileContent.visible = view.tileContent.visible;
+      this.tileContent = view.tileContent;
     }
+    fillIfNull(this.tileContent, defaultTileContent);
 
-    this.tileColor = {
-      field: null, scale: 'linear', domain: [0, 1],
+    this.tileColor = {};
+    const defaultTileColor = {
+      field: defaultTileField, color: 'monogray',
+      scale: 'linear', domain: [0, 1],
       range: ['#7fffd4', '#7fffd4'], unknown: '#7fffd4'
     };
     if (view.hasOwnProperty('tileColor')) {
-      this.tileColor.field = view.tileColor.field;
-      this.tileColor.scale = view.tileColor.scale;
-      this.tileColor.domain = view.tileColor.domain;
-      this.tileColor.range = view.tileColor.range;
-      this.tileColor.unknown = view.tileColor.unknown;
+      this.tileColor = view.tileColor;
     }
+    fillIfNull(this.tileColor, defaultTileColor);
 
-    this.tileValue = {
-      field: null, size: 12, visible: false
+    this.tileValue = {};
+    const defaultTileValue = {
+      field: null, size: 12, visible: false,
+      halign: 2, valign: 2
     };
     if (view.hasOwnProperty('tileValue')) {
-      this.tileValue.field = view.tileValue.field;
-      this.tileValue.size = view.tileValue.size;
-      this.tileValue.visible = view.tileValue.visible;
-      this.tileValue.halign = view.tileValue.halign;
-      this.tileValue.valign = view.tileValue.valign;
+      this.tileValue = view.tileValue;
     }
+    fillIfNull(this.tileValue, defaultTileValue);
 
-    this.tileValueColor = {
-      field: null, scale: 'linear', domain: [0, 1],
+    this.tileValueColor = {};
+    const defaultTileValueColor = {
+      field: defaultTileField, color: 'monoblack',
+      scale: 'linear', domain: [0, 1],
       range: ['#7fffd4', '#7fffd4'], unknown: '#7fffd4'
     };
     if (view.hasOwnProperty('tileValueColor')) {
-      this.tileValueColor.field = view.tileValueColor.field;
-      this.tileValueColor.scale = view.tileValueColor.scale;
-      this.tileValueColor.domain = view.tileValueColor.domain;
-      this.tileValueColor.range = view.tileValueColor.range;
-      this.tileValueColor.unknown = view.tileValueColor.unknown;
+      this.tileValueColor = view.tileValueColor;
     }
+    fillIfNull(this.tileValueColor, defaultTileValueColor);
+
 
     // Drawing
     this.scaleExtent = [1, Infinity];
@@ -166,7 +175,7 @@ export default class TileState extends TransformState {
   }
 
   save() {
-    idb.updateItem(this.storeID, item => {
+    return idb.updateItem(this.storeID, item => {
       const i = item.items
         .findIndex(e => e.collectionID === this.items.collectionID);
       item.items[i] = this.items.export();

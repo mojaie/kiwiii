@@ -46,15 +46,17 @@ function updateItems(selection, state) {
 
 
 function updateItemAttrs(selection, state) {
+  const colorConv = scale.scaleFunction(state.tileColor);
+  const valueColorConv = scale.scaleFunction(state.tileValueColor);
   const items = selection.selectAll('.item')
       .attr('transform', d => `translate(${d.x}, ${d.y})`);
   items.select('.tile')
-      .style('fill',
-        d => scale.scaleFunction(state.tileColor)(d[state.tileColor.field]));
+      .style('fill', d => colorConv(d[state.tileColor.field]));
   items.select('.tile-value')
       .text(d => {
         if (state.tileValue.field === null) return '';
-        const field = state.items.fields.find(e => e.key === state.tileValue.field);
+        const field = state.items.fields
+          .find(e => e.key === state.tileValue.field);
         if (field.format === 'd3_format') {
           return misc.formatNum(d[state.tileValue.field], field.d3_format);
         }
@@ -67,7 +69,7 @@ function updateItemAttrs(selection, state) {
       .attr('lengthAdjust', 'spacingAndGlyphs')
       .attr('visibility', state.tileValue.visible ? 'inherit' : 'hidden')
       .style('fill',
-        d => scale.scaleFunction(state.tileValueColor)(d[state.tileValueColor.field]));
+        d => valueColorConv(d[state.tileValueColor.field]));
 }
 
 

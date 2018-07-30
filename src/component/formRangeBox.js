@@ -8,7 +8,7 @@ import d3 from 'd3';
  * Render range box components
  * @param {d3.selection} selection - selection of box container (div element)
  */
-function rangeBox(selection, label, range) {
+function rangeBox(selection, label) {
   selection
       .classed('form-row', true)
       .classed('align-items-center', true);
@@ -49,23 +49,35 @@ function rangeBox(selection, label, range) {
       .classed('form-control-sm', true)
       .classed('max', true)
       .attr('type', 'text');
-  // TODO: validation
-  // not null, undef, text
-  // min <= max
-  selection.call(updateRangeBox, range);
 }
 
 
 function updateRangeBox(selection, range) {
-  // TODO: validation
-  // not null, undef, text
-  // min <= max
   selection.select('.min').property('value', range[0]);
   selection.select('.max').property('value', range[1]);
+  selection.selectAll('.min,.max')
+    .on('input', function () {
+      if (!rangeBoxValid(selection)) {
+        d3.event.stopPropagation();
+      }
+    })
+    .dispatch('input', {bubbles: true});
 }
 
 
-function rangeBoxValue(selection) {
+function rangeBoxValid(selection) {
+  const min = selection.select('.min').property('value');
+  const max = selection.select('.max').property('value');
+  const valid = v => v !== '' && !isNaN(v);
+  selection.select('.min')
+      .style('background-color', valid(min) ? '#ffffff' : '#ffcccc');
+  selection.select('.max')
+      .style('background-color', valid(max) ? '#ffffff' : '#ffcccc');
+  return valid(min) && valid(max);
+}
+
+
+function rangeBoxValues(selection) {
   return [
     parseFloat(selection.select('.min').property('value')),
     parseFloat(selection.select('.max').property('value'))
@@ -77,7 +89,7 @@ function rangeBoxValue(selection) {
  * Render color scale box components
  * @param {d3.selection} selection - selection of box container (div element)
  */
-function colorScaleBox(selection, label, range) {
+function colorRangeBox(selection, label) {
   selection
       .classed('form-row', true)
       .classed('align-items-center', true);
@@ -137,7 +149,6 @@ function colorScaleBox(selection, label, range) {
       .classed('max', true)
       .attr('type', 'color');
   selection
-      .call(updateColorScaleBox, range)
       .on('change', () => {
         // avoid update by mousemove on the colorpicker
         d3.event.stopPropagation();
@@ -145,46 +156,23 @@ function colorScaleBox(selection, label, range) {
 }
 
 
-function updateColorScaleBox(selection, range) {
-  let rangeArray;
-  if (range.length == 2) {
-    rangeArray = [range[0], null, range[1]];
-  } else if (range.length == 3) {
-    rangeArray = [range[0], range[1], range[2]];
-  } else {
-    rangeArray = [null, null, null];
-  }
-  selection.select('.min')
-      .property('value', rangeArray[0])
-      .property('disabled', rangeArray[0] === null)
-      .style('opacity', rangeArray[0] === null ? 0.3 : null);
-  selection.select('.mid')
-      .attr('value', rangeArray[1])
-      .property('disabled', rangeArray[1] === null)
-      .style('opacity', rangeArray[1] === null ? 0.3 : null);
-  selection.select('.max')
-      .property('value', rangeArray[2])
-      .property('disabled', rangeArray[2] === null)
-      .style('opacity', rangeArray[2] === null ? 0.3 : null);
+function updateColorRangeBox(selection, range) {
+  selection.select('.min').property('value', range[0]);
+  selection.select('.mid').property('value', range[1]);
+  selection.select('.max').property('value', range[2]);
 }
 
 
-function colorScaleBoxValue(selection) {
-  const arr = [];
-  if (!selection.select('.min').property('disabled')) {
-    arr.push(selection.select('.min').property('value'));
-  }
-  if (!selection.select('.mid').property('disabled')) {
-    arr.push(selection.select('.mid').property('value'));
-  }
-  if (!selection.select('.max').property('disabled')) {
-    arr.push(selection.select('.max').property('value'));
-  }
-  return arr;
+function colorRangeBoxValues(selection) {
+  return [
+    selection.select('.min').property('value'),
+    selection.select('.mid').property('value'),
+    selection.select('.max').property('value')
+  ];
 }
 
 
 export default {
-  rangeBox, updateRangeBox, rangeBoxValue,
-  colorScaleBox, updateColorScaleBox, colorScaleBoxValue
+  rangeBox, updateRangeBox, rangeBoxValues, rangeBoxValid,
+  colorRangeBox, updateColorRangeBox, colorRangeBoxValues
 };

@@ -20,15 +20,14 @@ function dialogBase(selection, id) {
 }
 
 
-function confirmDialog(selection, id, message) {
+function confirmDialog(selection, id) {
   const base = selection.call(dialogBase, id)
       .select('.modal-content');
   // body
   base.append('div')
       .classed('modal-body', true)
     .append('div')
-      .classed('message', true)
-      .text(message);
+      .classed('message', true);
   // footer
   const footer = base.append('div')
       .classed('modal-footer', true);

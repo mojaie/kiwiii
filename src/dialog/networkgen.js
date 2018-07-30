@@ -18,13 +18,27 @@ const title = 'Generate similarity network';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, title, id, 'network');
+  selection.call(button.dropdownMenuModal, title, id, 'menu-network');
 }
 
 
-function body(selection, rdk) {
-  selection.selectAll('div').remove();  // Clean up
+function body(selection) {
   const dialog = selection.call(modal.submitDialog, id, title);
+  dialog.select('.modal-body').append('div')
+      .classed('measure', true)
+      .call(lbox.selectBox, 'Measure');
+  // Threshold
+  dialog.select('.modal-body').append('div')
+      .classed('thld', true)
+      .call(box.numberBox, 'Threshold', 0.5, 1, 0.01);
+  // Similarity search options
+  dialog.select('.modal-body').append('div')
+      .classed('option', true)
+      .call(group.simOptionGroup);
+}
+
+
+function updateBody(selection, rdk) {
   // Similarity measure
   const measures = [
     {key: 'gls', name: 'Graph-based local similarity(GLS)'}
@@ -33,29 +47,22 @@ function body(selection, rdk) {
     measures.push({key: 'rdmorgan', name: 'RDKit Morgan similarity'});
     measures.push({key: 'rdfmcs', name: 'RDKit FMCS'});
   }
-  dialog.select('.modal-body').append('div')
-      .classed('measure', true)
-      .call(lbox.selectBox, 'Measure', measures, 'gls');
-  // Threshold
-  dialog.select('.modal-body').append('div')
-      .classed('thld', true)
-      .call(box.numberBox, 'Threshold', 0.5, 1, 0.01, 0.5);
-  // Similarity search options
-  dialog.select('.modal-body').append('div')
-      .classed('option', true)
-      .call(group.simOptionGroup, 'networkgen');
-  // Events
-  dialog.select('.measure')
+  selection.select('.measure')
+      .call(lbox.selectBoxItems, measures)
+      .call(lbox.updateSelectBox, 'gls')
       .on('change', function () {
         const value = lbox.selectBoxValue(d3.select(this));
-        dialog.selectAll('.diam')
+        selection.select('.diam')
           .select('input')
             .property('disabled', value !== 'gls');
-        dialog.select('.timeout')
+        selection.select('.timeout')
           .select('input')
             .property('disabled', !['gls', 'rdfmcs'].includes(value));
-      })
-      .dispatch('change');
+      });
+  selection.select('.thld')
+      .call(box.updateNumberBox, 0.5);
+  selection.select('.option')
+      .call(group.updateSimOptionGroup);
 }
 
 
@@ -79,5 +86,5 @@ function execute(selection, rcds) {
 
 
 export default {
-  menuLink, body, execute
+  menuLink, body, updateBody, execute
 };

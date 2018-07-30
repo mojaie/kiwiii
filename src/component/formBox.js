@@ -5,7 +5,7 @@
 import d3 from 'd3';
 
 
-function textBox(selection, label, value) {
+function textBox(selection, label) {
   selection
       .classed('form-group', true)
       .classed('form-row', true)
@@ -20,7 +20,6 @@ function textBox(selection, label, value) {
       .classed('form-control-sm', true)
       .classed('col-8', true)
       .attr('type', 'text');
-  selection.call(updateTextBox, value);
 }
 
 function updateTextBox(selection, value) {
@@ -32,7 +31,7 @@ function textBoxValue(selection) {
 }
 
 
-function readonlyBox(selection, label, value) {
+function readonlyBox(selection, label) {
   selection
       .classed('form-group', true)
       .classed('form-row', true)
@@ -48,11 +47,10 @@ function readonlyBox(selection, label, value) {
       .classed('col-8', true)
       .attr('type', 'text')
       .property('readonly', true);
-  selection.call(updateTextBox, value);
 }
 
 
-function textareaBox(selection, label, rows, placeholder, value) {
+function textareaBox(selection, label, rows) {
   selection
       .classed('form-group', true)
       .classed('form-row', true);
@@ -65,13 +63,15 @@ function textareaBox(selection, label, rows, placeholder, value) {
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('col-8', true)
-      .attr('rows', rows)
-      .attr('placeholder', placeholder);
-  selection.call(updateTextareaBox, value);
+      .attr('rows', rows);
 }
 
 function updateTextareaBox(selection, value) {
   selection.select('textarea').property('value', value);
+}
+
+function updateTextareaPlaceholder(selection, placeholder) {
+  selection.select('textarea').attr('placeholder', placeholder);
 }
 
 function textareaBoxValue(selection) {
@@ -91,7 +91,7 @@ function textareaBoxLines(selection) {
 }
 
 
-function checkBox(selection, label, checked) {
+function checkBox(selection, label) {
   const box = selection
       .classed('form-group', true)
       .classed('form-row', true)
@@ -104,7 +104,6 @@ function checkBox(selection, label, checked) {
       .attr('type', 'checkbox');
   box.append('span')
       .text(label);
-  selection.call(updateCheckBox, checked);
 }
 
 function updateCheckBox(selection, checked) {
@@ -116,7 +115,7 @@ function checkBoxValue(selection) {
 }
 
 
-function numberBox(selection, label, min, max, step, value) {
+function numberBox(selection, label, min, max, step) {
   selection
       .classed('form-group', true)
       .classed('form-row', true)
@@ -134,11 +133,20 @@ function numberBox(selection, label, min, max, step, value) {
       .attr('min', min)
       .attr('max', max)
       .attr('step', step);
-  selection.call(updateNumberBox, value);
 }
 
 function updateNumberBox(selection, value) {
   selection.select('input').property('value', value);
+}
+
+function numberFloatValid(selection) {
+  const value = numberBoxFloatValue(selection);
+  const min = parseInt(selection.select('input').attr('min'));
+  const max = parseInt(selection.select('input').attr('max'));
+  const valid = !isNaN(value) && value >= min && value <= max;
+  selection.select('input')
+      .style('background-color', valid ? '#ffffff' : '#ffcccc');
+  return valid;
 }
 
 function numberBoxIntValue(selection) {
@@ -154,10 +162,14 @@ function numberBoxFloatValue(selection) {
  * Render color scale box components
  * @param {d3.selection} selection - selection of box container (div element)
  */
-function colorBox(selection, label, value) {
+function colorBox(selection, label) {
   selection
       .classed('form-row', true)
-      .classed('align-items-center', true);
+      .classed('align-items-center', true)
+      .on('change', () => {
+        // avoid update by mousemove on the colorpicker
+        d3.event.stopPropagation();
+      });
   selection.append('div')
       .classed('form-group', true)
       .classed('col-form-label', true)
@@ -175,12 +187,6 @@ function colorBox(selection, label, value) {
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .attr('type', 'color');
-  selection
-      .call(updateColorBox, value)
-      .on('change', () => {
-        // avoid update by mousemove on the colorpicker
-        d3.event.stopPropagation();
-      });
 }
 
 
@@ -212,6 +218,19 @@ selection.append('input')
     .attr('accept', accept);
 }
 
+function clearFileInput(selection) {
+  // TODO: FileList object (input.files) may be a readonly property
+  const accept = selection.select('input').attr();
+  selection.select('input').remove();
+  selection.append('input')
+      .classed('form-control', true)
+      .classed('form-control-sm', true)
+      .classed('form-control-file', true)
+      .classed('col-8', true)
+      .attr('type', 'file')
+      .attr('accept', accept);
+}
+
 function fileInputBoxValue(selection) {
   return selection.select('input').property('files')[0];
 }
@@ -219,9 +238,11 @@ function fileInputBoxValue(selection) {
 
 export default {
   textBox, updateTextBox, textBoxValue, readonlyBox,
-  textareaBox, updateTextareaBox, textareaBoxValue, textareaBoxLines,
+  textareaBox, updateTextareaBox, updateTextareaPlaceholder,
+  textareaBoxValue, textareaBoxLines,
   checkBox, updateCheckBox, checkBoxValue,
-  numberBox, updateNumberBox, numberBoxIntValue, numberBoxFloatValue,
+  numberBox, updateNumberBox, numberFloatValid,
+  numberBoxIntValue, numberBoxFloatValue,
   colorBox, updateColorBox, colorBoxValue,
-  fileInputBox, fileInputBoxValue
+  fileInputBox, clearFileInput, fileInputBoxValue
 };

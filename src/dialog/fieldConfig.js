@@ -13,7 +13,7 @@ const title = 'Column setting';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, title, id, 'edittable');
+  selection.call(button.dropdownMenuModal, title, id, 'menu-edittable');
 }
 
 

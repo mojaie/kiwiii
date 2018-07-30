@@ -1,6 +1,7 @@
 
 /** @module network/controlBox */
 
+import _ from 'lodash';
 import d3 from 'd3';
 
 import {default as misc} from '../common/misc.js';
@@ -25,11 +26,11 @@ function mainControlBox(selection, state) {
     viewModes.append('div')
       .classed('focused', true)
       .classed('mb-1', true)
-      .call(box.checkBox, 'Enable focused view', state.enableFocusedView);
+      .call(box.checkBox, 'Enable focused view');
     viewModes.append('div')
       .classed('overlook', true)
       .classed('mb-1', true)
-      .call(box.checkBox, 'Enable overlook view', state.enableOverlookView);
+      .call(box.checkBox, 'Enable overlook view');
   // Network threshold
   const thldGroup = selection.append('div')
       .classed('thld-group', true)
@@ -37,21 +38,15 @@ function mainControlBox(selection, state) {
   thldGroup.append('div')
       .classed('field', true)
       .classed('mb-1', true)
-      .call(
-        lbox.selectBox, 'Connection',
-        state.edges.fields.filter(e => misc.sortType(e.format) !== 'none')
-          .filter(e => !['source', 'target'].includes(e.key)),
-        state.connThldField
-      );
+      .call(lbox.selectBox, 'Connection');
   thldGroup.append('div')
       .classed('thld', true)
       .classed('mb-1', true)
-      .call(box.numberBox, 'Threshold',
-            state.minConnThld, 1.000, 0.01, state.currentConnThld);
+      .call(box.numberBox, 'Threshold', state.minConnThld, 1.000, 0.01);
   thldGroup.append('div')
       .classed('logd', true)
       .classed('mb-1', true)
-      .call(box.readonlyBox, 'logD', null);
+      .call(box.readonlyBox, 'logD');
   // Force layout
   const forceBox = selection.append('div')
       .classed('form-group', true)
@@ -80,15 +75,13 @@ function mainControlBox(selection, state) {
     .append('div')
       .classed('stick', true)
       .classed('mb-1', true)
-      .call(box.checkBox, 'Stick nodes', !state.simulationOnLoad);
+      .call(box.checkBox, 'Stick nodes');
   forceBox.append('div')
       .classed('col-12', true)
     .append('div')
       .classed('restart', true)
       .classed('mb-1', true)
       .call(button.buttonBox, 'Activate', 'warning');
-
-  selection.call(updateMainControlBox, state);
 }
 
 
@@ -114,7 +107,11 @@ function updateMainControlBox(selection, state) {
       });
   // Network threshold
   const thldGroup = selection.select('.thld-group');
+  const thldFields = state.edges.fields
+    .filter(e => misc.sortType(e.format) !== 'none')
+    .filter(e => !['source', 'target'].includes(e.key));
   thldGroup.select('.field')
+      .call(lbox.selectBoxItems, thldFields)
       .call(lbox.updateSelectBox, state.connThldField);
   thldGroup.select('.thld')
       .call(box.updateNumberBox, state.currentConnThld);
@@ -174,33 +171,19 @@ function updateMainControlBox(selection, state) {
 }
 
 
-function nodeColorControlBox(selection, state) {
-  const scaleDefs = {
-    palettes: cscale.colorPalettes,
-    ranges: cscale.colorRangeTypes,
-    presets: cscale.presets,
-    scales: cscale.types.filter(e => e.key !== 'ordinal')
-  };
-  cbox.colorControlBox(selection, state.nodeColor, scaleDefs);
-}
-
-
 function updateNodeColorControlBox(selection, state) {
   const fieldOptions = state.nodes.fields
     .filter(e => misc.sortType(e.format) !== 'none');
-  const notifier = state.updateNodeAttrNotifier;
-  cbox.updateColorControlBox(selection, fieldOptions, state.nodeColor, notifier);
-}
-
-
-function edgeColorControlBox(selection, state) {
-  const scaleDefs = {
-    palettes: cscale.colorPalettes,
-    ranges: cscale.colorRangeTypes,
-    presets: cscale.presets,
-    scales: cscale.types.filter(e => e.key !== 'ordinal')
-  };
-  cbox.colorControlBox(selection, state.edgeColor, scaleDefs);
+  selection
+    .call(cbox.updateColorControlBox, fieldOptions, state.nodeColor)
+    .on('change', function() {
+      state.nodeColor = cbox.colorControlBoxState(selection);
+      if (state.nodeColor.scale === 'ordinal') {
+        const keys = state.nodes.records().map(e => e[state.nodeColor.field]);
+        state.nodeColor.domain = _.uniq(keys).sort();
+      }
+      state.updateNodeAttrNotifier();
+    });
 }
 
 
@@ -208,34 +191,28 @@ function updateEdgeColorControlBox(selection, state) {
   const fieldOptions = state.edges.fields
     .filter(e => misc.sortType(e.format) !== 'none')
     .filter(e => !['source', 'target'].includes(e.key));
-  const notifier = state.updateEdgeAttrNotifier;
-  cbox.updateColorControlBox(selection, fieldOptions, state.edgeColor, notifier);
-}
-
-
-function nodeSizeControlBox(selection, state) {
-  const scaleDefs = {
-    presets: cscale.presets.filter(e => e.scale !== 'ordinal'),
-    scales: cscale.types.filter(e => e.key !== 'ordinal')
-  };
-  cbox.sizeControlBox(selection, state.nodeSize, scaleDefs);
+  selection
+      .call(cbox.updateColorControlBox, fieldOptions, state.edgeColor)
+      .on('change', function() {
+        state.edgeColor = cbox.colorControlBoxState(selection);
+        if (state.edgeColor.scale === 'ordinal') {
+          const keys = state.edges.records().map(e => e[state.edgeColor.field]);
+          state.edgeColor.domain = _.uniq(keys).sort();
+        }
+        state.updateEdgeAttrNotifier();
+      });
 }
 
 
 function updateNodeSizeControlBox(selection, state) {
   const fieldOptions = state.nodes.fields
     .filter(e => misc.sortType(e.format) !== 'none');
-  const notifier = state.updateNodeAttrNotifier;
-  cbox.updateSizeControlBox(selection, fieldOptions, state.nodeSize, notifier);
-}
-
-
-function edgeWidthControlBox(selection, state) {
-  const scaleDefs = {
-    presets: cscale.presets.filter(e => e.scale !== 'ordinal'),
-    scales: cscale.types.filter(e => e.key !== 'ordinal')
-  };
-  cbox.sizeControlBox(selection, state.edgeWidth, scaleDefs);
+  selection
+      .call(cbox.updateSizeControlBox, fieldOptions, state.nodeSize)
+      .on('change', function() {
+        state.nodeSize = cbox.sizeControlBoxState(selection);
+        state.updateNodeAttrNotifier();
+      });
 }
 
 
@@ -243,41 +220,32 @@ function updateEdgeWidthControlBox(selection, state) {
   const fieldOptions = state.edges.fields
     .filter(e => misc.sortType(e.format) !== 'none')
     .filter(e => !['source', 'target'].includes(e.key));
-  const notifier = state.updateEdgeAttrNotifier;
-  cbox.updateSizeControlBox(selection, fieldOptions, state.edgeWidth, notifier);
-}
-
-
-function nodeLabelControlBox(selection, state) {
-  const scaleDefs = {
-    palettes: cscale.colorPalettes,
-    ranges: cscale.colorRangeTypes,
-    presets: cscale.presets,
-    scales: cscale.types.filter(e => e.key !== 'ordinal')
-  };
-  cbox.labelControlBox(
-    selection, state.nodeLabel, state.nodeLabelColor, scaleDefs);
+  selection
+      .call(cbox.updateSizeControlBox, fieldOptions, state.edgeWidth)
+      .on('change', function() {
+        state.edgeWidth = cbox.sizeControlBoxState(selection);
+        state.updateEdgeAttrNotifier();
+      });
 }
 
 
 function updateNodeLabelControlBox(selection, state) {
   const fieldOptions = state.nodes.fields
     .filter(e => misc.sortType(e.format) !== 'none');
-  const notifier = state.updateNodeAttrNotifier;
-  cbox.updateLabelControlBox(
-    selection, fieldOptions, state.nodeLabel, state.nodeLabelColor, notifier);
-}
-
-
-function edgeLabelControlBox(selection, state) {
-  const scaleDefs = {
-    palettes: cscale.colorPalettes,
-    ranges: cscale.colorRangeTypes,
-    presets: cscale.presets,
-    scales: cscale.types.filter(e => e.key !== 'ordinal')
-  };
-  cbox.labelControlBox(
-    selection, state.edgeLabel, state.edgeLabelColor, scaleDefs);
+  selection
+      .call(cbox.updateLabelControlBox, fieldOptions,
+            state.nodeLabel, state.nodeLabelColor)
+      .on('change', function() {
+        const values = cbox.labelControlBoxState(selection);
+        state.nodeLabel = values.label;
+        state.nodeLabelColor = values.labelColor;
+        if (state.nodeLabelColor.scale === 'ordinal') {
+          const keys = state.nodes.records()
+            .map(e => e[state.nodeLabelColor.field]);
+          state.nodeLabelColor.domain = _.uniq(keys).sort();
+        }
+        state.updateNodeAttrNotifier();
+      });
 }
 
 
@@ -285,9 +253,20 @@ function updateEdgeLabelControlBox(selection, state) {
   const fieldOptions = state.edges.fields
     .filter(e => misc.sortType(e.format) !== 'none')
     .filter(e => !['source', 'target'].includes(e.key));
-  const notifier = state.updateEdgeAttrNotifier;
-  cbox.updateLabelControlBox(
-    selection, fieldOptions, state.edgeLabel, state.edgeLabelColor, notifier);
+  selection
+      .call(cbox.updateLabelControlBox, fieldOptions,
+            state.nodeLabel, state.nodeLabelColor)
+      .on('change', function() {
+        const values = cbox.labelControlBoxState(selection);
+        state.edgeLabel = values.label;
+        state.edgeLabelColor = values.labelColor;
+        if (state.edgeLabelColor.scale === 'ordinal') {
+          const keys = state.edges.records()
+            .map(e => e[state.edgeLabelColor.field]);
+          state.edgeLabelColor.domain = _.uniq(keys).sort();
+        }
+        state.updateEdgeAttrNotifier();
+      });
 }
 
 
@@ -319,7 +298,7 @@ function controlBox(selection, state) {
   content.append('div')
       .classed('control-color', true)
       .call(cbox.controlBoxItem, 'control-color')
-      .call(nodeColorControlBox, state);
+      .call(cbox.colorControlBox, cscale.colorScales);
 
   // Size
   tabs.append('a')
@@ -327,7 +306,7 @@ function controlBox(selection, state) {
   content.append('div')
       .classed('control-size', true)
       .call(cbox.controlBoxItem, 'control-size')
-      .call(nodeSizeControlBox, state);
+      .call(cbox.sizeControlBox);
 
   // Label
   tabs.append('a')
@@ -335,7 +314,7 @@ function controlBox(selection, state) {
   content.append('div')
       .classed('control-label', true)
       .call(cbox.controlBoxItem, 'control-label')
-      .call(nodeLabelControlBox, state);
+      .call(cbox.labelControlBox, cscale.colorScales);
 
   // Edge color
   tabs.append('a')
@@ -343,7 +322,7 @@ function controlBox(selection, state) {
   content.append('div')
       .classed('control-edgecolor', true)
       .call(cbox.controlBoxItem, 'control-edgecolor')
-      .call(edgeColorControlBox, state);
+      .call(cbox.colorControlBox, cscale.colorScales);
 
   // Edge width
   tabs.append('a')
@@ -351,7 +330,7 @@ function controlBox(selection, state) {
   content.append('div')
       .classed('control-edgewidth', true)
       .call(cbox.controlBoxItem, 'control-edgewidth')
-      .call(edgeWidthControlBox, state);
+      .call(cbox.sizeControlBox);
 
   // Edge label
   tabs.append('a')
@@ -359,7 +338,8 @@ function controlBox(selection, state) {
   content.append('div')
       .classed('control-edgelabel', true)
       .call(cbox.controlBoxItem, 'control-edgelabel')
-      .call(edgeLabelControlBox, state);
+      .call(cbox.labelControlBox, cscale.colorScales);
+
   state.updateControlBoxNotifier = () => {
     selection.call(updateControlBox, state);
   };

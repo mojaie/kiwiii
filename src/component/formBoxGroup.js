@@ -3,92 +3,118 @@
 
 import d3 from 'd3';
 
-import {default as box} from '../component/formBox.js';
-import {default as lbox} from '../component/formListBox.js';
-import {default as rbox} from '../component/formRangeBox.js';
-import {default as scaledef} from '../common/scale.js';
+import {default as misc} from '../common/misc.js';
+
+import {default as box} from './formBox.js';
+import {default as lbox} from './formListBox.js';
+import {default as rbox} from './formRangeBox.js';
 
 
 /**
  * Render color range control box group
  * @param {d3.selection} selection - selection of box container (div element)
  */
-function colorRangeGroup(selection, palettes, rangeTypes, range, unknown) {
-  const rtype = scaledef.colorRangeTypes.find(e => e.size === range.length).key;
+function colorRangeGroup(selection, colorScales) {
   selection
       .classed('mb-3', true);
   selection.append('div')
-      .classed('palette', true)
-      .classed('mb-1', true)
-      .call(lbox.selectBox, 'Color palette', palettes, '');
+      .classed('colorscale', true)
+      .classed('mb-2', true)
+      .call(lbox.colorScaleBox, 'Colorscale')
+      .call(lbox.colorScaleBoxItems, colorScales);
+
+  // Custom colorscale
+  const id = misc.uuidv4().slice(0, 8);
   selection.append('div')
+      .classed('form-row', true)
+      .classed('justify-content-end', true)
+    .append('button')
+      .classed('btn', true)
+      .classed('btn-sm', true)
+      .classed('btn-outline-primary', true)
+      .classed('dropdown-toggle', true)
+      .attr('data-toggle', 'collapse')
+      .attr('data-target', `#${id}-collapse`)
+      .attr('aria-expanded', 'false')
+      .attr('aria-controls', `${id}-collapse`)
+      .text('Custom colorscale');
+  const collapse = selection.append('div')
+      .classed('collapse', true)
+      .attr('id', `${id}-collapse`)
+    .append('div')
+      .classed('card', true)
+      .classed('card-body', true)
+      .classed('p-2', true);
+  const customColorRanges = [
+    {key: 'continuous', name: 'Continuous'},
+    {key: 'two-piece', name: 'Two-piece'}
+  ];
+  collapse.append('div')
       .classed('rangetype', true)
       .classed('mb-1', true)
-      .call(lbox.selectBox, 'Range type', rangeTypes, rtype);
-  selection.append('div')
+      .call(lbox.selectBox, 'Range type')
+      .call(lbox.selectBoxItems, customColorRanges);
+  collapse.append('div')
       .classed('range', true)
       .classed('mb-1', true)
-      .call(rbox.colorScaleBox, 'Range', range);
-  selection.append('div')
+      .call(rbox.colorRangeBox, 'Range');
+  collapse.append('div')
       .classed('unknown', true)
       .classed('mb-1', true)
-      .call(box.colorBox, 'Unknown', unknown);
-  selection.call(updateColorRangeGroup, range, unknown);
+      .call(box.colorBox, 'Unknown');
 }
 
 
-function updateColorRangeGroup(selection, range, unknown) {
-  selection.select('.palette')
-      .call(
-        lbox.updateSelectBox,
-        scaledef.colorRangeTypes.find(e => e.size === range.length).key
-      )
+function updateColorRangeGroup(selection, cscale, range, unknown) {
+  const customRange = () => {
+    const cs = lbox.colorScaleBoxValue(selection.select('.colorscale'));
+    const rg = lbox.selectBoxValue(selection.select('.rangetype'));
+    const customScale = cs === 'custom';
+    selection.selectAll('.rangetype, .range, .unknown')
+        .selectAll('select, input')
+        .property('disabled', !customScale)
+        .style('opacity',  customScale ? null : 0.3);
+    selection.select('.range').select('.mid')
+        .property('disabled', !customScale || rg === 'continuous')
+        .style('opacity', customScale && rg !== 'continuous' ? null : 0.3);
+  };
+  selection.select('.colorscale')
+      .call(lbox.updateColorScaleBox, cscale)
       .on('change', function () {
-        const value = lbox.selectBoxValue(d3.select(this));
-        const p = scaledef.colorPalettes.find(e => e.key === value);
-        const t = scaledef.colorRangeTypes.find(e => e.size === p.range.length);
-        selection.select('.rangetype').call(lbox.updateSelectBox, t.key);
-        selection.select('.range').call(rbox.updateColorScaleBox, p.range);
+        customRange();
       });
+  const rtype = range.length === 2 ? 'continuous' : 'two-piece';
   selection.select('.rangetype')
-      // TODO: set color range type .call(lbox.updateSelectBox, range)
+      .call(lbox.updateSelectBox, rtype)
       .on('change', function () {
-        const value = lbox.selectBoxValue(d3.select(this));
-        const size = scaledef.colorRangeTypes.find(e => e.key === value).size;
-        selection.select('.range').select('.min')
-            .property('disabled', size > 3)
-            .style('opacity', size <= 3 ? null : 0.3);
-        selection.select('.range').select('.mid')
-            .property('disabled', size !== 3)
-            .style('opacity', size === 3 ? null : 0.3);
-        selection.select('.range').select('.max')
-            .property('disabled', size > 3)
-            .style('opacity', size <= 3 ? null : 0.3);
-      });
+        customRange();
+      })
+      .dispatch('change');
+  const rboxValues = range.length === 2  ? [range[0], null, range[1]] : range;
   selection.select('.range')
-      .call(rbox.updateColorScaleBox, range)
+      .call(rbox.updateColorRangeBox, rboxValues)
       .on('focusin', () => {
-        selection.dispatch('change');
+        selection.dispatch('change', {bubbles: true});
       });
   selection.select('.unknown')
       .call(box.updateColorBox, unknown)
       .on('focusin', () => {
-        selection.dispatch('change');
+        selection.dispatch('change', {bubbles: true});
       });
 }
 
 
 function colorRangeGroupValue(selection) {
-  const type = lbox.selectBoxValue(selection.select('.rangetype'));
-  const range = rbox.colorScaleBoxValue(selection.select('.range'));
+  const colorScale = lbox.colorScaleBoxItem(selection.select('.colorscale'));
+  const rtype = lbox.selectBoxValue(selection.select('.rangetype'));
+  const range = rbox.colorRangeBoxValues(selection.select('.range'));
   const unknown = box.colorBoxValue(selection.select('.unknown'));
-  const rvalue = range.length
-    ? range : scaledef.colorRangeTypes.find(e => e.key === type).range;
   return {
-    range: rvalue,
+    color: colorScale.key,
+    colorScaleType: colorScale.type,
+    range: rtype === 'continuous' ? [range[0], range[2]] : range,
     unknown: unknown
   };
-
 }
 
 
@@ -96,60 +122,68 @@ function colorRangeGroupValue(selection) {
  * Render scale and domain control box group
  * @param {d3.selection} selection - selection of box container (div element)
  */
-function scaleBoxGroup(selection, presets, scaleTypes, scale, domain) {
+function scaleBoxGroup(selection) {
+  const scaleOptions = [
+    {key: 'linear', name: 'Linear'},
+    {key: 'log', name: 'Log'}
+  ];
   selection
       .classed('mb-3', true);
   selection.append('div')
-      .classed('preset', true)
-      .classed('mb-1', true)
-      .call(lbox.selectBox, 'Scale preset', presets, '');
-  selection.append('div')
       .classed('scale', true)
       .classed('mb-1', true)
-      .call(lbox.selectBox, 'Scale type', scaleTypes, scale);
+      .call(lbox.selectBox, 'Scale')
+      .call(lbox.selectBoxItems, scaleOptions);
   selection.append('div')
       .classed('domain', true)
       .classed('mb-1', true)
-      .call(rbox.rangeBox, 'Domain', domain);
-  selection.call(updateScaleBoxGroup, scale, domain);
+      .call(rbox.rangeBox, 'Domain');
 }
 
 
 function updateScaleBoxGroup(selection, scale, domain) {
-  selection.select('.preset')
-    .on('change', function () {
-      const value = lbox.selectBoxValue(d3.select(this));
-      const p = scaledef.presets.find(e => e.key == value);
-      selection.select('.scale').call(lbox.updateSelectBox, p.scale);
-      selection.select('.domain').call(rbox.updateRangeBox, p.domain);
-    });
   selection.select('.scale')
-      .call(lbox.updateSelectBox, scale)
-      .on('change', () => {
-        selection.select('.domain').dispatch('change');
-      });
+      .call(lbox.updateSelectBox, scale);
   selection.select('.domain')
       .call(rbox.updateRangeBox, domain)
-      .on('change', function () {
-        const isLog = lbox.selectBoxValue(selection.select('.scale')) === 'log';
-        const domain = rbox.rangeBoxValue(d3.select(this));
-        const invalid = d => isNaN(d) || (isLog && d <= 0);
-        d3.select(this).select('.min')
-            .style('background-color', invalid(domain[0]) ? '#ffcccc' : '#ffffff');
-        d3.select(this).select('.max')
-            .style('background-color', invalid(domain[1]) ? '#ffcccc' : '#ffffff');
+      .on('input', function () {
+        scaleBoxGroupValid(selection);
       });
+  selection.selectAll('.scale, .domain')
+      .on('change', function () {
+        if (!scaleBoxGroupValid(selection)) {
+          d3.event.stopPropagation();
+        }
+      });
+}
+
+
+function scaleBoxGroupValid(selection) {
+  if (!rbox.rangeBoxValid(selection.select('.domain'))) return false;
+  if (lbox.selectBoxValue(selection.select('.scale')) === 'linear') return true;
+  const values = rbox.rangeBoxValues(selection.select('.domain'));
+  selection.select('.domain').select('.min')
+      .style('background-color', values[0] > 0 ? '#ffffff' : '#ffcccc');
+  selection.select('.domain').select('.max')
+      .style('background-color', values[1] > 0 ? '#ffffff' : '#ffcccc');
+  const validScale = lbox.selectBoxValue(selection.select('.scale')) !== '';
+    selection.select('.scale').select('select')
+        .style('background-color', validScale ? '#ffffff' : '#ffcccc');
+  return values[0] > 0 && values[1] > 0 && validScale;
 }
 
 
 function scaleBoxGroupValue(selection) {
   const scale = lbox.selectBoxValue(selection.select('.scale'));
-  const domain = rbox.rangeBoxValue(selection.select('.domain'));
-  return {scale: scale, domain: domain};
+  const domain = rbox.rangeBoxValues(selection.select('.domain'));
+  return {
+    scale: scale || 'linear', 
+    domain: domain
+  };
 }
 
 
 export default {
   colorRangeGroup, updateColorRangeGroup, colorRangeGroupValue,
-  scaleBoxGroup, updateScaleBoxGroup, scaleBoxGroupValue
+  scaleBoxGroup, updateScaleBoxGroup, scaleBoxGroupValue, scaleBoxGroupValid
 };

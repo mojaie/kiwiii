@@ -58,40 +58,42 @@ function updateEdges(selection, records) {
 
 
 function updateNodeAttrs(selection, state) {
-  selection.selectAll('.node')
-    .each(function (d) {
-      const color = scale.scaleFunction(state.nodeColor)(d[state.nodeColor.field]);
-      const size = scale.scaleFunction(state.nodeSize)(d[state.nodeSize.field]);
-      const labelColor = scale.scaleFunction(state.nodeLabelColor)(d[state.nodeLabelColor.field]);
-      d3.select(this).select('.node-symbol')
-          .attr('r', size)
-          .style('fill', color);
-      d3.select(this).select('.node-label')
-          .text(d => {
-            if (state.nodeLabel.field === null) return '';
-            const field = state.nodes.fields.find(e => e.key === state.nodeLabel.field);
-            if (field.format === 'd3_format') {
-              return misc.formatNum(d[state.nodeLabel.field], field.d3_format);
-            }
-            return d[state.nodeLabel.field];
-          })
-          .attr('font-size', state.nodeLabel.size)
-          .attr('y', parseFloat(size) + parseInt(state.nodeLabel.size))
-          .attr('visibility', state.nodeLabel.visible ? 'inherit' : 'hidden')
-          .style('fill', labelColor);
-    });
+  const colorConv = scale.scaleFunction(state.nodeColor);
+  const sizeConv = scale.scaleFunction(state.nodeSize);
+  const labelColorConv = scale.scaleFunction(state.nodeLabelColor);
+  const textConv = value => {
+    if (state.nodeLabel.field === null) return '';
+    const field = state.nodes.fields
+      .find(e => e.key === state.nodeLabel.field);
+    if (field.format === 'd3_format') {
+      return misc.formatNum(value, field.d3_format);
+    }
+    return value;
+  };
+  selection.selectAll('.node').select('.node-symbol')
+      .attr('r', d => sizeConv(d[state.nodeSize.field]))
+      .style('fill', d => colorConv(d[state.nodeColor.field]));
+  selection.selectAll('.node').select('.node-label')
+      .attr('font-size', state.nodeLabel.size)
+      .attr('y', d => parseFloat(sizeConv(d[state.nodeSize.field]))
+             + parseInt(state.nodeLabel.size))
+      .attr('visibility', state.nodeLabel.visible ? 'inherit' : 'hidden')
+      .style('fill', d => labelColorConv(d[state.nodeLabelColor.field]))
+      .text(d => textConv(d[state.nodeLabel.field]));
 }
 
 
 function updateEdgeAttrs(selection, state) {
+  const colorConv = scale.scaleFunction(state.edgeColor);
+  const widthConv = scale.scaleFunction(state.edgeWidth);
+  const labelColorConv = scale.scaleFunction(state.edgeLabelColor);
   selection.selectAll('.link').select('.edge-line')
-    .style('stroke',
-           d => scale.scaleFunction(state.edgeColor)(d[state.edgeColor.field]))
-    .style('stroke-width',
-           d => scale.scaleFunction(state.edgeWidth)(d[state.edgeWidth.field]));
+    .style('stroke', d => colorConv(d[state.edgeColor.field]))
+    .style('stroke-width', d => widthConv(d[state.edgeWidth.field]));
   selection.selectAll('.link').select('.edge-label')
-    .attr('visibility', state.edgeLabel.visible ? 'inherit' : 'hidden')
     .attr('font-size', state.edgeLabel.size)
+    .attr('visibility', state.edgeLabel.visible ? 'inherit' : 'hidden')
+    .style('fill', d => labelColorConv(d[state.edgeLabelColor.field]))
     .text(d => d[state.edgeLabel.field]);
 }
 

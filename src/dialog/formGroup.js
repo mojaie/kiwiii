@@ -4,6 +4,7 @@
 import d3 from 'd3';
 
 import {default as fetcher} from '../common/fetcher.js';
+import {default as misc} from '../common/misc.js';
 
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
@@ -14,30 +15,30 @@ import {default as lbox} from '../component/formListBox.js';
  * Render color range control box group
  * @param {d3.selection} selection - selection of box container (div element)
  */
-function queryMolGroup(selection, resources) {
+function queryMolGroup(selection) {
   selection
       .classed('mb-3', true);
   selection.append('div')
       .classed('format', true)
       .classed('mb-1', true)
-      .call(lbox.selectBox, 'Format',
+      .call(lbox.selectBox, 'Format')
+      .call(lbox.selectBoxItems,
             [
               {key: 'molfile', name: 'MDL Molfile'},
               {key: 'dbid', name: 'Compound ID'}
-            ], 'molfile');
-  const res = resources.map(d => ({key: d.id, name: d.name}));
+            ]);
   selection.append('div')
       .classed('source', true)
       .classed('mb-1', true)
-      .call(lbox.selectBox, 'Source', res, null);
+      .call(lbox.selectBox, 'Source');
   selection.append('div')
       .classed('textquery', true)
       .classed('mb-1', true)
-      .call(box.textBox, 'Query', '');
+      .call(box.textBox, 'Query');
   selection.append('div')
       .classed('areaquery', true)
       .classed('mb-1', true)
-      .call(box.textareaBox, 'Query', 6, null, '');
+      .call(box.textareaBox, 'Query', 6, null);
   // Popover
   $(function () {
     $('[data-toggle="popover"]')
@@ -52,37 +53,43 @@ function queryMolGroup(selection, resources) {
       .attr('data-html', 'true')
       .attr('data-content', '<div id="previmg"></div>')
       .call(button.menuButton, 'Structure preview', 'primary');
-  selection.call(updateQueryMolGroup);
 }
 
-function updateQueryMolGroup(selection) {
+function updateQueryMolGroup(selection, resources) {
   selection.select('.format')
-    .on('change', function () {
-      const value = lbox.selectBoxValue(d3.select(this));
-      selection.select('.source')
-        .select('select')
-          .property('disabled', value !== 'dbid');
-      selection.select('.textquery')
-          .property('hidden', value !== 'dbid');
-      selection.select('.areaquery')
-          .property('hidden', value !== 'molfile');
-    })
-    .dispatch('change');
+      .call(lbox.updateSelectBox, 'molfile')
+      .on('change', function () {
+        const value = lbox.selectBoxValue(d3.select(this));
+        selection.select('.source')
+          .select('select')
+            .property('disabled', value !== 'dbid');
+        selection.select('.textquery')
+            .property('hidden', value !== 'dbid');
+        selection.select('.areaquery')
+            .property('hidden', value !== 'molfile');
+      })
+      .dispatch('change');
+  const res = resources.map(d => ({key: d.id, name: d.name}));
+  selection.select('.source')
+      .call(lbox.selectBoxItems, res)
+      .call(lbox.updateSelectBox, null);
   selection.select('.preview')
-    .on('click', function () {
-      const query = queryMolGroupValue(selection);
-      return fetcher.get('strprev', query)
-        .then(fetcher.text)
-        .then(res => d3.select('#previmg').html(res), fetcher.error);
-    });
+      .on('click', function () {
+        const query = queryMolGroupValue(selection);
+        return fetcher.get('strprev', query)
+          .then(fetcher.text)
+          .then(res => d3.select('#previmg').html(res), fetcher.error);
+      });
   selection.select('.textquery')
-    .on('input', function() {
-      selection.dispatch('validate');
-    });
+      .call(box.updateTextBox, '')
+      .on('input', function() {
+        selection.dispatch('validate');
+      });
   selection.select('.areaquery')
-    .on('input', function() {
-      selection.dispatch('validate');
-    });
+      .call(box.updateTextareaBox, '')
+      .on('input', function() {
+        selection.dispatch('validate');
+      });
 }
 
 function queryMolGroupValue(selection) {
@@ -105,7 +112,8 @@ function queryMolGroupValid(selection) {
 }
 
 
-function simOptionGroup(selection, id) {
+function simOptionGroup(selection) {
+  const id = misc.uuidv4().slice(0, 8);
   selection
       .classed('mb-3', true)
     .append('p')
@@ -128,15 +136,15 @@ function simOptionGroup(selection, id) {
   collapse.append('div')
       .classed('ignoreh', true)
       .classed('mb-1', true)
-      .call(box.checkBox, 'Ignore explicit hydrogens', true);
+      .call(box.checkBox, 'Ignore explicit hydrogens');
   collapse.append('div')
       .classed('timeout', true)
       .classed('mb-1', true)
-      .call(box.numberBox, 'Timeout', 1, 999, 1, 2);
+      .call(box.numberBox, 'Timeout', 1, 999, 1);
   collapse.append('div')
       .classed('diam', true)
       .classed('mb-1', true)
-      .call(box.numberBox, 'Diameter (MCS-DR/GLS)', 4, 999, 1, 8);
+      .call(box.numberBox, 'Diameter (MCS-DR/GLS)', 4, 999, 1);
   collapse.selectAll('label.col-form-label')
       .classed('col-4', false)
       .classed('col-6', true);
@@ -144,6 +152,17 @@ function simOptionGroup(selection, id) {
       .classed('col-8', false)
       .classed('col-6', true);
 }
+
+
+function updateSimOptionGroup(selection) {
+  selection.select('.ignoreh')
+      .call(box.updateCheckBox, true);
+  selection.select('.timeout')
+      .call(box.updateNumberBox, 2);
+  selection.select('.diam')
+      .call(box.updateNumberBox, 8);
+}
+
 
 function simOptionGroupValue(selection) {
   const timeout = selection.select('.timeout');
@@ -163,5 +182,5 @@ function simOptionGroupValue(selection) {
 
 export default {
   queryMolGroup, updateQueryMolGroup, queryMolGroupValue, queryMolGroupValid,
-  simOptionGroup, simOptionGroupValue
+  simOptionGroup, updateSimOptionGroup, simOptionGroupValue
 };

@@ -1,11 +1,11 @@
 
 /** @module networkApp */
 
+import _ from 'lodash';
 import d3 from 'd3';
 
 import {default as idb} from './common/idb.js';
 import {default as misc} from './common/misc.js';
-import {default as scale} from './common/scale.js';
 import {default as sw} from './common/sw.js';
 
 import {default as button} from './component/button.js';
@@ -41,13 +41,14 @@ function app(view, nodes, edges) {
   menu.append('a').call(communityDialog.menuLink);
   menu.append('a').call(renameDialog.menuLink);
   menu.append('a')
-      .call(button.dropdownMenuItem, 'Save', 'save')
+      .call(button.dropdownMenuItem, 'Save', 'menu-save')
       .on('click', function () {
         state.save().then(() => console.info('Snapshot saved'));
       });
   // Dashboard link
   menubar.append('a')
-      .call(button.menuButtonLink, 'Dashboard', 'outline-secondary', 'db-gray')
+      .call(button.menuButtonLink, 'Dashboard',
+            'outline-secondary', 'status-gray')
       .attr('href', 'dashboard.html')
       .attr('target', '_blank');
   // Fetch control
@@ -79,13 +80,10 @@ function app(view, nodes, edges) {
       .call(communityDialog.body);
   dialogs.append('div')
       .classed('renamed', true)
-      .call(renameDialog.body, state.name);
+      .call(renameDialog.body);
   dialogs.append('div')
       .classed('abortd', true)
-      .call(
-        modal.confirmDialog, 'abort-dialog',
-        'Are you sure you want to abort this calculation job?'
-      );
+      .call(modal.confirmDialog, 'abort-dialog');
 
   // Force simulation
   const simulation = force.forceSimulation(
@@ -118,6 +116,8 @@ function app(view, nodes, edges) {
 
 
 function updateApp(state) {
+  d3.select('#loading-icon').style('display', 'none');
+
   // Title
   d3.select('title').text(state.name);
   d3.select('#menubar').select('.title').text(state.name);
@@ -162,17 +162,14 @@ function updateApp(state) {
           mapping: comm
         };
         state.nodes.joinFields(mapping);
-        const defaultScale = scale.colorRangeTypes
-          .find(e => e.key === 'category40');
+        const catKeys = state.nodes.records().map(e => e[value.name]);
         state.nodeColor = {
-          field: value.name, scale: 'ordinal', domain: [0, 1],
-          range: defaultScale.range, unknown: defaultScale.unknown
+          field: value.name, color: 'category40',
+          scale: 'ordinal', domain: _.uniq(catKeys).sort(),
+          range: ['#7fffd4', '#7fffd4'], unknown: '#7fffd4'
         };
-        $('#community-dialog').modal('hide');  // TODO:
-        d3.select('#loading-icon').style('display', 'none');
         state.updateAllNotifier();
         updateApp(state);
-        // app(state.export(), state.nodes.export(), state.edges.export());
       });
 
   // Rename dialog
@@ -185,6 +182,8 @@ function updateApp(state) {
 
   // Abort dialog
   dialogs.select('.abortd')
+      .call(modal.updateConfirmDialog,
+            'Are you sure you want to abort this calculation job?')
       .on('submit', function () {
         state.edges.abort().then(() => {
           state.updateAllNotifier();

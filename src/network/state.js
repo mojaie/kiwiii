@@ -33,98 +33,97 @@ export default class NetworkState extends TransformState {
     this.nodes = new Collection(nodes);
     this.edges = new Collection(edges);
 
-
     /* Appearance */
+    const defaultNodeField = this.nodes.fields[0].key || null;
+    const fillIfNull = (obj, updater) => {
+      Object.entries(updater).forEach(e => {
+        if (!obj.hasOwnProperty(e[0])) {
+          obj[e[0]] = e[1];
+        }
+      });
+    };
 
-    this.nodeColor = {
-      field: null, scale: 'linear', domain: [0, 1],
+    this.nodeColor = {};
+    const defaultNodeColor = {
+      field: defaultNodeField, color: 'nodeDefault',
+      scale: 'linear', domain: [0, 1],
       range: ['#7fffd4', '#7fffd4'], unknown: '#7fffd4'
     };
     if (view.hasOwnProperty('nodeColor')) {
-      this.nodeColor.field = view.nodeColor.field;
-      this.nodeColor.scale = view.nodeColor.scale;
-      this.nodeColor.domain = view.nodeColor.domain;
-      this.nodeColor.range = view.nodeColor.range;
-      this.nodeColor.unknown = view.nodeColor.unknown;
+      this.nodeColor = view.nodeColor;
     }
+    fillIfNull(this.nodeColor, defaultNodeColor);
 
-    this.nodeSize = {
-      field: null, scale: 'linear', domain: [1, 1],
+    this.nodeSize = {};
+    const defaultNodeSize = {
+      field: defaultNodeField, scale: 'linear', domain: [1, 1],
       range: [40, 40], unknown: 40
     };
     if (view.hasOwnProperty('nodeSize')) {
-      this.nodeSize.field = view.nodeSize.field;
-      this.nodeSize.scale = view.nodeSize.scale;
-      this.nodeSize.domain = view.nodeSize.domain;
-      this.nodeSize.range = view.nodeSize.range;
-      this.nodeSize.unknown = view.nodeSize.unknown;
+      this.nodeSize = view.nodeSize;
     }
+    fillIfNull(this.nodeSize, defaultNodeSize);
 
-    this.nodeLabel = {
-      field: null, size: 12, visible: false
+    this.nodeLabel = {};
+    const defaultNodeLabel = {
+      field: defaultNodeField, size: 20, visible: false
     };
     if (view.hasOwnProperty('nodeLabel')) {
-      this.nodeLabel.field = view.nodeLabel.field;
-      this.nodeLabel.size = view.nodeLabel.size;
-      this.nodeLabel.visible = view.nodeLabel.visible;
+      this.nodeLabel = view.nodeLabel;
     }
+    fillIfNull(this.nodeLabel, defaultNodeLabel);
 
-    this.nodeLabelColor = {
-      field: null, scale: 'linear', domain: [1, 1],
-      range: ['#cccccc', '#cccccc'], unknown: '#cccccc'
+    this.nodeLabelColor = {};
+    const defaultNodeLabelColor = {
+      field: defaultNodeField, color: 'monoblack',
+      scale: 'linear', domain: [1, 1],
+      range: ['#333333', '#333333'], unknown: '#cccccc'
     };
     if (view.hasOwnProperty('nodeLabelColor')) {
-      this.nodeLabelColor.field = view.nodeLabelColor.field;
-      this.nodeLabelColor.scale = view.nodeLabelColor.scale;
-      this.nodeLabelColor.domain = view.nodeLabelColor.domain;
-      this.nodeLabelColor.range = view.nodeLabelColor.range;
-      this.nodeLabelColor.unknown = view.nodeLabelColor.unknown;
+      this.nodeLabelColor = view.nodeLabelColor;
     }
+    fillIfNull(this.nodeLabelColor, defaultNodeLabelColor);
 
-    this.edgeColor = {
-      field: null, scale: 'linear', domain: [0, 1],
-      range: ['#999999', '#999999'], unknown: '#999999'
+    this.edgeColor = {};
+    const defaultEdgeColor = {
+      field: 'weight', color: 'monogray',
+      scale: 'linear', domain: [0, 1],
+      range: ['#999999', '#999999'], unknown: '#cccccc'
     };
     if (view.hasOwnProperty('edgeColor')) {
-      this.edgeColor.field = view.edgeColor.field;
-      this.edgeColor.scale = view.edgeColor.scale;
-      this.edgeColor.domain = view.edgeColor.domain;
-      this.edgeColor.range = view.edgeColor.range;
-      this.edgeColor.unknown = view.edgeColor.unknown;
+      this.edgeColor = view.edgeColor;
     }
+    fillIfNull(this.edgeColor, defaultEdgeColor);
 
-    this.edgeWidth = {
+    this.edgeWidth = {};
+    const defaultEdgeWidth = {
       field: 'weight', scale: 'linear', domain: [0.5, 1],
       range: [10, 10], unknown: 1
     };
     if (view.hasOwnProperty('edgeWidth')) {
-      this.edgeWidth.field = view.edgeWidth.field;
-      this.edgeWidth.scale = view.edgeWidth.scale;
-      this.edgeWidth.domain = view.edgeWidth.domain;
-      this.edgeWidth.range = view.edgeWidth.range;
-      this.edgeWidth.unknown = view.edgeWidth.unknown;
+      this.edgeWidth = view.edgeWidth;
     }
+    fillIfNull(this.edgeWidth, defaultEdgeWidth);
 
-    this.edgeLabel = {
+    this.edgeLabel = {};
+    const defaultEdgeLabel = {
       field: 'weight', size: 12, visible: false
     };
     if (view.hasOwnProperty('edgeLabel')) {
-      this.edgeLabel.field = view.edgeLabel.field;
-      this.edgeLabel.size = view.edgeLabel.size;
-      this.edgeLabel.visible = view.edgeLabel.visible;
+      this.edgeLabel = view.edgeLabel;
     }
+    fillIfNull(this.edgeLabel, defaultEdgeLabel);
 
-    this.edgeLabelColor = {
-      field: null, scale: 'linear', domain: [1, 1],
-      range: ['#cccccc', '#cccccc'], unknown: '#cccccc'
+    this.edgeLabelColor = {};
+    const defaultEdgeLabelColor = {
+      field: 'weight', color: 'monoblack',
+      scale: 'linear', domain: [1, 1],
+      range: ['#333333', '#333333'], unknown: '#cccccc'
     };
     if (view.hasOwnProperty('edgeLabelColor')) {
-      this.edgeLabelColor.field = view.edgeLabelColor.field;
-      this.edgeLabelColor.scale = view.edgeLabelColor.scale;
-      this.edgeLabelColor.domain = view.edgeLabelColor.domain;
-      this.edgeLabelColor.range = view.edgeLabelColor.range;
-      this.edgeLabelColor.unknown = view.edgeLabelColor.unknown;
+      this.edgeLabelColor = view.edgeLabelColor;
     }
+    fillIfNull(this.edgeLabelColor, defaultEdgeLabelColor);
 
     // Connection threshold
     this.connThldField = view.connThldField || 'weight';
@@ -261,9 +260,7 @@ export default class NetworkState extends TransformState {
   }
 
   export() {
-    this.coords = this.ns.map(e => ({x: e.x, y: e.y}));
-    // TODO: need deep copy?
-    return JSON.parse(JSON.stringify({
+    return {
       $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
       viewID: this.viewID,
       name: this.name,
@@ -277,11 +274,12 @@ export default class NetworkState extends TransformState {
       edgeColor: this.edgeColor,
       edgeWidth: this.edgeWidth,
       edgeLabel: this.edgeLabel,
+      edgeLabelColor: this.edgeLabelColor,
       connThldField: this.connThldField,
       currentConnThld: this.currentConnThld,
       minConnThld: this.minConnThld,
       fieldTransform: this.transform,
-      coords: this.coords
-    }));
+      coords: this.ns.map(e => ({x: e.x, y: e.y}))
+    };
   }
 }

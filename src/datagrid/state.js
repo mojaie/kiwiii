@@ -166,7 +166,7 @@ export default class DatagridState {
   }
 
   save() {
-    idb.updateItem(this.storeID, item => {
+    return idb.updateItem(this.storeID, item => {
       const ci = item.dataset
         .findIndex(e => e.collectionID === this.rows.collectionID);
       item.dataset[ci] = this.rows.export();

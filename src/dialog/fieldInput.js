@@ -14,7 +14,7 @@ const title = 'Append input field';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, title, id, 'addcheckbox');
+  selection.call(button.dropdownMenuModal, title, id, 'menu-addcheckbox');
 }
 
 
@@ -23,14 +23,15 @@ function body(selection) {
   const body = dialog.select('.modal-body');
   body.append('div')
       .classed('key', true)
-      .call(box.textBox, 'Field key', null);
+      .call(box.textBox, 'Field key');
   const options = [
     {key: 'checkbox', name: 'Checkbox'},
     {key: 'text_field', name: 'Text field'}
   ];
   body.append('div')
       .classed('type', true)
-      .call(lbox.selectBox, 'Type', options, 'checkbox');
+      .call(lbox.selectBox, 'Type')
+      .call(lbox.selectBoxItems, options);
 
 }
 

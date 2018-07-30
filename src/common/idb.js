@@ -80,6 +80,7 @@ function importItem(data) {
  */
 function newDatagrid(response) {
   const now = new Date();
+  const date = now.toLocaleString('en-GB', { timeZone: 'Asia/Tokyo'});
   const storeID = misc.uuidv4().slice(0, 8);
   const viewID = misc.uuidv4().slice(0, 8);
   const collectionID = response.workflowID.slice(0, 8);
@@ -95,7 +96,7 @@ function newDatagrid(response) {
         viewType: "datagrid",
         rows: collectionID,
         checkpoints: [
-          {type: 'creation', date: now.toString()}
+          {type: 'creation', date: date}
         ]
       }
     ],
@@ -106,7 +107,7 @@ function newDatagrid(response) {
         contents: [response]
       }
     ],
-    sessionStarted: now.toString()
+    sessionStarted: date
   };
   return idb.items.put(data)
     .then(() => ({storeID: storeID, viewID:viewID}));

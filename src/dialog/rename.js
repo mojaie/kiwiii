@@ -13,15 +13,15 @@ const title = 'Rename';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, title, id, 'edittext');
+  selection.call(button.dropdownMenuModal, title, id, 'menu-edittext');
 }
 
 
-function body(selection, name) {
+function body(selection) {
   selection.call(modal.submitDialog, id, title)
     .select('.modal-body').append('div')
       .classed('rename', true)
-      .call(box.textBox, 'New name', name);
+      .call(box.textBox, 'New name');
 }
 
 

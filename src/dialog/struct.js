@@ -17,16 +17,45 @@ const title = 'Search by structure';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, title, id, 'searchchem');
+  selection.call(button.dropdownMenuModal, title, id, 'menu-searchchem');
 }
 
 
-function body(selection, resources, rdk) {
+function body(selection) {
   const dialog = selection.call(modal.submitDialog, id, title);
   // Query molecule
   dialog.select('.modal-body').append('div')
       .classed('qmol', true)
-      .call(group.queryMolGroup, resources);
+      .call(group.queryMolGroup);
+  dialog.select('.modal-body').append('div')
+      .classed('method', true)
+      .call(lbox.selectBox, 'Method');
+  // Measure
+  dialog.select('.modal-body').append('div')
+      .classed('measure', true)
+      .call(lbox.selectBox, 'Measure')
+      .call(lbox.selectBoxItems, [
+              {key: 'sim', name: 'Similarity'},
+              {key: 'edge', name: 'Edge count'}
+            ]);
+  // Threshold
+  dialog.select('.modal-body').append('div')
+      .classed('thld', true)
+      .call(box.numberBox, 'Threshold', 0.5, 1, 0.01);
+  // Similarity search options
+  dialog.select('.modal-body').append('div')
+      .classed('option', true)
+      .call(group.simOptionGroup);
+  // Targets
+  dialog.select('.modal-body').append('div')
+      .classed('target', true)
+      .call(lbox.checklistBox, 'Target databases');
+}
+
+
+function updateBody(selection, resources, rdk) {
+  selection.select('.qmol')
+      .call(group.updateQueryMolGroup, resources);
   // Search type
   const methodList = [
     {key: 'exact', name: 'Exact match'},
@@ -38,60 +67,46 @@ function body(selection, resources, rdk) {
     methodList.push({key: 'rdmorgan', name: 'RDKit Morgan similarity'});
     methodList.push({key: 'rdfmcs', name: 'RDKit FMCS'});
   }
-  dialog.select('.modal-body').append('div')
-      .classed('method', true)
-      .call(lbox.selectBox, 'Method', methodList, 'exact');
-  // Measure
-  dialog.select('.modal-body').append('div')
-      .classed('measure', true)
-      .call(lbox.selectBox, 'Measure',
-            [
-              {key: 'sim', name: 'Similarity'},
-              {key: 'edge', name: 'Edge count'}
-            ], 'sim');
-  // Threshold
-  dialog.select('.modal-body').append('div')
-      .classed('thld', true)
-      .call(box.numberBox, 'Threshold', 0.5, 1, 0.01, 0.5);
-  // Similarity search options
-  dialog.select('.modal-body').append('div')
-      .classed('option', true)
-      .call(group.simOptionGroup, 'struct');
-  // Targets
-  const res = resources.map(d => ({key: d.id, name: d.name}));
-  dialog.select('.modal-body').append('div')
-      .classed('target', true)
-      .call(lbox.checklistBox, 'Target databases', res, null)
-      .on('change', function() {
-        d3.select(this).dispatch('validate');
-      });
-
-  // Events
-  dialog.select('.method')
+  selection.select('.method')
+      .call(lbox.selectBoxItems, methodList)
+      .call(lbox.updateSelectBox, 'exact')
       .on('change', function () {
         const value = lbox.selectBoxValue(d3.select(this));
         const mcs = ['gls', 'rdfmcs'].includes(value);
-        dialog.select('.measure')
+        selection.select('.measure')
           .select('select')
             .property('value', mcs ? undefined : 'sim')
             .property('disabled', !mcs);
-        dialog.selectAll('.thld')
+        selection.selectAll('.thld')
           .select('input')
             .property('disabled', ['exact', 'substr', 'supstr'].includes(value));
-        dialog.selectAll('.diam')
+        selection.selectAll('.diam')
           .select('input')
             .property('disabled', value !== 'gls');
-        dialog.select('.timeout')
+        selection.select('.timeout')
           .select('input')
             .property('disabled', !mcs);
       })
       .dispatch('change');
+  selection.select('.measure')
+      .call(lbox.updateSelectBox, 'sim');
+  selection.select('.thld')
+      .call(box.updateNumberBox, 0.5);
+  selection.select('.option')
+      .call(group.updateSimOptionGroup, 'struct');
+  const res = resources.map(d => ({key: d.id, name: d.name}));
+  selection.select('.target')
+      .call(lbox.checklistBoxItems, res)
+      .call(lbox.updateChecklistBox, null)
+      .on('change', function() {
+        d3.select(this).dispatch('validate');
+      });
   // Input validation
-  dialog.selectAll('.qmol,.target')
+  selection.selectAll('.qmol,.target')
       .on('validate', function () {
-        const qmolValid = group.queryMolGroupValid(dialog.select('.qmol'));
-        const targetChecked = lbox.anyChecked(dialog.select('.target'));
-        dialog.select('.submit')
+        const qmolValid = group.queryMolGroupValid(selection.select('.qmol'));
+        const targetChecked = lbox.anyChecked(selection.select('.target'));
+        selection.select('.submit')
           .property('disabled', !(qmolValid && targetChecked));
       })
       .dispatch('validate');
@@ -120,5 +135,5 @@ function execute(selection) {
 
 
 export default {
-  menuLink, body, execute
+  menuLink, body, updateBody, execute
 };

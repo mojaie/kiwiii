@@ -13,7 +13,7 @@ const title = 'Comunity detection';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, title, id, 'painting');
+  selection.call(button.dropdownMenuModal, title, id, 'menu-painting');
 }
 
 
@@ -22,11 +22,11 @@ function body(selection) {
   // Name
   dialog.select('.modal-body').append('div')
       .classed('name', true)
-      .call(box.textBox, 'New name', null);
+      .call(box.textBox, 'New name');
   // Assign null to isolated nodes
   dialog.select('.modal-body').append('div')
       .classed('nulliso', true)
-      .call(box.checkBox, 'Assign null to isolated nodes', true);
+      .call(box.checkBox, 'Assign null to isolated nodes');
 }
 
 

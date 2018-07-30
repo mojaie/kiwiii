@@ -1,6 +1,8 @@
 
 /** @module tile/controlBox */
 
+import _ from 'lodash';
+
 import {default as misc} from '../common/misc.js';
 import {default as cscale} from '../common/scale.js';
 
@@ -9,38 +11,34 @@ import {default as cbox} from '../component/controlBox.js';
 import {default as lbox} from '../component/formListBox.js';
 
 
-function mainControlBox(selection, state) {
+function mainControlBox(selection) {
   const chunkGroup = selection.append('div')
       .classed('panel-group', true)
       .classed('mb-3', true);
   chunkGroup.append('div')
       .classed('rowcnt', true)
       .classed('mb-1', true)
-      .call(box.numberBox, 'Rows', 1, 9999, 1, state.rowCount);
+      .call(box.numberBox, 'Rows', 1, 9999, 1);
   chunkGroup.append('div')
       .classed('colcnt', true)
       .classed('mb-1', true)
-      .call(box.numberBox, 'Columns', 1, 9999, 1, state.columnCount);
+      .call(box.numberBox, 'Columns', 1, 9999, 1);
   chunkGroup.append('div')
       .classed('groupby', true)
       .classed('mb-1', true)
-      .call(
-        lbox.selectBox, 'GroupBy',
-        state.items.fields.filter(e => misc.sortType(e.format) !== 'none'),
-        state.groupField || ''
-      );
+      .call(lbox.selectBox, 'GroupBy');
   chunkGroup.append('div')
       .classed('crow', true)
       .classed('mb-1', true)
-      .call(box.numberBox, 'ChunksPerRow', 1, 999, 1, state.chunksPerRow);
+      .call(box.numberBox, 'ChunksPerRow', 1, 999, 1);
   chunkGroup.append('div')
       .classed('showcol', true)
       .classed('mb-1', true)
-      .call(box.checkBox, 'Show column number', state.showColumnNumber);
+      .call(box.checkBox, 'Show column number');
   chunkGroup.append('div')
       .classed('showrow', true)
       .classed('mb-1', true)
-      .call(box.checkBox, 'Show row number', state.showRowNumber);
+      .call(box.checkBox, 'Show row number');
 }
 
 
@@ -52,7 +50,9 @@ function updateMainControlBox(selection, state) {
   chunkGroup.select('.colcnt')
       .call(box.updateNumberBox, state.columnCount);
   chunkGroup.select('.groupby')
-    .call(lbox.updateSelectBox, state.groupField);
+    .call(lbox.selectBoxItems,
+          state.items.fields.filter(e => misc.sortType(e.format) !== 'none'))
+    .call(lbox.updateSelectBox, state.groupField || '');
   chunkGroup.select('.crow')
       .call(box.updateNumberBox, state.chunksPerRow);
   chunkGroup.select('.showcol')
@@ -72,43 +72,39 @@ function updateMainControlBox(selection, state) {
 }
 
 
-function tileColorControlBox(selection, state) {
-  const scaleDefs = {
-    palettes: cscale.colorPalettes,
-    ranges: cscale.colorRangeTypes,
-    presets: cscale.presets,
-    scales: cscale.types.filter(e => e.key !== 'ordinal')
-  };
-  const fieldOptions = state.items.fields
-    .filter(e => misc.sortType(e.format) !== 'none');
-  cbox.colorControlBox(selection, state.tileColor, fieldOptions, scaleDefs);
-}
-
-
 function updateTileColorControlBox(selection, state) {
-  const notifier = state.updateItemAttrNotifier;
-  cbox.updateColorControlBox(selection, state.tileColor, notifier);
-}
-
-
-function tileValueControlBox(selection, state) {
-  const scaleDefs = {
-    palettes: cscale.colorPalettes,
-    ranges: cscale.colorRangeTypes,
-    presets: cscale.presets,
-    scales: cscale.types.filter(e => e.key !== 'ordinal')
-  };
   const fieldOptions = state.items.fields
     .filter(e => misc.sortType(e.format) !== 'none');
-  cbox.labelControlBox(selection, state.tileValue, state.tileValueColor,
-                       fieldOptions, scaleDefs);
+  selection
+    .call(cbox.updateColorControlBox, fieldOptions, state.tileColor)
+    .on('change', function() {
+      state.tileColor = cbox.colorControlBoxState(selection);
+      if (state.tileColor.scale === 'ordinal') {
+        const keys = state.items.records().map(e => e[state.tileColor.field]);
+        state.tileColor.domain = _.uniq(keys).sort();
+      }
+      state.updateItemAttrNotifier();
+    });
 }
 
 
 function updateTileValueControlBox(selection, state) {
-  const notifier = state.updateItemAttrNotifier;
-  cbox.updateLabelControlBox(
-    selection, state.tileValue, state.tileValueColor, notifier);
+  const fieldOptions = state.items.fields
+    .filter(e => misc.sortType(e.format) !== 'none');
+  selection
+      .call(cbox.updateLabelControlBox, fieldOptions,
+            state.tileValue, state.tileValueColor)
+      .on('change', function() {
+        const values = cbox.labelControlBoxState(selection);
+        state.tileValue = values.label;
+        state.tileValueColor = values.labelColor;
+        if (state.tileValueColor.scale === 'ordinal') {
+          const keys = state.items.records()
+            .map(e => e[state.tileValueColor.field]);
+          state.tileValueColor.domain = _.uniq(keys).sort();
+        }
+        state.updateItemAttrNotifier();
+      });
 }
 
 
@@ -140,7 +136,7 @@ function controlBox(selection, state) {
   content.append('div')
       .classed('control-color', true)
       .call(cbox.controlBoxItem, 'control-color')
-      .call(tileColorControlBox, state);
+      .call(cbox.colorControlBox, cscale.colorScales);
 
   // Text
   tabs.append('a')
@@ -148,7 +144,7 @@ function controlBox(selection, state) {
   content.append('div')
       .classed('control-value', true)
       .call(cbox.controlBoxItem, 'control-value')
-      .call(tileValueControlBox, state);
+      .call(cbox.labelControlBox, cscale.colorScales);
 
   selection.call(updateControlBox, state);
 }

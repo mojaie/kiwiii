@@ -44,7 +44,7 @@ function app(view, coll) {
   menu.append('a').call(fieldFileDialog.menuLink);
   menu.append('a').call(fieldInputDialog.menuLink);
   menu.append('a')
-      .call(button.dropdownMenuItem, 'Generate tile view', 'painting')
+      .call(button.dropdownMenuItem, 'Generate tile view', 'menu-tiles')
       .on('click', function () {
         const viewID = misc.uuidv4();
         idb.appendView(state.storeID, state.viewID, {
@@ -67,13 +67,13 @@ function app(view, coll) {
       .call(networkgenDialog.menuLink);
   menu.append('a').call(renameDialog.menuLink);
   menu.append('a')
-      .call(button.dropdownMenuItem, 'Save', 'save')
+      .call(button.dropdownMenuItem, 'Save', 'menu-save')
       .on('click', function () {
         state.save().then(() => console.info('Datagrid saved'));
       });
   menu.append('a')
       .classed('online-command', true)
-      .call(button.dropdownMenuItem, 'Download Excel', 'exportexcel')
+      .call(button.dropdownMenuItem, 'Download Excel', 'menu-exportexcel')
       .on('click', () => {
         const coll = state.rows.export();
         const formData = new FormData();
@@ -84,7 +84,8 @@ function app(view, coll) {
       });
   // Dashboard link
   menubar.append('a')
-      .call(button.menuButtonLink, 'Dashboard', 'outline-secondary', 'db-gray')
+      .call(button.menuButtonLink, 'Dashboard',
+            'outline-secondary', 'status-gray')
       .attr('href', 'dashboard.html')
       .attr('target', '_blank');
   // Fetch control
@@ -124,16 +125,14 @@ function app(view, coll) {
       .classed('fieldinputd', true)
       .call(fieldInputDialog.body);
   dialogs.append('div')
-      .classed('netgend', true);
+      .classed('netgend', true)
+      .call(networkgenDialog.body);
   dialogs.append('div')
       .classed('renamed', true)
-      .call(renameDialog.body, state.name);
+      .call(renameDialog.body);
   dialogs.append('div')
       .classed('abortd', true)
-      .call(
-        modal.confirmDialog, 'abort-dialog',
-        'Are you sure you want to abort this calculation job?'
-      );
+      .call(modal.confirmDialog, 'abort-dialog');
 
   // Contents
   d3.select('#dg-search')
@@ -148,24 +147,7 @@ function app(view, coll) {
       .call(dg.updateViewport, state, state.viewportTop);
   };
 
-  // Server bound tasks
-  return fetcher.serverStatus()
-    .then(response => {
-      state.serverStatus = response.server;
-      state.resourceSchema = response.schema;
-      state.offLine = false;
-    })
-    .catch(() => {
-      // disable on-line commands
-      menubar.selectAll('.online-command')
-        .attr('data-target', null)
-        .classed('disabled', true)
-        .on('click', null);
-      state.serverStatus = null;
-      state.resourceSchema = null;
-      state.offLine = true;
-    })
-    .then(() => updateApp(state));
+  updateApp(state);
 }
 
 
@@ -191,7 +173,6 @@ function updateApp(state) {
   // hide fetch commands
   menubar.selectAll('.progress, .refresh, .abort')
     .style('display', ongoing ? null : 'none');
-
 
   // Dialogs
   const dialogs = d3.select('#dialogs');
@@ -240,64 +221,72 @@ function updateApp(state) {
   });
 
 
-  // Online commands
-  if (state.offline) return;
+  // Server bound tasks
+  fetcher.serverStatus().then(response => {
+    // Fetch db fields dialog
+    dialogs.select('.fieldfetchd')
+        .call(fieldFetchDialog.updateBody, response.schema, state.rows.fields)
+        .on('submit', function () {
+          const compounds = state.rows.records().map(e => e.compound_id);
+          fieldFetchDialog
+            .execute(d3.select(this), compounds, response.schema)
+            .then(res => {
+              state.joinFields(res);
+              state.updateContentsNotifier();
+              updateApp(state);
+            });
+        });
 
-  // Fetch db fields dialog
-  dialogs.select('.fieldfetchd')
-      .call(fieldFetchDialog.updateBody,
-            state.resourceSchema, state.rows.fields)
-      .on('submit', function () {
-        const compounds = state.rows.records().map(e => e.compound_id);
-        fieldFetchDialog
-          .execute(d3.select(this), compounds, state.resourceSchema)
-          .then(res => {
-            state.joinFields(res);
+    // Network generation dialog
+    dialogs.select('.netgend')
+        .call(networkgenDialog.updateBody, response.server.rdkit)
+        .on('submit', function () {
+          networkgenDialog
+            .execute(d3.select(this), state.rows.records())
+            .then(data => {
+              const wid = data.workflowID.slice(0, 8);
+              return Promise.all([
+                idb.appendView(state.storeID, state.viewID, {
+                  $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
+                  viewID: wid,
+                  name: wid,
+                  viewType: 'network',
+                  nodes: state.rows.collectionID,
+                  edges: wid,
+                  minConnThld: data.query.params.threshold
+                }),
+                idb.appendCollection(state.storeID, state.rows.collectionID, {
+                  $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
+                  collectionID: wid,
+                  name: wid,
+                  contents: [data]
+                })
+              ])
+              .then(() => {
+                d3.select('#loading-icon').style('display', 'none');
+                window.open(`network.html?store=${state.storeID}&view=${wid}`, '_blank');
+              });
+            });
+        });
+
+    // Abort dialog
+    dialogs.select('.abortd')
+        .call(modal.updateConfirmDialog,
+              'Are you sure you want to abort this calculation job?')
+        .on('submit', function () {
+          state.rows.abort().then(() => {
             state.updateContentsNotifier();
             updateApp(state);
           });
-      });
-
-  // Network generation dialog
-  dialogs.select('.netgend')
-      .call(networkgenDialog.body, state.serverStatus.rdkit)
-      .on('submit', function () {
-        networkgenDialog
-          .execute(d3.select(this), state.rows.records())
-          .then(data => {
-            const wid = data.workflowID.slice(0, 8);
-            return Promise.all([
-              idb.appendView(state.storeID, state.viewID, {
-                $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
-                viewID: wid,
-                name: wid,
-                viewType: 'network',
-                nodes: state.rows.collectionID,
-                edges: wid,
-                minConnThld: data.query.params.threshold
-              }),
-              idb.appendCollection(state.storeID, state.rows.collectionID, {
-                $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
-                collectionID: wid,
-                name: wid,
-                contents: [data]
-              })
-            ])
-            .then(() => {
-              d3.select('#loading-icon').style('display', 'none');
-              window.open(`network.html?store=${state.storeID}&view=${wid}`, '_blank');
-            });
-          });
-      });
-
-  // Abort dialog
-  dialogs.select('.abortd')
-      .on('submit', function () {
-        state.rows.abort().then(() => {
-          state.updateContentsNotifier();
-          updateApp(state);
         });
-      });
+  })
+  .catch(() => {
+    // disable on-line commands
+    d3.select('#menubar').selectAll('.online-command')
+      .attr('data-target', null)
+      .classed('disabled', true)
+      .on('click', null);
+  });
 }
 
 function run() {

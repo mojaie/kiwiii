@@ -18,7 +18,7 @@ const title = 'Append assays';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, title, id, 'addassay');
+  selection.call(button.dropdownMenuModal, title, id, 'menu-addassay');
 }
 
 

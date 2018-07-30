@@ -21,7 +21,7 @@ const title = 'Append JSON fields';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, title, id, 'addfile');
+  selection.call(button.dropdownMenuModal, title, id, 'menu-addfile');
 }
 
 
@@ -53,9 +53,12 @@ function updateBody(selection, fields) {
   const leftDefault = leftFields
     .find(e => e.format === 'compound_id') || leftFields[0];
   selection.select('.left')
-    .call(lbox.selectBoxItems, leftFields)
-    .call(lbox.updateSelectBox, leftDefault.key);
+      .call(lbox.selectBoxItems, leftFields)
+      .call(lbox.updateSelectBox, leftDefault.key);
+  selection.select('.preview')
+      .call(table.update, [], []);
   selection.select('.file')
+      .call(box.clearFileInput)
       .on('change', function () {
         const file = box.fileInputBoxValue(d3.select(this));
         d3.select(this).dispatch('validate');

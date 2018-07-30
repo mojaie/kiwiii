@@ -28,7 +28,7 @@ const title = 'Import SDFile';
 
 
 function menuLink(selection) {
-  selection.call(button.dropdownMenuModal, title, id, 'importsdf');
+  selection.call(button.dropdownMenuModal, title, id, 'menu-importsdf');
 }
 
 
@@ -39,18 +39,18 @@ function body(selection) {
       .call(box.fileInputBox, 'File', '.mol,.sdf');
   dialog.select('.modal-body').append('div')
       .classed('field', true)
-      .call(lbox.checklistBox, 'Fields', [], null)
-      .on('change', function () {
-        d3.select(this).dispatch('validate');
-      });
+      .call(lbox.checklistBox, 'Fields');
   dialog.select('.modal-body').append('div')
       .classed('implh', true)
-      .call(box.checkBox, 'Make hydrogens implicit', true);
+      .call(box.checkBox, 'Make hydrogens implicit');
   dialog.select('.modal-body').append('div')
       .classed('recalc', true)
-      .call(box.checkBox, 'Recalculate 2D coords', false);
+      .call(box.checkBox, 'Recalculate 2D coords');
+}
 
-  dialog.select('.file')
+
+function updateBody(selection) {
+  selection.select('.file')
       .on('change', function () {
         const file = box.fileInputBoxValue(d3.select(this));
         d3.select(this).dispatch('validate');
@@ -59,16 +59,25 @@ function body(selection) {
           .then(data => {
             const fields = getSDFPropList(data)
               .map(e => ({key: e, name: e}));
-            dialog.select('.field')
+            selection.select('.field')
               .call(lbox.checklistBoxItems, fields);
           });
       });
+  selection.select('.field')
+      .call(lbox.checklistBoxItems, [])
+      .on('change', function () {
+        d3.select(this).dispatch('validate');
+      });
+  selection.select('.implh')
+      .call(box.updateCheckBox, true);
+  selection.select('.recalc')
+      .call(box.updateCheckBox, false);
   // Input validation
-  dialog.selectAll('.field,.file')
+  selection.selectAll('.field,.file')
       .on('validate', function () {
-        const fileSelected = box.fileInputBoxValue(dialog.select('.file'));
-        const fieldChecked = lbox.anyChecked(dialog.select('.field'));
-        dialog.select('.submit')
+        const fileSelected = box.fileInputBoxValue(selection.select('.file'));
+        const fieldChecked = lbox.anyChecked(selection.select('.field'));
+        selection.select('.submit')
           .property('disabled', !(fileSelected && fieldChecked));
       })
       .dispatch('validate');
@@ -91,5 +100,5 @@ function execute(selection) {
 
 
 export default {
-  menuLink, body, execute
+  menuLink, body, updateBody, execute
 };

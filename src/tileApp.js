@@ -44,7 +44,7 @@ function app(view, coll) {
   // Dialogs
   dialogs.append('div')
       .classed('renamed', true)
-      .call(renameDialog.body, state.name);
+      .call(renameDialog.body);
 
   // Contents
   const frame = d3.select('#tl-frame')

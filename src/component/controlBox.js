@@ -9,154 +9,202 @@ import {default as rbox} from '../component/formRangeBox.js';
 import {default as group} from '../component/formBoxGroup.js';
 
 
-function colorControlBox(selection, colorState, scaledef, fieldName) {
+function colorControlBox(selection, colorScales, fieldName) {
   selection.append('div')
       .classed('field', true)
-      .call(lbox.selectBox, fieldName || 'Field', null, colorState.field || '');
+      .call(lbox.selectBox, fieldName || 'Field');
   selection.append('div')
       .classed('range', true)
-      .call(
-        group.colorRangeGroup, scaledef.palettes,
-        scaledef.ranges, colorState.range, colorState.unknown
-      );
+      .call(group.colorRangeGroup, colorScales);
   selection.append('div')
       .classed('scale', true)
-      .call(
-        group.scaleBoxGroup, scaledef.presets,
-        scaledef.scales, colorState.scale, colorState.domain
-      );
+      .call(group.scaleBoxGroup);
 }
 
 
-function updateColorControlBox(selection, fieldOptions, colorState, notifier) {
+function updateColorControlBox(selection, fieldOptions, colorState) {
   selection.select('.field')
-    .call(lbox.selectBoxItems, fieldOptions)
-    .call(lbox.updateSelectBox, colorState.field)
-    .on('change', function () {
-      colorState.field = lbox.selectBoxValue(d3.select(this));
-      notifier();
-    });
+      .call(lbox.selectBoxItems, fieldOptions)
+      .call(lbox.updateSelectBox, colorState.field);
   selection.select('.range')
-    .call(group.updateColorRangeGroup, colorState.range, colorState.unknown)
-    .on('change', function () {
-      const values = group.colorRangeGroupValue(d3.select(this));
-      colorState.range = values.range;
-      colorState.unknown = values.unknown;
-      if (values.range.length > 3) {
-        colorState.scale = 'ordinal';
-        selection.select('.scale').selectAll('select,input')
-          .property('disabled', true)
-          .style('opacity', 0.3);
-      } else {
-        selection.select('.scale').selectAll('select,input')
-          .property('disabled', false)
-          .style('opacity', null);
-      }
-      notifier();
-    }
-  );
+      .call(group.updateColorRangeGroup, colorState.color,
+            colorState.range, colorState.unknown);
   selection.select('.scale')
-    .call(group.updateScaleBoxGroup, colorState.scale, colorState.domain)
-    .on('change', function () {
-      const values = group.scaleBoxGroupValue(d3.select(this));
-      colorState.scale = values.scale;
-      colorState.domain = values.domain;
-      notifier();
-    }
-  );
+      .call(group.updateScaleBoxGroup, colorState.scale, colorState.domain);
+  selection.selectAll('.field, .range, .scale')
+      .on('change', function () {
+        if (!colorControlValid(selection)) {
+          d3.event.stopPropagation();
+        }
+      })
+      .dispatch('change');
 }
 
 
-function sizeControlBox(selection, sizeState, scaledef, fieldName) {
-  selection.append('div')
-    .classed('field', true)
-    .call(
-      lbox.selectBox, fieldName || 'Field', null, sizeState.field || '');
-  selection.append('div')
-    .classed('range', true)
-    .classed('mb-3', true)
-    .call(rbox.rangeBox, 'Range', sizeState.range);
-  selection.append('div')
-    .classed('scale', true)
-    .call(
-      group.scaleBoxGroup, scaledef.presets, scaledef.scales,
-      sizeState.scale, sizeState.domain
-    );
+function colorControlValid(selection) {
+  const values = group.colorRangeGroupValue(selection.select('.range'));
+  const noScale = ['categorical', 'monocolor'].includes(values.colorScaleType);
+  selection.select('.scale').selectAll('select,input')
+    .property('disabled', noScale)
+    .style('opacity', noScale ? 0.3 : null);
+  const scaleValid = group.scaleBoxGroupValid(selection.select('.scale'));
+  return noScale || scaleValid;
 }
 
 
-function updateSizeControlBox(selection, fieldOptions, sizeState, notifier) {
+function colorControlBoxState(selection) {
+  const range = group.colorRangeGroupValue(selection.select('.range'));
+  const scale = group.scaleBoxGroupValue(selection.select('.scale'));
+  return {
+    field: lbox.selectBoxValue(selection.select('.field')),
+    color: range.color,
+    range: range.range,
+    unknown: range.unknown,
+    scale: range.colorScaleType === 'categorical' ? 'ordinal': scale.scale,
+    domain: scale.domain
+  };
+}
+
+
+function sizeControlBox(selection, fieldName) {
+  selection.append('div')
+      .classed('field', true)
+      .call(lbox.selectBox, fieldName || 'Field');
+  selection.append('div')
+      .classed('range', true)
+      .call(rbox.rangeBox, 'Range');
+  selection.append('div')
+      .classed('unknown', true)
+      .classed('mb-3', true)
+      .call(box.textBox, 'Unknown', 0, 1000, 1)
+    .select('input')
+      .classed('col-8', false)
+      .classed('col-3', true);
+  selection.append('div')
+      .classed('scale', true)
+      .call(group.scaleBoxGroup);
+}
+
+
+function updateSizeControlBox(selection, fieldOptions, sizeState) {
   selection.select('.field')
-    .call(lbox.selectBoxItems, fieldOptions)
-    .call(lbox.updateSelectBox, sizeState.field)
-    .on('change', function () {
-      sizeState.field = lbox.selectBoxValue(d3.select(this));
-      notifier();
-    });
+      .call(lbox.selectBoxItems, fieldOptions)
+      .call(lbox.updateSelectBox, sizeState.field);
   selection.select('.range')
-    .call(rbox.updateRangeBox, sizeState.range)
-    .on('change', function () {
-      sizeState.range = rbox.rangeBoxValue(d3.select(this));
-      notifier();
-    });
+      .call(rbox.updateRangeBox, sizeState.range);
+  selection.select('.unknown')
+      .call(box.updateTextBox, sizeState.unknown);
   selection.select('.scale')
-    .call(group.updateScaleBoxGroup, sizeState.scale, sizeState.domain)
-    .on('change', function () {
-      const values = group.scaleBoxGroupValue(d3.select(this));
-      sizeState.scale = values.scale;
-      sizeState.domain = values.domain;
-      notifier();
-    }
-  );
+      .call(group.updateScaleBoxGroup, sizeState.scale, sizeState.domain);
+  selection.selectAll('.range, .unknown')
+      .on('input', function () {
+        sizeRangeValid(selection);
+      });
+  selection.selectAll('.field, .range, .unknown, .scale')
+      .on('change', function () {
+        if (!sizeControlValid(selection)) {
+          d3.event.stopPropagation();
+        }
+      });
+}
+
+function sizeRangeValid(selection) {
+  if (!rbox.rangeBoxValid(selection.select('.range'))) return false;
+  const range = rbox.rangeBoxValues(selection.select('.range'));
+  const unk = box.textBoxValue(selection.select('.unknown'));
+  const validUnk = unk !== '' && !isNaN(unk) && unk > 0;
+  selection.select('.range').select('.min')
+      .style('background-color', range[0] > 0 ? '#ffffff' : '#ffcccc');
+  selection.select('.range').select('.max')
+      .style('background-color', range[1] > 0 ? '#ffffff' : '#ffcccc');
+  selection.select('.unknown').select('input')
+      .style('background-color', validUnk ? '#ffffff' : '#ffcccc');
+  return range[0] > 0 && range[1] > 0 && validUnk;
 }
 
 
-function labelControlBox(selection, labelState, colorState, scaledef) {
+function sizeControlValid(selection) {
+  if (!group.scaleBoxGroupValid(selection.select('.scale'))) return false;
+  return sizeRangeValid(selection);
+}
+
+
+function sizeControlBoxState(selection) {
+  const scale = group.scaleBoxGroupValue(selection.select('.scale'));
+  return {
+    field: lbox.selectBoxValue(selection.select('.field')),
+    range: rbox.rangeBoxValues(selection.select('.range')),
+    unknown: box.textBoxValue(selection.select('.unknown')),
+    scale: scale.scale,
+    domain: scale.domain
+  };
+}
+
+
+function labelControlBox(selection, colorScales) {
   // nodeLabel.visible
   selection.append('div')
     .append('div')
       .classed('visible', true)
-      .call(box.checkBox, 'Show labels', labelState.visible);
+      .call(box.checkBox, 'Show labels');
   // nodeLabel
   const labelGroup = selection.append('div')
       .classed('mb-3', true);
   labelGroup.append('div')
       .classed('text', true)
       .classed('mb-1', true)
-      .call(lbox.selectBox, 'Text field', null, labelState.field || '');
+      .call(lbox.selectBox, 'Text field');
   labelGroup.append('div')
       .classed('size', true)
       .classed('mb-1', true)
-      .call(box.numberBox, 'Font size', 6, 100, 1, labelState.size);
+      .call(box.numberBox, 'Font size', 4, 100, 1);
   // nodeLabelColor
-  colorControlBox(selection, colorState, scaledef, 'Color field');
+  selection.call(colorControlBox, colorScales, 'Color field');
 }
 
 
-function updateLabelControlBox(selection, fieldOptions, labelState, colorState, notifier) {
+function updateLabelControlBox(selection, fieldOptions,
+                               labelState, colorState) {
   // nodeLabel.visible
   selection.select('.visible')
-      .call(box.updateCheckBox, labelState.visible)
-      .on('change', function () {
-        labelState.visible = box.checkBoxValue(d3.select(this));
-        notifier();
-      });
-  // nodeLabel
+      .call(box.updateCheckBox, labelState.visible);
+  // nodeLabel.field
   selection.select('.text')
       .call(lbox.selectBoxItems, fieldOptions)
-      .call(lbox.updateSelectBox, labelState.field)
-      .on('change', function () {
-        labelState.field = lbox.selectBoxValue(d3.select(this));
-        notifier();
-      });
+      .call(lbox.updateSelectBox, labelState.field);
+  // nodeLabel.size
   selection.select('.size')
       .call(box.updateNumberBox, labelState.size)
-      .on('change', function () {
-        labelState.size = box.numberBoxIntValue(d3.select(this));
-        notifier();
+      .on('input', function () {
+        box.numberFloatValid(d3.select(this));
       });
   // nodeLabelColor
-  updateColorControlBox(selection, fieldOptions, colorState, notifier);
+  selection.call(updateColorControlBox, fieldOptions, colorState)
+      .selectAll('.visible, .text, .size, .field, .range, .scale')
+      .on('change', function () {
+        if (!labelControlValid(selection)) {
+          d3.event.stopPropagation();
+        }
+      })
+      .dispatch('change');
+}
+
+
+function labelControlValid(selection) {
+  if (!box.numberFloatValid(selection.select('.size'))) return false;
+  return colorControlValid(selection);
+}
+
+
+function labelControlBoxState(selection) {
+  return {
+    label: {
+      field: lbox.selectBoxValue(selection.select('.text')),
+      size: box.numberBoxFloatValue(selection.select('.size')),
+      visible: box.checkBoxValue(selection.select('.visible'))
+    },
+    labelColor: colorControlBoxState(selection)
+  };
 }
 
 
@@ -202,6 +250,8 @@ function controlBoxItem(selection, id) {
 
 
 export default {
-  colorControlBox, updateColorControlBox, sizeControlBox, updateSizeControlBox, labelControlBox, updateLabelControlBox,
+  colorControlBox, updateColorControlBox, colorControlValid, colorControlBoxState,
+  sizeControlBox, updateSizeControlBox, sizeControlValid, sizeControlBoxState,
+  labelControlBox, updateLabelControlBox, labelControlValid, labelControlBoxState,
   controlBoxFrame, controlBoxNav, controlBoxItem
 };
