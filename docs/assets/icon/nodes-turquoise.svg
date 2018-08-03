@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="200"
+   height="200"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="nodes-turquoise.svg">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1171"
+     inkscape:window-height="848"
+     id="namedview11"
+     showgrid="false"
+     inkscape:zoom="0.27091029"
+     inkscape:cx="-729.84891"
+     inkscape:cy="-811.93295"
+     inkscape:window-x="591"
+     inkscape:window-y="88"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg2" />
+  <metadata
+     id="metadata25">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs23" />
+  <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
+  <ellipse
+     style="opacity:1;fill:#40e0d0;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:12;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     id="path4251"
+     cx="120.62639"
+     cy="-57.906803"
+     rx="30.56484"
+     ry="30.159679"
+     transform="scale(1,-1)" />
+  <circle
+     style="opacity:1;fill:#40e0d0;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:12;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     id="path4251-7"
+     cx="58.573299"
+     cy="-113.63937"
+     transform="scale(1,-1)"
+     r="31.510847" />
+  <ellipse
+     style="opacity:1;fill:#40e0d0;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:12;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     id="path4251-79"
+     cx="140.92036"
+     cy="-140.07263"
+     rx="31.375702"
+     ry="32.537766"
+     transform="scale(1,-1)" />
+</svg>

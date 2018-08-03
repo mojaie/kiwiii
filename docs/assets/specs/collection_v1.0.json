@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "Data collection format",
+  "type": "object",
+  "required": [
+    "collectionID", "name", "fields", "contents"
+  ],
+  "properties": {
+    "collectionID": {
+      "type": "string",
+      "description": "Collection ID"
+    },
+    "name": {
+      "type": "string",
+      "description": "Collection name"
+    },
+    "fields": {
+      "type": "array",
+      "description": "List of fields for merged data collection"
+    },
+    "contents": {
+      "type": "array",
+      "description": "List of data record contents"
+    }
+  }
+}

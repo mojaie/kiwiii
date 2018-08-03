@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "Datagrid view data format",
+  "type": "object",
+  "required": [
+    "viewID", "name", "viewType", "rows"
+  ],
+  "properties": {
+    "viewID": {
+      "type": "string",
+      "description": "View ID"
+    },
+    "name": {
+      "type": "string",
+      "description": "Datagrid name. Default value is the first 8 characters of workflowID"
+    },
+    "viewType": {
+      "type": "string",
+      "enum": ["datagrid", "network", "tile"],
+      "description": "viewType (fixed value 'datagrid')"
+    },
+    "rows": {
+      "type": "string",
+      "description": "Collection ID of row dataset"
+    },
+    "sortOrder": {
+      "type": "array",
+      "description": "Sort order"
+    },
+    "filterText": {
+      "type": "string",
+      "description": "Filter text"
+    },
+    "checkpoints": {
+      "type": "array",
+      "description": "Checkpoints"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+<svg width="199.99999999999994" height="199.99999999999994" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
+
+ <g>
+  <title>Layer 1</title>
+  <rect stroke="#007f7f" ry="13" rx="13" id="svg_14" height="125.32299" width="102.71318" y="61.62791" x="80.62014" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="null" stroke-width="7" fill="none"/>
+  <line stroke="#007f7f" id="svg_15" y2="93.92764" x2="162.66149" y1="93.28165" x1="100.64598" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="null" stroke-width="7" fill="none"/>
+  <line stroke="#000000" id="svg_4" y2="156.39163" x2="24.58525" y1="130.39163" x1="44.91858" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="null" stroke-width="16" fill="none"/>
+  <polygon strokeWidth="6" strokecolor="#000000" fill="none" edge="0" orient="x" shape="regularPoly" id="svg_5" cy="176.5" cx="-51"/>
+  <polygon stroke-width="6" strokeWidth="6" strokecolor="none" fill="none" edge="30.71192" orient="x" shape="regularPoly" id="svg_6" cy="30.5" cx="-14"/>
+  <polygon strokeWidth="6" strokecolor="none" fill="none" edge="0" orient="x" shape="regularPoly" id="svg_7" cy="82" cx="-33"/>
+  <polygon stroke-width="6" strokeWidth="6" strokecolor="none" fill="none" edge="36.31039" orient="x" shape="regularPoly" id="svg_8" cy="22.5" cx="-16.5"/>
+  <polygon strokeWidth="6" strokecolor="none" fill="none" edge="0" orient="x" shape="regularPoly" id="svg_9" cy="-28" cx="-66"/>
+  <line id="svg_16" y2="140.76227" x2="162.4031" y1="140.11628" x1="100.38759" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="null" stroke-width="7" stroke="#007f7f" fill="none"/>
+  <line id="svg_17" y2="164.01809" x2="163.04909" y1="163.37209" x1="101.03359" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="null" stroke-width="7" stroke="#007f7f" fill="none"/>
+  <line id="svg_18" stroke="#007f7f" y2="115.56848" x2="162.4031" y1="114.92248" x1="100.38759" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="null" stroke-width="7" fill="none"/>
+  <ellipse stroke="#000000" stroke-linecap="round" fill-opacity="0" ry="54.60324" rx="54.5798" id="svg_2" cy="72.42989" cx="89.38705" stroke-width="16" fill="none"/>
+ </g>
+</svg>

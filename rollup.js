@@ -26,7 +26,7 @@ const args = argv.run();
 const isDebugBuild = args.options.debug;
 
 const distDir = 'dist';
-const buildDir = './docs/_build';
+const buildDir = isDebugBuild ? './docs/_build': './docs/app';
 
 
 // Bundle setting

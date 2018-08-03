@@ -3,6 +3,8 @@
 
 import d3 from 'd3';
 
+const iconBaseURL = '../assets/icon/';
+
 
 function buttonBox(selection, label, type) {
   selection
@@ -35,7 +37,7 @@ function menuButtonLink(selection, label, type, icon) {
       .attr('role', 'button')
       .attr('href', '#');
   selection.append('img')
-      .attr('src', icon ? `./assets/icon/${icon}.svg` : null)
+      .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null)
       .style('width', '1.25rem')
       .style('height', '1.25rem');
   selection.append('span')
@@ -55,7 +57,7 @@ function menuModalLink(selection, target, label, type, icon) {
       .attr('data-toggle', 'modal')
       .attr('data-target', `#${target}`);
   selection.append('img')
-      .attr('src', icon ? `./assets/icon/${icon}.svg` : null)
+      .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null)
       .style('width', '1.25rem')
       .style('height', '1.25rem');
   selection.append('span')
@@ -76,7 +78,7 @@ function dropdownMenuButton(selection, label, type, icon) {
       .classed('dropdown-toggle', true)
       .attr('data-toggle', 'dropdown');
   button.append('img')
-      .attr('src', icon ? `./assets/icon/${icon}.svg` : null)
+      .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null)
       .style('width', '1.25rem')
       .style('height', '1.25rem');
   button.append('span')
@@ -91,7 +93,7 @@ function dropdownMenuItem(selection, label, icon) {
   selection.classed('dropdown-item', true)
       .attr('href', '#');
   selection.append('img')
-      .attr('src', icon ? `./assets/icon/${icon}.svg` : null)
+      .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null)
       .classed('mr-1', true)
       .style('width', '2rem')
       .style('height', '2rem');
@@ -105,7 +107,7 @@ function dropdownMenuModal(selection, label, target, icon) {
       .attr('data-toggle', 'modal')
       .attr('data-target', `#${target}`);
   selection.append('img')
-      .attr('src', `./assets/icon/${icon}.svg`)
+      .attr('src', `${iconBaseURL}${icon}.svg`)
       .classed('mr-1', true)
       .style('width', '2rem')
       .style('height', '2rem');
@@ -126,7 +128,7 @@ function dropdownMenuFile(selection, label, accept, icon) {
       .attr('type', 'file')
       .attr('accept', accept);
   selection.append('img')
-      .attr('src', `./assets/icon/${icon}.svg`)
+      .attr('src', `${iconBaseURL}${icon}.svg`)
       .classed('mr-1', true)
       .style('width', '2rem')
       .style('height', '2rem');
@@ -141,7 +143,7 @@ function dropdownMenuFileValue(selection) {
 
 
 export default {
-  buttonBox, menuButton, menuButtonLink, menuModalLink,
+  iconBaseURL, buttonBox, menuButton, menuButtonLink, menuModalLink,
   dropdownMenuButton, dropdownMenuItem, dropdownMenuModal,
   dropdownMenuFile, dropdownMenuFileValue
 };

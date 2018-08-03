@@ -18,8 +18,8 @@ Supported browsers
 
 
 
-Try interactive data view examples (Bl.ocks)
----------------------------------------------
+Try interactive data view examples (Observable)
+------------------------------------------------
 
 [<img src="https://static.observableusercontent.com/thumbnail/b4859341f456ac329799b35f0394e976ed1f0198fc334b134853537be7ff8d53.jpg" width="260" height="160" alt="Table view" style="margin: 5px"/>](https://beta.observablehq.com/@mojaie/drug-dataset-table-demo)
 [<img src="https://static.observableusercontent.com/thumbnail/367584488cbc326ac7e2e4cf28ccacba6c11a05d44c6253221e0dfa711d70e45.jpg" width="260" height="160" alt="Table view" style="margin: 5px"/>](https://beta.observablehq.com/@mojaie/chemical-structure-similarity-network-demo)
@@ -31,8 +31,8 @@ Features and demo applications
 
 ### Datagrid view
 
-[<img src="img/table-view.png" width="260" height="160" alt="Table view" style="margin: 5px"/>](img/table-view.png)
-[<img src="img/spr-plot-example.png" width="260" height="160" alt="Plot example" style="margin: 5px"/>](img/spr-plot-example.png)
+[<img src="assets/screenshots/table-view.png" width="260" height="160" alt="Table view" style="margin: 5px"/>](assets/screenshots/table-view.png)
+[<img src="assets/screenshots/spr-plot-example.png" width="260" height="160" alt="Plot example" style="margin: 5px"/>](assets/screenshots/spr-plot-example.png)
 
 [[Datagrid app demo (DrugBank Approved drugs)]](https://mojaie.github.io/kiwiii/datagrid.html?location=resources/DrugBank5.0.5_FDA_Approved.ndc)
 
@@ -49,7 +49,7 @@ Features and demo applications
 
 ### Network view
 
-[<img src="img/network-view.png" width="260" height="160" alt="Network view" style="margin: 5px"/>](img/network-view.png)
+[<img src="assets/screenshots/network-view.png" width="260" height="160" alt="Network view" style="margin: 5px"/>](assets/screenshots/network-view.png)
 
 [[Network app demo (DrugBank Approved drugs)]](https://mojaie.github.io/kiwiii/network.html?location=resources/DrugBank5.0.5_FDA_Approved_GLS08.gfc)
 
@@ -62,7 +62,7 @@ Features and demo applications
 
 ### Profile view
 
-[<img src="img/profile-view.png" width="260" height="160" alt="Profile view" style="margin: 5px"/>](img/profile-view.png)
+[<img src="assets/screenshots/profile-view.png" width="260" height="160" alt="Profile view" style="margin: 5px"/>](assets/screenshots/profile-view.png)
 
 - An overview of the chemical data entry (chemical structure, properties, aliases and related assay results)
 - requires [Flashflood](https://github.com/mojaie/flashflood) server
@@ -70,7 +70,7 @@ Features and demo applications
 
 ### Dashboard
 
-[<img src="img/control-panel.png" width="260" height="160" alt="Control panel" style="margin: 5px"/>](img/control-panel.png)
+[<img src="assets/screenshots/control-panel.png" width="260" height="160" alt="Control panel" style="margin: 5px"/>](assets/screenshots/control-panel.png)
 
 [[Dashboard app]](https://mojaie.github.io/kiwiii/dashboard.html)
 

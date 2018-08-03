@@ -28,7 +28,7 @@
   "scripts": {
     "pretest": "npm run build",
     "test": "tape 'test/**/*-test.js'",
-    "docs": "mkdir -p '_build/docs' && jsdoc -r src -d '_build/docs'",
+    "docs": "mkdir -p 'docs/app/docs' && jsdoc -r src -d 'docs/app/docs'",
     "build": "node rollup.js --debug=true",
     "deploy": "npm run docs && node rollup.js --debug=false"
   }

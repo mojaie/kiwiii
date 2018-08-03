@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   width="200"
+   height="200"
+   id="svg2"
+   version="1.1">
+  <line
+     stroke-linejoin="null"
+     x1="35.027172"
+     y1="50.440826"
+     x2="66.442123"
+     y2="50.440826"
+     id="svg_7"
+     style="fill:none;fill-opacity:1;stroke:#808080;stroke-width:18.82617188;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+  <line
+     stroke-linejoin="null"
+     x1="99.579483"
+     y1="49.814167"
+     x2="166.31799"
+     y2="49.814167"
+     id="svg_8"
+     style="fill:none;fill-opacity:1;stroke:#808080;stroke-width:19.35333061;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+  <metadata
+     id="metadata25">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs23" />
+  <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
+  <line
+     id="svg_11"
+     stroke-linejoin="null"
+     x1="35.027161"
+     y1="102.51905"
+     x2="66.442123"
+     y2="102.51905"
+     style="fill:none;fill-opacity:1;stroke:#808080;stroke-width:18.82617188;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+  <line
+     id="svg_12"
+     stroke-linejoin="null"
+     x1="99.579498"
+     y1="101.62659"
+     x2="166.31799"
+     y2="101.62659"
+     style="fill:none;fill-opacity:1;stroke:#808080;stroke-width:19.35333061;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+  <line
+     id="svg_14"
+     stroke-linejoin="null"
+     x1="35.027161"
+     y1="154.59731"
+     x2="66.442123"
+     y2="154.59731"
+     style="fill:none;fill-opacity:1;stroke:#808080;stroke-width:18.82617188;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+  <line
+     id="svg_15"
+     stroke-linejoin="null"
+     x1="99.579498"
+     y1="153.439"
+     x2="166.31799"
+     y2="153.439"
+     style="fill:none;fill-opacity:1;stroke:#808080;stroke-width:19.35333061;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+</svg>

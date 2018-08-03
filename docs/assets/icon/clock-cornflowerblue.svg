@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   width="200"
+   height="200"
+   id="svg2"
+   version="1.1">
+  <metadata
+     id="metadata25">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs23" />
+  <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
+  <path
+     style="fill:none;fill-rule:evenodd;stroke:#6495ed;stroke-width:14;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     d="M 97.33815,106.46496 97.126438,57.101267"
+     id="path4146-5-6" />
+  <ellipse
+     ry="71.860367"
+     rx="72.284096"
+     cy="100.42373"
+     cx="99.694923"
+     id="path4136"
+     style="opacity:1;fill:none;fill-opacity:1;stroke:#6495ed;stroke-width:12;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+  <path
+     id="path4186"
+     d="m 97.33815,108.46496 45.551,-0.21115"
+     style="fill:none;fill-rule:evenodd;stroke:#6495ed;stroke-width:14;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+</svg>

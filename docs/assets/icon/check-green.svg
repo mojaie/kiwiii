@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   version="1.1"
+   id="svg2"
+   height="200"
+   width="200">
+  <metadata
+     id="metadata25">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs23" />
+  <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
+  <flowRoot
+     xml:space="preserve"
+     id="flowRoot4156"
+     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"><flowRegion
+       id="flowRegion4158"><rect
+         id="rect4160"
+         width="125.42373"
+         height="127.11864"
+         x="18.644068"
+         y="50.847458" /></flowRegion><flowPara
+       id="flowPara4162">tyekku  ss</flowPara></flowRoot>  <g
+     id="flowRoot4164"
+     style="font-style:normal;font-weight:normal;font-size:125px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#008000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     transform="matrix(1.4910694,0,0,1.1799524,-5.4392957,-45.224475)">
+    <path
+       id="path4161"
+       style=""
+       d="m 52.964355,148.60106 q 5.615235,-12.81738 12.023926,-24.4751 6.469727,-11.71875 13.305664,-21.60644 8.056641,-11.596684 12.695313,-16.723637 2.990722,-3.295899 5.615234,-5.432129 1.525879,-1.220703 4.821778,-1.831055 7.99561,-1.464844 11.16943,-1.464844 1.40381,0 1.40381,0.976563 0,0.915527 -1.40381,2.197266 -12.20703,10.864257 -25.634763,31.066896 -13.366699,20.20263 -22.583007,42.90771 -3.479004,8.48389 -4.882813,10.43701 -1.342773,1.89209 -8.544922,1.89209 -4.699707,0 -5.92041,-0.91552 -1.159668,-0.91553 -4.272461,-5.79834 -5.371094,-8.11768 -11.535644,-14.64844 -3.234864,-3.41797 -3.234864,-5.24902 0,-2.56348 3.601075,-5.00489 3.601074,-2.50244 5.92041,-2.50244 3.234863,0 7.751465,3.66211 4.577636,3.60108 9.704589,12.51221 z" />
+  </g>
+</svg>

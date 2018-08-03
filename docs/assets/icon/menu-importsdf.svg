@@ -1,0 +1,18 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
+ <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
+ <g>
+  <title>Layer 1</title>
+  <rect stroke="#007f7f" fill="#000000" stroke-width="7" stroke-dasharray="null" stroke-linejoin="round" stroke-linecap="round" x="34.66353" y="51.73216" width="147.64452" height="128.96615" id="svg_1" fill-opacity="0" rx="5" ry="5"/>
+  <g stroke="null" id="svg_2">
+   <polygon stroke="#007f7f" stroke-linejoin="round" stroke-width="6" points="110.5386962890625,103.61673736572266 110.52047729492188,135.19168090820312 81.47954559326172,150.3127899169922 52.45691680908203,133.85891723632812 52.475181579589844,102.28397369384766 81.51607513427734,87.16285705566406 110.5386962890625,103.61673736572266 " fill="none" id="svg_3"/>
+   <line stroke="#007f7f" id="svg_10" y2="109.51314" x2="102.16378" y1="97.36356" x1="80.6889" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="null" stroke-width="6" fill="none"/>
+   <line stroke="#007f7f" id="svg_11" y2="141.18512" x2="81.80943" y1="130.75515" x1="101.58301" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="null" stroke-width="6" fill="none"/>
+   <line stroke="#007f7f" id="svg_12" y2="130.22911" x2="61.6758" y1="107.7963" x1="61.6758" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="null" stroke-width="6" fill="none"/>
+  </g>
+  <path stroke="#000000" id="svg_17" d="m8.75574,86.87828c-3.63679,29.54144 35.05145,69.26195 35.24893,68.28905c0.19751,-0.97289 -32.41393,-31.52782 -28.65309,-59.00121c3.76083,-27.4734 30.16166,-39.31396 48.36489,-41.53073l5.68061,21.61686l50.54767,-42.96974l-66.95893,-16.32288l5.46538,19.56721c-19.45624,6.01429 -46.05867,20.80999 -49.69545,50.35144l0,0l-0.00001,0z" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="5" fill="#000000" transform="rotate(-17.831893920898438 64.22962188720697,86.07225799560545) "/>
+  <line fill="none" stroke="#007f7f" stroke-width="7" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="round" x1="124" y1="84" x2="168" y2="84" id="svg_5"/>
+  <line fill="none" stroke="#007f7f" stroke-width="7" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="round" x1="124" y1="105" x2="168" y2="105" id="svg_7"/>
+  <line fill="none" stroke="#007f7f" stroke-width="7" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="round" x1="124" y1="128" x2="168" y2="128" id="svg_8"/>
+  <line fill="none" stroke="#007f7f" stroke-width="7" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="round" x1="124" y1="150" x2="168" y2="150" id="svg_9"/>
+ </g>
+</svg>

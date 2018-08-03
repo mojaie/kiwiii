@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="svg2"
+   style="vector-effect: non-scaling-stroke;"
+   stroke="null"
+   height="200"
+   width="200"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="file-seagreen.svg">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="919"
+     inkscape:window-height="580"
+     id="namedview8"
+     showgrid="false"
+     inkscape:zoom="1.18"
+     inkscape:cx="25"
+     inkscape:cy="100"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg2" />
+  <metadata
+     id="metadata16">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs14" />
+  <!-- Created with SVG-edit - http://svg-edit.googlecode.com/ -->
+  <g
+     style="stroke:#2e8b57;stroke-opacity:1;stroke-width:8.61000561;stroke-miterlimit:4;stroke-dasharray:none"
+     transform="matrix(1.066462,0,0,1.2648754,-24.658732,-65.740189)"
+     stroke="null"
+     id="svg_13">
+    <path
+       id="svg_11"
+       d="m 47.99999,84.51074 0,97.03783 c 43.02222,0.26447 73.24445,0.98265 111.46667,-0.11402 l -0.53333,-85.74487 -73.6,0.56773 L 84.26666,84 47.99999,84.51073 Z"
+       style="fill:#000000;fill-opacity:0;stroke:#2e8b57;stroke-width:8.61000561;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;stroke-miterlimit:4" />
+    <path
+       id="svg_12"
+       d="m 48.53333,179.28 27.2,-63.51999 L 184,114.85258 160,177.91886"
+       style="fill:#ffffff;stroke:#2e8b57;stroke-width:8.61000561;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;stroke-miterlimit:4" />
+  </g>
+</svg>

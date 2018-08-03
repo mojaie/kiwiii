@@ -10,7 +10,6 @@ import {default as fetcher} from './common/fetcher.js';
 import {default as hfile} from './common/file.js';
 import {default as idb} from './common/idb.js';
 import {default as specs} from './common/specs.js';
-import {default as sw} from './common/sw.js';
 
 import {default as button} from './component/button.js';
 import {default as modal} from './component/modal.js';
@@ -41,7 +40,7 @@ function nodeFactory(selection, record) {
       .attr('target', '_blank')
     : selection;
   node.append('img')
-      .attr('src', icon ? `./assets/icon/${icon}.svg` : null)
+      .attr('src', icon ? `${button.iconBaseURL}${icon}.svg` : null)
       .classed('mr-1', true)
       .style('width', '2rem')
       .style('height', '2rem');
@@ -66,7 +65,7 @@ function nodeFactory(selection, record) {
     if (record.viewID) {
     record.stats.forEach(stat => {
       selection.append('img')
-          .attr('src', `./assets/icon/${icons[stat[0]]}.svg`)
+          .attr('src', `${button.iconBaseURL}${icons[stat[0]]}.svg`)
           .style('width', '1rem')
           .style('height', '1rem');
       selection.append('span')
@@ -87,7 +86,7 @@ function nodeFactory(selection, record) {
       .style('border', '1px solid #999999')
       .style('border-radius', '5px');
   const actionIcon = (sel, icon) => sel.append('img')
-      .attr('src', `./assets/icon/${icon}.svg`)
+      .attr('src', `${button.iconBaseURL}${icon}.svg`)
       .classed('mx-1', true)
       .style('width', '1.25rem')
       .style('height', '1.25rem');
@@ -380,7 +379,7 @@ function run() {
   if (debug) {
     console.info('Off-line mode is disabled for debugging');
   } else {
-    sw.registerServiceWorker();
+    client.registerServiceWorker();
   }
   app();
 }

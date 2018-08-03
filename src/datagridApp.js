@@ -8,7 +8,6 @@ import {default as fetcher} from './common/fetcher.js';
 import {default as hfile} from './common/file.js';
 import {default as idb} from './common/idb.js';
 import {default as misc} from './common/misc.js';
-import {default as sw} from './common/sw.js';
 
 import {default as button} from './component/button.js';
 import {default as modal} from './component/modal.js';
@@ -304,7 +303,7 @@ function run() {
   if (debug) {
     console.info('Off-line mode is disabled for debugging');
   } else {
-    sw.registerServiceWorker();
+    client.registerServiceWorker();
   }
   const storeID = client.URLQuery().store || null;
   const viewID = client.URLQuery().view || null;

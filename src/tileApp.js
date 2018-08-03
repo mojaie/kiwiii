@@ -5,7 +5,6 @@ import d3 from 'd3';
 
 import {default as client} from './common/client.js';
 import {default as idb} from './common/idb.js';
-import {default as sw} from './common/sw.js';
 
 import {default as button} from './component/button.js';
 import {default as transform} from './component/transform.js';
@@ -32,7 +31,7 @@ function app(view, coll) {
       .select('.dropdown-menu');
   menu.append('a').call(renameDialog.menuLink);
   menu.append('a')
-      .call(button.dropdownMenuItem, 'Save', 'save')
+      .call(button.dropdownMenuItem, 'Save', 'menu-save')
       .on('click', function () {
         state.save().then(() => console.info('Tile view saved'));
       });
@@ -106,7 +105,7 @@ function run() {
   if (debug) {
     console.info('Off-line mode is disabled for debugging');
   } else {
-    sw.registerServiceWorker();
+    client.registerServiceWorker();
   }
   const storeID = client.URLQuery().store || null;
   const viewID = client.URLQuery().view || null;

@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "Data analysis package format",
+  "type": "object",
+  "required": [
+    "name", "dataset", "views"
+  ],
+  "properties": {
+    "storeID": {
+      "type": "string",
+      "description": "Package ID. Automatically assigned by a local store"
+    },
+    "name": {
+      "type": "string",
+      "description": "Package name"
+    },
+    "dataset": {
+      "type": "array",
+      "description": "List of data collections"
+    },
+    "views": {
+      "type": "array",
+      "description": "List of views"
+    },
+    "sessionStarted": {
+      "type": "date",
+      "description": "Date the session started"
+    }
+  }
+}

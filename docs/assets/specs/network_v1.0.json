@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "Network view data format",
+  "type": "object",
+  "required": [
+    "viewID", "name", "viewType", "nodes", "edges"
+  ],
+  "properties": {
+    "viewID": {
+      "type": "string",
+      "description": "View ID"
+    },
+    "name": {
+      "type": "string",
+      "description": "Network name. Default value is the first 8 characters of workflowID"
+    },
+    "viewType": {
+      "type": "string",
+      "enum": ["datagrid", "network", "tile"],
+      "description": "viewType (fixed value 'network')"
+    },
+    "nodes": {
+      "type": "string",
+      "description": "Collection ID of node dataset"
+    },
+    "edges": {
+      "type": "string",
+      "description": "Collection ID of edge dataset"
+    },
+    "coords": {
+      "type": "array",
+      "description": "List of node coords"
+    },
+    "fieldTransform": {
+      "type": "object",
+      "description": "State of zoom and transition"
+    },
+    "connThldField": {
+      "type": "string",
+      "description": "Edge generation threshold field"
+    },
+    "currentConnThld": {
+      "type": "float",
+      "description": "Edge generation threshold"
+    },
+    "minConnThld": {
+      "type": "float",
+      "description": "Lower limit of networkThreshold"
+    },
+    "nodeColor": {
+      "type": "object",
+      "description": "Node color"
+    },
+    "nodeSize": {
+      "type": "object",
+      "description": "Node size"
+    },
+    "nodeLabel": {
+      "type": "object",
+      "description": "Node label"
+    },
+    "nodeLabelColor": {
+      "type": "object",
+      "description": "Node label color"
+    },
+    "edgeColor": {
+      "type": "object",
+      "description": "Edge color"
+    },
+    "edgeWidth": {
+      "type": "object",
+      "description": "Edge width"
+    },
+    "edgeLabel": {
+      "type": "object",
+      "description": "Edge label"
+    },
+    "edgeLabelColor": {
+      "type": "object",
+      "description": "Edge label color"
+    },
+    "contour": {
+      "type": "object",
+      "description": "Contour"
+    },
+    "checkpoints": {
+      "type": "array",
+      "description": "Checkpoints"
+    }
+  }
+}
