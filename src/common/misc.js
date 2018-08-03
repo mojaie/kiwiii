@@ -2,7 +2,6 @@
 /** @module common/misc */
 
 import d3 from 'd3';
-import _ from 'lodash';
 
 
 function sortType(fmt) {
@@ -30,13 +29,6 @@ function partialMatch(query, target) {
 }
 
 
-function URLQuery() {
-  const pairs = window.location.search.substring(1).split("&")
-    .map(e => e.split('='));
-  return _.fromPairs(pairs);
-}
-
-
 // Ref. https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
 function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -47,5 +39,5 @@ function uuidv4() {
 
 
 export default {
-  sortType, formatNum, partialMatch, URLQuery, uuidv4
+  sortType, formatNum, partialMatch, uuidv4
 };

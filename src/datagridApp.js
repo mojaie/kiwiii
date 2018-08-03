@@ -3,6 +3,7 @@
 
 import d3 from 'd3';
 
+import {default as client} from './common/client.js';
 import {default as fetcher} from './common/fetcher.js';
 import {default as hfile} from './common/file.js';
 import {default as idb} from './common/idb.js';
@@ -290,6 +291,13 @@ function updateApp(state) {
 }
 
 function run() {
+  const err = client.compatibility();
+  if (err) {
+    d3.select('body')
+      .style('color', '#ff0000')
+      .text(err);
+    return;
+  }
   // TODO: offline mode flags
   const localFile = document.location.protocol !== "file:";  // TODO
   const offLine = 'onLine' in navigator && !navigator.onLine;  // TODO
@@ -298,8 +306,8 @@ function run() {
   } else {
     sw.registerServiceWorker();
   }
-  const storeID = misc.URLQuery().store || null;
-  const viewID = misc.URLQuery().view || null;
+  const storeID = client.URLQuery().store || null;
+  const viewID = client.URLQuery().view || null;
   return idb.getView(storeID, viewID)
     .then(view => {
       if (!view) throw('ERROR: invalid URL');

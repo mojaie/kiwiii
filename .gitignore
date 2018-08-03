@@ -3,7 +3,3 @@
 .DS_Store
 
 node_modules
-_build
-legacy
-
-memo.txt

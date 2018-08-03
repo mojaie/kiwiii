@@ -7,7 +7,7 @@ const rollup = require('rollup');
 const resolve = require('rollup-plugin-node-resolve');
 const uglify = require('rollup-plugin-uglify');
 const minify = require('uglify-es').minify;
-const precache = require('sw-precache');
+// const precache = require('sw-precache');
 
 
 // Preamble
@@ -26,7 +26,7 @@ const args = argv.run();
 const isDebugBuild = args.options.debug;
 
 const distDir = 'dist';
-const buildDir = '_build';
+const buildDir = './docs/_build';
 
 
 // Bundle setting
@@ -94,7 +94,7 @@ const htmlRendered = bundles
   .map(bundle => {
     return new Promise((resolve, reject) => {
       ejs.renderFile(
-        `./ejs/${bundle.ejs}.ejs`, {}, {},
+        `./raw/${bundle.ejs}.ejs`, {}, {},
         (err, str) => {
           if (err) {
             console.error(err);
@@ -111,7 +111,7 @@ const htmlRendered = bundles
 
 // LESS build
 const cssRendered = new Promise(resolve => {
-  fs.readFile('less/default.less', 'utf8', (err, input) => {
+  fs.readFile('raw/default.less', 'utf8', (err, input) => {
     less.render(input).then(output => {
       fs.writeFile(`${buildDir}/default.css`, output.css, () => {
         resolve();
@@ -133,6 +133,7 @@ Promise.all(
       });
     });
   }
+  /*
   precache.write(`${buildDir}/sw.js`, {
     staticFileGlobs: [
       `${buildDir}/*.{js,html,css}`,
@@ -140,7 +141,7 @@ Promise.all(
       `${buildDir}/assets/icon/*.svg`
     ],
     stripPrefix: `${buildDir}/`,
-    ignoreUrlParametersMatching: [/(id|compound)/],
+    ignoreUrlParametersMatching: [/(store|view|compound)/],
     runtimeCaching: [
       {urlPattern: /^https:\/\/cdn\.jsdelivr\.net/, handler: 'cacheFirst'},
       {urlPattern: /^https:\/\/cdn\.rawgit\.com/, handler: 'cacheFirst'},
@@ -152,4 +153,5 @@ Promise.all(
       {urlPattern: /^https:\/\/vega\.github\.io/, handler: 'cacheFirst'}
     ]
   }, () => {});
+  */
 });

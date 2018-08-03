@@ -3,7 +3,7 @@
 
 import d3 from 'd3';
 
-import {default as misc} from './common/misc.js';
+import {default as client} from './common/client.js';
 import {default as fetcher} from './common/fetcher.js';
 
 import {default as button} from './component/button.js';
@@ -129,13 +129,20 @@ function render(compoundID) {
 
 
 function run() {
+  const err = client.compatibility();
+  if (err) {
+    d3.select('body')
+      .style('color', '#ff0000')
+      .text(err);
+    return;
+  }
   // Menubar
   const menubar = d3.select('#menubar');
   menubar.append('a')
       .call(button.menuButtonLink, 'Dashboard', 'outline-secondary', 'db-gray')
       .attr('href', 'dashboard.html')
       .attr('target', '_blank');
-  const compoundID = misc.URLQuery().compound || null;
+  const compoundID = client.URLQuery().compound || null;
   if (!compoundID) return;
   // TODO: offline mode flags
   const localFile = document.location.protocol !== "file:";

@@ -4,6 +4,7 @@
 import _ from 'lodash';
 import d3 from 'd3';
 
+import {default as client} from './common/client.js';
 import Collection from './common/collection.js';
 import {default as fetcher} from './common/fetcher.js';
 import {default as hfile} from './common/file.js';
@@ -365,6 +366,13 @@ function updateApp() {
 
 
 function run() {
+  const err = client.compatibility();
+  if (err) {
+    d3.select('body')
+      .style('color', '#ff0000')
+      .text(err);
+    return;
+  }
   // TODO: show browser status
   // TODO: offline mode flags
   const localFile = document.location.protocol !== "file:";  // TODO

@@ -2,7 +2,7 @@
 /** @module common/fetcher */
 
 
-const baseURL = '';
+const baseURL = '../req/';
 
 function get(url, query={}) {
   const isEmpty = Object.keys(query).length;
