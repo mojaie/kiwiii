@@ -7,7 +7,6 @@ const rollup = require('rollup');
 const resolve = require('rollup-plugin-node-resolve');
 const uglify = require('rollup-plugin-uglify');
 const minify = require('uglify-es').minify;
-// const precache = require('sw-precache');
 
 
 // Preamble
@@ -81,7 +80,7 @@ const jsBundled = bundles.map(bundle => {
       sourcemap: true,
       name: module,
       banner: preamble,
-      intro: `const debug = ${isDebugBuild};`,
+      // intro: `const debug = ${isDebugBuild};`,
       globals: external
     });
   });
@@ -121,37 +120,5 @@ const cssRendered = new Promise(resolve => {
 });
 
 
-// Generate service worker file
-Promise.all(
-  jsBundled.concat(htmlRendered, cssRendered)
-).then(() => {
-  if (!isDebugBuild) { // Remove debug files
-    debugBundles.forEach(bundle => {
-      ['.js', '.js.map', '.html'].forEach(ext => {
-        const p = `${buildDir}/${bundle.name}${ext}`;
-        if (fs.existsSync(p)) fs.unlinkSync(p);
-      });
-    });
-  }
-  /*
-  precache.write(`${buildDir}/sw.js`, {
-    staticFileGlobs: [
-      `${buildDir}/*.{js,html,css}`,
-      `${buildDir}/assets/*.gif`,
-      `${buildDir}/assets/icon/*.svg`
-    ],
-    stripPrefix: `${buildDir}/`,
-    ignoreUrlParametersMatching: [/(store|view|compound)/],
-    runtimeCaching: [
-      {urlPattern: /^https:\/\/cdn\.jsdelivr\.net/, handler: 'cacheFirst'},
-      {urlPattern: /^https:\/\/cdn\.rawgit\.com/, handler: 'cacheFirst'},
-      {urlPattern: /^https:\/\/cdnjs\.cloudflare\.com/, handler: 'cacheFirst'},
-      {urlPattern: /^https:\/\/code\.jquery\.com/, handler: 'cacheFirst'},
-      {urlPattern: /^https:\/\/d3js\.org/, handler: 'cacheFirst'},
-      {urlPattern: /^https:\/\/maxcdn\.bootstrapcdn\.com/, handler: 'cacheFirst'},
-      {urlPattern: /^https:\/\/unpkg\.com/, handler: 'cacheFirst'},
-      {urlPattern: /^https:\/\/vega\.github\.io/, handler: 'cacheFirst'}
-    ]
-  }, () => {});
-  */
-});
+// Run
+Promise.all(jsBundled.concat(htmlRendered, cssRendered));

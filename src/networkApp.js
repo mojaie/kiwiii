@@ -203,11 +203,7 @@ function run() {
   // TODO: offline mode flags
   const localFile = document.location.protocol !== "file:";  // TODO
   const offLine = 'onLine' in navigator && !navigator.onLine;  // TODO
-  if (debug) {
-    console.info('Off-line mode is disabled for debugging');
-  } else {
-    client.registerServiceWorker();
-  }
+  client.registerServiceWorker();
   const storeID = client.URLQuery().store || null;
   const viewID = client.URLQuery().view || null;
   return idb.getView(storeID, viewID)

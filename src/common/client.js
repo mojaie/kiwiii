@@ -33,18 +33,10 @@ function compatibility() {
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js');
+      navigator.serviceWorker.register('../sw.js');  // TODO: root path option
     });
-    /* navigator.serviceWorker
-      .register('sw.js')
-      .then(reg => {
-        console.info('ServiceWorker registration successful with scope: ', reg.scope);
-      }).catch(err => {
-        console.info('ServiceWorker registration failed: ', err);
-      });
-    */
   } else {
-    console.info('Off-line mode is not supported');
+    console.info('Service worker is not supported');
   }
 }
 

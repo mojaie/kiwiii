@@ -146,8 +146,7 @@ function run() {
   if (!compoundID) return;
   // TODO: offline mode flags
   const localFile = document.location.protocol !== "file:";
-  const offLine = 'onLine' in navigator && !navigator.onLine;
-  console.info('Off-line mode is disabled for debugging');
+  const offLine = 'onLine' in navigator && !navigator.onLine;  client.registerServiceWorker();
   return render(compoundID);
 }
 
