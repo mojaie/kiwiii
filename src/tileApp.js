@@ -27,7 +27,7 @@ function app(view, coll) {
 
   // Tile view control
   const menu = menubar.append('div')
-      .call(button.dropdownMenuButton, 'Tile', 'primary', 'table-white')
+      .call(button.dropdownMenuButton, 'Tile', 'primary', 'tiles-white')
       .select('.dropdown-menu');
   menu.append('a').call(renameDialog.menuLink);
   menu.append('a')
@@ -37,7 +37,8 @@ function app(view, coll) {
       });
   // Dashboard link
   menubar.append('a')
-      .call(button.menuButtonLink, 'Dashboard', 'outline-secondary', 'db-gray')
+      .call(button.menuButtonLink, 'Dashboard',
+            'outline-secondary', 'status-gray')
       .attr('href', 'dashboard.html')
       .attr('target', '_blank');
   // Dialogs

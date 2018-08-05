@@ -15,7 +15,7 @@ workbox.routing.registerRoute(
 );
 
 workbox.routing.registerRoute(
-  /\.(?:js|js.map|css|html)$/,
+  /\.(?:js|css|html)$/,
   workbox.strategies.staleWhileRevalidate({
     cacheName: 'apps'
   })

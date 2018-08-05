@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: dialog/fieldFetch.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: dialog/fieldFetch.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+/** @module dialog/fieldFetch */
+
+import _ from 'lodash';
+import d3 from 'd3';
+
+import {default as fetcher} from '../common/fetcher.js';
+import {default as mapper} from '../common/mapper.js';
+
+import {default as button} from '../component/button.js';
+import {default as modal} from '../component/modal.js';
+
+import {default as table} from '../datagrid/table.js';
+
+
+const id = 'fieldfetch-dialog';
+const title = 'Append assays';
+
+
+function menuLink(selection) {
+  selection.call(button.dropdownMenuModal, title, id, 'menu-addassay');
+}
+
+
+function body(selection) {
+  const fields = [
+    {key: 'check', name: 'Check', format: 'checkbox',
+     widthf: 0.5, height: 40, disabled: 'check_d'},
+    {key: 'assay_id', name: 'Assay ID', format: 'assay_id'},
+    {key: 'name', name: 'Name', format: 'text'},
+    {key: 'value_type', name: 'Value type', format: 'text'},
+    {key: 'tags', name: 'Tags', format: 'list', widthf: 2}
+  ];
+  const dialog = selection.call(modal.submitDialog, id, title);
+  dialog.select('.modal-dialog').classed('modal-lg', true);
+  dialog.select('.modal-body').append('div')
+    .classed('assays', true)
+    .call(table.filterTable, fields, []);
+}
+
+
+function updateBody(selection, schema, dgfields) {
+  const assays = _.flatten(
+    schema.resources.filter(e => e.domain === 'assay').map(e => e.data)
+  );
+  const items = _.flatMap(assays, assay => {
+    return assay.value_types.map(e => {
+      const copy = Object.assign({}, assay);
+      copy.value_type = e.key;
+      delete copy.value_types;
+      return copy;
+    });
+  });
+  const done = {};
+  dgfields.filter(e => e.hasOwnProperty('__origin'))
+    .map(e => e.__origin)
+    .forEach(e => {
+      if (!done.hasOwnProperty(e.assay_id)) {
+        done[e.assay_id] = [];
+      }
+      done[e.assay_id].push(e.value_type);
+    });
+  const records = items.map(item => {
+    const d = done.hasOwnProperty(item.assay_id)
+        &amp;&amp; done[item.assay_id].includes(item.value_type);
+    item.check = d;
+    item.check_d = d;
+    return item;
+  });
+  selection.select('.assays')
+    .call(table.updateRecords, records)
+    .on('change', function () {  // Validation
+      const anyChecked = table.tableRecords(d3.select(this))
+        .filter(e => e.check &amp;&amp; !e.check_d).length;
+      selection.select('.submit').property('disabled', !anyChecked);
+    })
+    .dispatch('change');
+}
+
+
+function execute(selection, compounds, schema) {
+  const targets = schema.resources
+    .filter(e => e.domain === 'activity').map(e => e.id);
+  const queries = table.tableRecords(selection.select('.assays'))
+    .filter(e => e.check &amp;&amp; !e.check_d)
+    .map(e => {
+      return {
+        workflow: 'activity',
+        targets: targets,
+        assay_id: e.assay_id,
+        condition: {
+          compounds: compounds,
+          value_types: [e.value_type]
+        }
+      };
+    })
+    .map(q => {
+      return fetcher.get(q.workflow, q)
+        .then(fetcher.json);
+    });
+    return Promise.all(queries).then(res => {
+      const merged = res.shift();
+      res.forEach(data => {
+        const mp = mapper.tableToMapping(
+          data, 'compound_id', ['index', 'assay_id']);
+        mapper.apply(merged, mp);
+      });
+      return mapper.tableToMapping(
+        merged, 'compound_id', ['index', 'assay_id']);
+    });
+}
+
+
+export default {
+  menuLink, body, updateBody, execute
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 05 2018 22:55:14 GMT+0900 (JST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

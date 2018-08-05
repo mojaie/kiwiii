@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: testAPI.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: testAPI.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+/** @module testAPI */
+
+import d3 from 'd3';
+
+import {default as fetcher} from './common/fetcher.js';
+
+
+const testCases = [];
+
+testCases.push(() =>
+  fetcher.get('server').then(fetcher.json)
+    .then(res => ({output: res, test: 'server', pass: true}))
+    .catch(err => ({output: err, test: 'server', pass: false}))
+);
+
+testCases.push(() =>
+  fetcher.get('schema').then(fetcher.json)
+    .then(res => ({output: res, test: 'schema', pass: true}))
+    .catch(err => ({output: err, test: 'schema', pass: false}))
+);
+
+testCases.push(() =>
+  fetcher.get('search', {
+    targets: ['drugbankfda'],
+    key: 'compound_id',
+    values: ['DB00189', 'DB00193', 'DB00203', 'DB00865', 'DB01143']
+  }).then(fetcher.json)
+    .then(res => ({output: res, test: 'chemsearch', pass: true}))
+    .catch(err => ({output: err, test: 'chemsearch', pass: false}))
+);
+
+testCases.push(() =>
+  fetcher.get('profile', {
+    targets: ['exp_results'],
+    compound_id: 'DB00189'
+  }).then(fetcher.json)
+    .then(res => ({output: res, test: 'profile', pass: true}))
+    .catch(err => ({output: err, test: 'profile', pass: false}))
+);
+
+testCases.push(() =>
+  fetcher.get('activity', {
+    targets: ['exp_results'],
+    assay_id: 'Test1',
+    condition: {
+      compounds: ['DB00189', 'DB00193', 'DB00203', 'DB00865', 'DB01143'],
+      value_types: ['IC50', 'inh5uM']
+    }
+  }).then(fetcher.json)
+    .then(res => ({output: res, test: 'activity', pass: true}))
+    .catch(err => ({output: err, test: 'activity', pass: false}))
+);
+
+testCases.push(() =>
+  fetcher.get('strprev', {
+    format: 'dbid',
+    source: 'drugbankfda',
+    value: 'DB00115'
+  }).then(fetcher.text)
+    .then(res => ({
+      output: new DOMParser().parseFromString(res, "image/svg+xml"),
+      test: 'strprev', pass: true
+    }))
+    .catch(err => ({output: err, test: 'strprev', pass: false}))
+);
+
+testCases.push(() =>
+  new Promise(r => {
+    fetcher.get('substr', {
+      targets: ['drugbankfda'],
+      queryMol: {
+        format: 'dbid',
+        source: 'drugbankfda',
+        value: 'DB00115'
+      },
+      params: {
+        ignoreHs: true
+      }
+    }).then(fetcher.json)
+      .then(res => {
+        setTimeout(() => {
+          const query = {id: res.workflowID, command: 'abort'};
+          fetcher.get('progress', query).then(fetcher.json).then(rows => r([res, rows]));
+        }, 2000);
+      });
+  }).then(res => ({output: res, test: 'substr', pass: true}))
+    .catch(err => ({output: err, test: 'substr', pass: false}))
+);
+
+testCases.push(() =>
+  new Promise(r => {
+    fetcher.get('filter', {
+      targets: ['drugbankfda'],
+      key: '_mw',
+      value: 1000,
+      operator: 'gt'
+    }).then(fetcher.json)
+      .then(res => {
+        setTimeout(() => {
+          const query = {id: res.workflowID, command: 'abort'};
+          fetcher.get('progress', query).then(fetcher.json).then(rows => r([res, rows]));
+        }, 2000);
+      });
+  }).then(res => ({output: res, test: 'chemprop', pass: true}))
+    .catch(err => ({output: err, test: 'chemprop', pass: false}))
+);
+
+testCases.push(() =>
+  fetcher.get('search', {
+    targets: ['drugbankfda'],
+    key: 'compound_id',
+    values: ['DB00186', 'DB00189', 'DB00193', 'DB00203', 'DB00764', 'DB00863',
+             'DB00865', 'DB00868', 'DB01143', 'DB01240', 'DB01242', 'DB01361',
+             'DB01366', 'DB02638', 'DB02959']
+  }).then(fetcher.json)
+    .then(res =>
+      new Promise(r => {
+        const params = {
+          threshold: 0.25, ignoreHs: true, diameter: 8, timeout: 1
+        };
+        const formData = new FormData();
+        formData.append('contents', new Blob([JSON.stringify(res.records)]));
+        formData.append('params', JSON.stringify(params));
+        fetcher.post('glsnet', formData)
+          .then(fetcher.json)
+          .then(res => {
+            setTimeout(() => {
+              const query = {id: res.workflowID, command: 'abort'};
+              fetcher.get('progress', query).then(fetcher.json).then(rows => r([res, rows]));
+            }, 2000);
+          });
+      }).then(res => ({output: res, test: 'glsnet', pass: true}))
+        .catch(err => ({output: err, test: 'glsnet', pass: false}))
+    )
+);
+
+function run() {
+  const table = d3.select('#results').append('table');
+  const header = table.append('thead').append('tr');
+  header.append('th').text('Test');
+  header.append('th').text('Result');
+  const body = table.append('tbody');
+  testCases.reduce((ps, curr) => {
+    return () => ps()
+      .then(curr)
+      .then(res => {
+        console.info(res.test);
+        console.info(res.output);
+        const pass = res.pass ? 'OK' : '&lt;span class="text-danger">NG&lt;span>';
+        const row = body.append('tr');
+        row.append('td').text(res.test);
+        row.append('td').text(pass);
+      })
+      ;
+  }, () => Promise.resolve())();
+}
+run();
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 05 2018 22:55:14 GMT+0900 (JST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

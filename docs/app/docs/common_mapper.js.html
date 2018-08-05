@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: common/mapper.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: common/mapper.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+/** @module common/mapper */
+
+import _ from 'lodash';
+
+
+/**
+ * Convert single field mapping to multi field mapping
+ * @param {object} mapping - single field mapping
+ * @return {object} multi field mapping
+ */
+function singleToMulti(mapping) {
+  const newMapping = {};
+  Object.entries(mapping.mapping).forEach(m => {
+    newMapping[m[0]] = [m[1]];
+  });
+  return {
+    created: mapping.created,
+    fields: [mapping.field],
+    key: mapping.key,
+    mapping: newMapping
+  };
+}
+
+
+/**
+ * Convert field mapping to table
+ * @param {object} mapping - field mapping
+ * @return {object} table object
+ */
+function mappingToTable(mapping) {
+  const mp = mapping.hasOwnProperty('field') ? singleToMulti(mapping) : mapping;
+  const keyField = {key: mp.key, format: 'text'};
+  const data = {
+    fields: [keyField].concat(mp.fields),
+    records: Object.entries(mp.mapping).map(entry => {
+      const rcd = {};
+      rcd[mp.key] = entry[0];
+      mp.fields.forEach((f, i) => {
+        rcd[f.key] = entry[1][i];
+      });
+      return rcd;
+    })
+  };
+  return data;
+}
+
+
+/**
+ * Convert table to field mapping
+ * @param {object} table - table
+ * @param {object} key - key
+ * @return {object} field mapping
+ */
+function tableToMapping(table, key, ignore=['index']) {
+  const now = new Date();
+  const mapping = {
+    created: now.toString(),
+    fields: table.fields.filter(e => e.key !== key)
+      .filter(e => !ignore.includes(e.key)),
+    key: key,
+    mapping: {}
+  };
+  table.records.forEach(row => {
+    mapping.mapping[row[key]] = mapping.fields.map(e => row[e.key]);
+  });
+  return mapping;
+}
+
+
+/**
+ * Convert csv text to field mapping
+ * @param {string} csvString - csv data text
+ * @return {object} field mapping
+ */
+function csvToMapping(csvString) {
+  const lines = csvString.split(/\n|\r|\r\n/);
+  const header = lines.shift().split(',');
+  const key = header.shift();
+  const now = new Date();
+  const headerIdx = [];
+  const fields = [];
+  header.forEach((h, i) => {
+    if (h === '') return;
+    headerIdx.push(i);
+    fields.push({key: h, format: 'text'});
+  });
+  const mapping = {
+    created: now.toString(),
+    fields: fields,
+    key: key,
+    mapping: {}
+  };
+  lines.forEach(line => {
+    const values = line.split(',');
+    const k = values.shift();
+    mapping.mapping[k] = Array(headerIdx.length);
+    headerIdx.forEach(i => {
+      mapping.mapping[k][i] = values[i];
+    });
+  });
+  return mapping;
+}
+
+
+/**
+ * Apply mapping to the data (in-place)
+ * @param {object} data - datatable JSON
+ * @param {object} mapping - mapping JSON
+ * @return {undefined} undefined
+ */
+function apply(data, mapping) {
+  const mp = mapping.hasOwnProperty('field') ? singleToMulti(mapping) : mapping;
+  data.records
+    .filter(rcd => mp.mapping.hasOwnProperty(rcd[mp.key]))
+    .forEach(rcd => {
+      mp.fields.forEach((fd, i) => {
+        rcd[fd.key] = mp.mapping[rcd[mp.key]][i];
+      });
+    });
+  data.fields =  _(data.fields)
+    .concat(mp.fields)
+    .uniqBy('key')
+    .value();
+}
+
+export default {
+  singleToMulti, mappingToTable, tableToMapping, csvToMapping, apply
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 05 2018 22:55:14 GMT+0900 (JST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

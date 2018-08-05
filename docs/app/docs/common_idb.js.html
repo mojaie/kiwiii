@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: common/idb.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: common/idb.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+/** @module common/idb */
+
+import _ from 'lodash';
+import Dexie from 'Dexie';
+
+import {default as misc} from './misc.js';
+import {default as legacy} from './legacySchema.js';
+
+// TODO: need package, view and dataset tables?
+const schema = {
+  items: 'storeID, sessionStarted'
+};
+
+let idb = new Dexie('Store');
+idb.version(1).stores(schema);
+
+
+/**
+ * Delete all data store
+ * Try this before dealing with local db issues
+ */
+function reset() {
+  return idb.delete().then(() => {
+    idb = new Dexie('Store');
+    idb.version(1).stores(schema);
+  });
+}
+
+
+/**
+ * Returns all data store items
+ * @return {array} data store objects
+ */
+function getAllItems() {
+  return idb.items
+    .orderBy('sessionStarted')
+    .reverse()
+    .toArray();
+}
+
+
+/**
+ * Get data store items by store ID
+ * @param {string} storeID - store ID
+ * @return {array} data store object
+ */
+function getItem(storeID) {
+  return idb.items
+    .where('storeID')
+    .equals(storeID)
+    .first()
+    .catch(err => {
+      console.error(`IDBError: Unexpected table ID: ${storeID}`, err);
+    });
+}
+
+
+/**
+ * Insert a data object to the store
+ * @param {object} data - data
+ * @return {string} - storeID if sucessfully added
+ */
+function importItem(data) {
+  // Legacy format converter
+  if (!data.hasOwnProperty('views')) {
+    data = legacy.convertPackage(data);
+  }
+  const now = new Date();
+  data.storeID = misc.uuidv4().slice(0, 8);
+  data.sessionStarted = now.toString();
+  return idb.items.put(data);
+}
+
+
+/**
+ * Insert a data object to the store
+ * @param {object} response - response data
+ * @return {string} - viewID if sucessfully added
+ */
+function newDatagrid(response) {
+  const now = new Date();
+  const date = now.toLocaleString('en-GB', { timeZone: 'Asia/Tokyo'});
+  const storeID = misc.uuidv4().slice(0, 8);
+  const viewID = misc.uuidv4().slice(0, 8);
+  const collectionID = response.workflowID.slice(0, 8);
+  const data = {
+    $schema: "https://mojaie.github.io/kiwiii/specs/package_v1.0.json",
+    storeID: storeID,
+    name: viewID,  // TODO: generate from response.query
+    views: [
+      {
+        $schema: "https://mojaie.github.io/kiwiii/specs/datagrid_v1.0.json",
+        viewID: viewID,
+        name: viewID,  // TODO: generate from response.query
+        viewType: "datagrid",
+        rows: collectionID,
+        checkpoints: [
+          {type: 'creation', date: date}
+        ]
+      }
+    ],
+    dataset: [
+      {
+        $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
+        collectionID: collectionID,
+        contents: [response]
+      }
+    ],
+    sessionStarted: date
+  };
+  return idb.items.put(data)
+    .then(() => ({storeID: storeID, viewID:viewID}));
+}
+
+
+/**
+ * Update data object in the store
+ * @param {string} storeID - store ID
+ * @param {function} updateFunc - update function
+ * @return {integer} - number of updated items
+ */
+function updateItem(storeID, updateFunc) {
+  return idb.items
+    .where('storeID')
+    .equals(storeID)
+    .modify(updateFunc)
+    .catch(err => {
+      console.error('IDBError: Update failed', err);
+    });
+}
+
+
+/**
+ * Delete a data object from the store
+ * @param {string} storeID - store ID
+ * @return {integer} - number of deleted items
+ */
+function deleteItem(storeID) {
+  return idb.items
+    .where('storeID')
+    .equals(storeID)
+    .delete();
+}
+
+
+/**
+ * Returns a view
+ * @param {string} storeID - store ID
+ * @param {string} viewID - view ID
+ * @return {array} view objects
+ */
+function getView(storeID, viewID) {
+  return getAllItems()
+    .then(items => items.find(e => e.storeID === storeID).views)
+    .then(views => {
+      const view = views.find(e => e.viewID === viewID);
+      if (!view) return;
+      view.storeID = storeID;
+      return view;
+    });
+}
+
+
+/**
+ * Append a view next to a specific view
+ * @param {string} storeID - store ID
+ * @param {string} viewID - view ID
+ * @param {object} viewObj - view object
+ */
+function appendView(storeID, viewID, viewObj) {
+  return updateItem(storeID, item => {
+    const pos = item.views.findIndex(e => e.viewID === viewID);
+    item.views.splice(pos + 1, 0, viewObj);
+  });
+}
+
+
+/**
+ * Update view
+ * @param {string} storeID - store ID
+ * @param {string} viewID - view ID
+ * @param {object} viewObj - view object or update function
+ */
+function updateView(storeID, viewID, viewObj) {
+  return updateItem(storeID, item => {
+    const pos = item.views.findIndex(e => e.viewID === viewID);
+    if (_.isFunction(viewObj)) {
+      viewObj(item.views[pos]);
+    } else {
+      item.views[pos] = viewObj;
+    }
+  });
+}
+
+
+/**
+ * Delete a data object from the store
+ * @param {string} storeID - store ID
+ * @return {integer} - number of deleted items
+ */
+function deleteView(storeID, viewID) {
+  return updateItem(storeID, item => {
+    const pos = item.views.findIndex(e => e.viewID === viewID);
+    item.views.splice(pos, 1);
+    // prune orphaned collections
+    const bin = {};
+    item.dataset.forEach(e => { bin[e.collectionID] = 0; });
+    item.views.forEach(view => {
+      ['rows', 'items', 'nodes', 'edges']
+        .filter(e => view.hasOwnProperty(e))
+        .forEach(e => { bin[view[e]] += 1; });
+    });
+    Object.entries(bin).forEach(entry => {
+      if (!entry[1]) {
+        const i = item.dataset.findIndex(e => e.collectionID === entry[0]);
+        item.dataset.splice(i, 1);
+      }
+    });
+  });
+}
+
+
+/**
+ * Returns a collection
+ * @param {string} storeID - store ID
+ * @param {string} collID - Collection ID
+ * @return {array} Collection objects
+ */
+function getCollection(storeID, collID) {
+  return getAllItems()
+    .then(items => items.find(e => e.storeID === storeID).dataset)
+    .then(colls => {
+      const coll = colls.find(e => e.collectionID === collID);
+      if (!coll) return;
+      coll.storeID = storeID;
+      return coll;
+    });
+}
+
+
+/**
+ * Append a view next to a specific view
+ * @param {string} storeID - store ID
+ * @param {string} collID - Collection ID
+ * @param {object} collObj - Collection object
+ */
+function appendCollection(storeID, collID, collObj) {
+  return updateItem(storeID, item => {
+    const pos = item.dataset.findIndex(e => e.collectionID === collID);
+    item.dataset.splice(pos + 1, 0, collObj);
+  });
+}
+
+
+/**
+ * Update collection
+ * @param {string} storeID - store ID
+ * @param {string} collID - Collection ID
+ * @param {object} collObj - Collection object or update function
+ */
+function updateCollection(storeID, collID, collObj) {
+  return updateItem(storeID, item => {
+    const pos = item.dataset.findIndex(e => e.collectionID === collID);
+    if (_.isFunction(collObj)) {
+      collObj(item.dataset[pos]);
+    } else {
+      item.dataset[pos] = collObj;
+    }
+  });
+}
+
+
+export default {
+  reset, getAllItems, getItem, importItem, newDatagrid, updateItem, deleteItem,
+  getView, appendView, updateView, deleteView,
+  getCollection, appendCollection, updateCollection
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 05 2018 22:55:14 GMT+0900 (JST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: network/force.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: network/force.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+/** @module network/force */
+
+import d3 from 'd3';
+
+import {default as component} from './component.js';
+import {default as interaction} from './interaction.js';
+
+
+const forcePresets = {
+  aggregate: d3.forceSimulation()
+    .force('link', d3.forceLink().id(d => d.index).distance(60).strength(1))
+    .force('charge',
+      d3.forceManyBody().strength(-600).distanceMin(15).distanceMax(720))
+    .force('collide', d3.forceCollide().radius(90))
+    .force('x', d3.forceX().strength(0.002))
+    .force('y', d3.forceY().strength(0.002)),
+  tree: d3.forceSimulation()
+    .force('link', d3.forceLink().id(d => d.index).distance(60).strength(2))
+    .force('charge',
+      d3.forceManyBody().strength(-6000).distanceMin(15).distanceMax(720))
+    .force('collide', d3.forceCollide().radius(90))
+    .force('x', d3.forceX().strength(0.0002))
+    .force('y', d3.forceY().strength(0.0002))
+};
+
+
+function forceSimulation(preset, width, height) {
+  return forcePresets[preset]
+    .force('center', d3.forceCenter(width / 2, height / 2))
+    .stop();
+}
+
+
+function forceDragListener(selection, simulation, state) {
+  return d3.drag()
+    .on('start', () => {
+      if (!d3.event.active) selection.call(relax, simulation, state);
+    })
+    .on('drag', d => {
+      d.fx = d3.event.x;
+      d.fy = d3.event.y;
+    })
+    .on('end', d => {
+      if (!d3.event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    });
+}
+
+
+function end(selection, simulation, state) {
+  const coords = state.ns.map(e => ({x: e.x, y: e.y}));
+  state.setAllCoords(coords);
+  selection
+    .call(component.updateComponents, state);
+}
+
+
+function stick(selection, simulation, state) {
+  simulation.alpha(0).stop();
+  selection.select('.nw-nodes').selectAll('.node')
+    .each(d => {
+      d.fx = d.x;
+      d.fy = d.y;
+    });
+  state.dragListener = interaction.dragListener(selection, state);
+  selection.call(end, simulation, state);
+}
+
+
+function unstick(selection, simulation, state) {
+  selection.select('.nw-nodes').selectAll('.node')
+    .each(d => {
+      d.fx = null;
+      d.fy = null;
+    });
+  state.dragListener = forceDragListener(selection, simulation, state);
+  // Render all nodes and do not render edges
+  // TODO: edge rendering behavior should be changed by data size or setting
+  const coords = state.ns.map(e => ({x: e.x, y: e.y}));
+  state.setAllCoords(coords);
+  selection
+    .call(component.updateComponents, state);
+}
+
+
+function relax(selection, simulation, state) {
+  selection.call(unstick, simulation, state);
+  simulation.alpha(0.1).restart();
+}
+
+
+function restart(selection, simulation, state) {
+  selection.call(unstick, simulation, state);
+  simulation.alpha(1).restart();
+}
+
+
+function setForce(selection, simulation, state) {
+  simulation.nodes(state.ns)
+    .force('link').links(state.currentEdges());
+}
+
+
+function activate(selection, simulation, state) {
+  simulation
+    .on('tick', () => {
+      selection.select('.nw-nodes').selectAll(".node")
+        .call(component.updateNodeCoords);
+      const coords = state.ns.map(e => ({x: e.x, y: e.y}));
+      state.setAllCoords(coords);
+      selection.select('.nw-edges').selectAll(".link")
+        .call(component.updateEdgeCoords);
+      state.tickCallback(simulation);
+    })
+    .on('end', () => {
+      selection.call(end, simulation, state);
+      state.tickCallback(simulation);
+    });
+  state.setForceNotifier = () => {
+    selection.call(setForce, simulation, state);
+  };
+  state.stickNotifier = () => {
+    selection.call(stick, simulation, state);
+  };
+  state.relaxNotifier = () => {
+    selection.call(relax, simulation, state);
+  };
+  state.restartNotifier = () => {
+    selection.call(restart, simulation, state);
+  };
+  state.setForceNotifier();
+  if (state.simulationOnLoad) {
+    selection.call(restart, simulation, state);
+  } else {
+    selection.call(stick, simulation, state);
+  }
+}
+
+
+export default {
+  forceSimulation, activate, stick, relax, restart
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 05 2018 22:55:14 GMT+0900 (JST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

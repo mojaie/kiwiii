@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: common/transform.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: common/transform.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+/** @module common/transform */
+
+import d3 from 'd3';
+
+
+export default class TransformState {
+  constructor(width, height, transform) {
+    this.fieldWidth = width;
+    this.fieldHeight = height;
+
+    this.viewBox = {
+      top: 0,
+      right: this.fieldWidth,
+      bottom: this.fieldHeight,
+      left: 0
+    };
+
+    this.focusArea = {};
+    this.focusAreaMargin = 50;
+
+    this.boundary = {
+      top: 0,
+      right: this.fieldWidth,
+      bottom: this.fieldHeight,
+      left: 0
+    };
+
+    this.transform = transform || {x: 0, y: 0, k: 1};
+    this.prevTransform = {
+      x: this.transform.x,
+      y: this.transform.y,
+      k: this.transform.k
+    };
+
+    this.resizeNotifier = () => {};
+  }
+
+  setFocusArea() {
+    const tx = this.transform.x;
+    const ty = this.transform.y;
+    const tk = this.transform.k;
+    const margin = this.focusAreaMargin;
+    this.focusArea.top = (this.viewBox.top - ty) / tk - margin;
+    this.focusArea.left = (this.viewBox.left - tx) / tk - margin;
+    this.focusArea.bottom = (this.viewBox.bottom - ty) / tk + margin;
+    this.focusArea.right = (this.viewBox.right - tx) / tk + margin;
+    // this.showFocusArea();  // debug
+  }
+
+  setViewBox(width, height) {
+    this.viewBox.right = width;
+    this.viewBox.bottom = height;
+    // this.showViewBox();  // debug
+    this.setFocusArea();
+  }
+
+  setTransform(tx, ty, tk) {
+    this.transform.x = tx;
+    this.transform.y = ty;
+    this.transform.k = tk;
+    // this.showTransform(); // debug
+    this.setFocusArea();
+  }
+
+  fitTransform() {
+    const vh = this.viewBox.bottom;
+    const vw = this.viewBox.right;
+    const vr = vw / vh;
+    const bh = this.boundary.bottom - this.boundary.top;
+    const bw = this.boundary.right - this.boundary.left;
+    const br = bw / bh;
+    const isPortrait = vr >= br;
+    const tk = isPortrait ? vh / bh : vw / bw;
+    const adjustH = isPortrait ? (vw - bw) / 2 : 0;
+    const adjustV = isPortrait ? 0 : (vh - bh) / 2;
+    const tx = -(this.boundary.left + adjustH) * tk;
+    const ty = -(this.boundary.top + adjustV) * tk;
+    this.setTransform(tx, ty, tk);
+  }
+
+  showTransform() {
+    d3.select('#debug-transform')
+      .text(JSON.stringify(this.transform));
+  }
+
+  showFocusArea() {
+    d3.select('#debug-focusarea')
+      .text(JSON.stringify(this.focusArea));
+  }
+
+  showViewBox() {
+    d3.select('#debug-viewbox')
+      .text(JSON.stringify(this.viewBox));
+  }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 05 2018 22:55:14 GMT+0900 (JST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

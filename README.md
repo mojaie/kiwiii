@@ -34,9 +34,14 @@ Features and demo applications
 [<img src="assets/screenshots/table-view.png" width="260" height="160" alt="Table view" style="margin: 5px"/>](assets/screenshots/table-view.png)
 [<img src="assets/screenshots/spr-plot-example.png" width="260" height="160" alt="Plot example" style="margin: 5px"/>](assets/screenshots/spr-plot-example.png)
 
-[[Datagrid app demo (DrugBank Approved drugs)]](https://mojaie.github.io/kiwiii/datagrid.html?location=resources/DrugBank5.0.5_FDA_Approved.ndc)
+[[Open datagrid app]](https://mojaie.github.io/kiwiii/app/datagrid.html)
 
-[[Datagrid app demo (SPR sensorgram plot table example)]](https://mojaie.github.io/kiwiii/datagrid.html?location=resources/SPR_results_demo.ndc)
+### Test data files
+
+- [DrugBank 5.0.5 FDA Approved](https://mojaie.github.io/kiwiii/assets/resources/DrugBank5.0.5_FDA_Approved.ndc)
+- [SPR sensorgram plot table](https://mojaie.github.io/kiwiii/assets/resources/SPR_results_demo.ndc)
+
+### Features
 - [SlickGrid](https://github.com/mleibman/SlickGrid)-like smooth scroll datatable
 - Sortable
 - Row filter
@@ -51,7 +56,13 @@ Features and demo applications
 
 [<img src="assets/screenshots/network-view.png" width="260" height="160" alt="Network view" style="margin: 5px"/>](assets/screenshots/network-view.png)
 
-[[Network app demo (DrugBank Approved drugs)]](https://mojaie.github.io/kiwiii/network.html?location=resources/DrugBank5.0.5_FDA_Approved_GLS08.gfc)
+[[Open network app]](https://mojaie.github.io/kiwiii/app/network.html)
+
+### Test data files
+
+- [DrugBank 5.0.5 FDA Approved](https://mojaie.github.io/kiwiii/assets/resources/DrugBank5.0.5_FDA_Approved_GLS08.gfc)
+
+### Features
 
 - Visualized network of chemical structure nodes connected with structure similarity relationship (known as [Chemical Space Network](https://doi.org/10.1007/s10822-014-9760-0))
 - Force-directed layout implemented with d3-force
@@ -70,9 +81,9 @@ Features and demo applications
 
 ### Dashboard
 
-[<img src="assets/screenshots/control-panel.png" width="260" height="160" alt="Control panel" style="margin: 5px"/>](assets/screenshots/control-panel.png)
+[<img src="assets/screenshots/control-panel.png" width="260" height="160" alt="Dashboard" style="margin: 5px"/>](assets/screenshots/control-panel.png)
 
-[[Dashboard app]](https://mojaie.github.io/kiwiii/dashboard.html)
+[[Dashboard app]](https://mojaie.github.io/kiwiii/app/dashboard.html)
 
 - Entry point of the application bundle
 - Show list of stored local data, server jobs and status

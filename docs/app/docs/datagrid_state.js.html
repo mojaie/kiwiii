@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: datagrid/state.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: datagrid/state.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+/** @module datagrid/state */
+
+import _ from 'lodash';
+
+import Collection from '../common/collection.js';
+import {default as idb} from '../common/idb.js';
+import {default as misc} from '../common/misc.js';
+
+import {default as component} from './component.js';
+import {default as factory} from './rowFactory.js';
+
+
+export default class DatagridState {
+  constructor(view, coll) {
+    this.storeID = view.storeID || null;
+    this.viewID = view.viewID || null;
+    this.name = view.name || null;
+    this.sortOrder = view.sortOrder || [];
+    this.filterText = view.filterText || null;
+    this.rows = new Collection(coll);
+
+    this.visibleFields = null;
+    this.sortedRecords = null;
+    this.filteredRecords = null;
+
+    // TODO: auto adjust
+    this.defaultColumnHeight = {
+      numeric: 40,
+      text: 40,
+      none: 200
+    };
+    this.scrollBarSpace = 20;
+    this.keyFunc = d => d.index;
+
+    // Size
+    this.rowHeight = null;
+    this.bodyHeight = null;
+
+    // Viewport
+    this.viewportHeight = null;
+    this.numViewportRows = null;
+    this.viewportTop = 0;
+    this.previousViewportTop = null;
+    this.viewportBottom = null;
+
+    this.fixedViewportHeight = null;
+
+    // Event notifier
+    this.updateContentsNotifier = null;
+    this.updateFilterNotifier = null;
+
+    this.headerCellRenderer = component.headerCellRenderer;
+    this.rowFactory = () => factory.rowFactory(this.visibleFields);
+  }
+
+  /**
+   * Set viewport height and number of rows to show
+   * @param {int} height - viewport height
+   */
+  setViewportSize(height) {
+    this.viewportHeight = this.fixedViewportHeight || height;
+  }
+
+  /**
+   * Set range of the row indices to show
+   * @param {int} position - Index of the top row to show
+   */
+  setScrollPosition(position) {
+    this.previousViewportTop = this.viewportTop;
+    this.viewportTop = position;
+    this.viewportBottom = Math.min(
+      this.viewportTop + this.numViewportRows, this.filteredRecords.length);
+  }
+
+  setNumViewportRows() {
+    this.numViewportRows = Math.ceil(this.viewportHeight / this.rowHeight) + 1;
+  }
+
+  resizeViewport(height) {
+    this.setViewportSize(height);
+    this.setNumViewportRows();
+  }
+
+  /**
+   * Apply header data
+   */
+  applyHeader() {
+    this.visibleFields = this.rows.fields.filter(e => e.visible);
+    const widthfSum = this.visibleFields.reduce((a, c) => a + (c.widthf || 1), 0);
+    this.visibleFields = this.visibleFields.map(e => {
+      const field = {
+        width: (e.widthf || 1) / widthfSum * 100,
+        height: e.height || this.defaultColumnHeight[misc.sortType(e.format)]
+      };
+      return Object.assign(field, e);
+    });
+    this.rowHeight = this.visibleFields
+      .reduce((a, b) => a.height > b.height ? a : b, 0).height;
+  }
+
+  /**
+   * Apply row data
+   * 1. applyHeader: define fields and set rowHeight
+   * 2. resize: measure actual window size and calc viewportHeight
+   * 3. applyData: calc number of rows from rowHeight and viewportHeight
+   * 4. setScrollPosition: calc row index range
+   * 5. recordsToShow: slice rows to show
+   */
+  applyData() {
+    this.setNumViewportRows();
+    this.applyOrder();
+  }
+
+  applyOrder(key, order) {
+    if (key) {
+      this.sortedRecords = _.orderBy(this.rows.records().slice(), [key], [order]);
+    } else {
+      const keys = this.sortOrder.map(e => e.key);
+      const orders = this.sortOrder.map(e => e.order);
+      if (keys) {
+        this.sortedRecords = _.orderBy(this.rows.records().slice(), keys, orders);
+      }
+    }
+    this.applyFilter();
+  }
+
+  applyFilter() {
+    if (this.filterText === null) {
+      this.filteredRecords = this.sortedRecords.slice();
+    } else {
+      const fields = this.visibleFields
+        .filter(e => misc.sortType(e.format) !== 'none')
+        .map(e => e.key);
+      this.filteredRecords = this.sortedRecords.filter(row => {
+        return fields.some(f => misc.partialMatch(this.filterText, row[f]));
+      });
+    }
+    this.bodyHeight = this.filteredRecords.length * this.rowHeight;
+  }
+
+  setSortOrder(key, order) {
+    const ki  = this.sortOrder.findIndex(e => e.key);
+    const obj = {key: key, order: order};
+    if (ki !== -1) this.sortOrder.splice(ki, 1);
+    this.sortOrder.splice(0, 0, obj);
+    this.applyOrder(key, order);
+  }
+
+  setFilterText(text) {
+    this.filterText = text;
+    this.applyFilter();
+  }
+
+  updateFields(fs) {
+    this.rows.updateFields(fs);
+  }
+
+  joinFields(mapping) {
+    this.rows.joinFields(mapping);
+    this.applyData();
+  }
+
+  recordsToShow() {
+    return this.filteredRecords.slice(this.viewportTop, this.viewportBottom);
+  }
+
+  save() {
+    return idb.updateItem(this.storeID, item => {
+      const ci = item.dataset
+        .findIndex(e => e.collectionID === this.rows.collectionID);
+      item.dataset[ci] = this.rows.export();
+      const vi = item.views.findIndex(e => e.viewID === this.viewID);
+      item.views[vi] = this.export();
+    });
+  }
+
+  export() {
+    return {
+      $schema: "https://mojaie.github.io/kiwiii/specs/datagrid_v1.0.json",
+      viewID: this.viewID,
+      name: this.name,
+      viewType: "datagrid",
+      rows: this.rows.collectionID,
+      sortOrder: this.sortOrder,
+      filterText: this.filterText
+    };
+  }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 05 2018 22:55:14 GMT+0900 (JST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

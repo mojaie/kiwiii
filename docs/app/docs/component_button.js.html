@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: component/button.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: component/button.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+/** @module component/button */
+
+import d3 from 'd3';
+
+const iconBaseURL = '../assets/icon/';
+
+
+function buttonBox(selection, label, type) {
+  selection
+      .classed('form-group', true)
+      .classed('mb-1', true)
+    .append('button')
+      .classed('btn', true)
+      .classed(`btn-${type}`, true)
+      .classed('btn-sm', true)
+      .text(label);
+}
+
+
+function menuButton(selection, label, type) {
+  selection
+      .classed('btn', true)
+      .classed(`btn-${type}`, true)
+      .classed(`btn-sm`, true)
+      .classed('mr-1', true)
+      .text(label);
+}
+
+
+function menuButtonLink(selection, label, type, icon) {
+  selection
+      .classed('btn', true)
+      .classed(`btn-${type}`, true)
+      .classed(`btn-sm`, true)
+      .classed('mr-1', true)
+      .attr('role', 'button')
+      .attr('href', '#');
+  selection.append('img')
+      .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null)
+      .style('width', '1.25rem')
+      .style('height', '1.25rem');
+  selection.append('span')
+      .style('vertical-align', 'middle')
+      .text(label);
+}
+
+
+function menuModalLink(selection, target, label, type, icon) {
+  selection
+      .classed('btn', true)
+      .classed(`btn-${type}`, true)
+      .classed(`btn-sm`, true)
+      .classed('mr-1', true)
+      .attr('href', '#')
+      .attr('role', 'button')
+      .attr('data-toggle', 'modal')
+      .attr('data-target', `#${target}`);
+  selection.append('img')
+      .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null)
+      .style('width', '1.25rem')
+      .style('height', '1.25rem');
+  selection.append('span')
+      .classed('label', true)
+      .style('vertical-align', 'middle')
+      .text(label);
+}
+
+
+function dropdownMenuButton(selection, label, type, icon) {
+  selection
+      .classed('btn-group', true)
+      .classed('mr-1', true);
+  const button = selection.append('button')
+      .classed('btn', true)
+      .classed(`btn-${type}`, true)
+      .classed('btn-sm', true)
+      .classed('dropdown-toggle', true)
+      .attr('data-toggle', 'dropdown');
+  button.append('img')
+      .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null)
+      .style('width', '1.25rem')
+      .style('height', '1.25rem');
+  button.append('span')
+      .style('vertical-align', 'middle')
+      .text(label);
+  selection.append('div')
+      .classed('dropdown-menu', true);
+}
+
+
+function dropdownMenuItem(selection, label, icon) {
+  selection.classed('dropdown-item', true)
+      .attr('href', '#');
+  selection.append('img')
+      .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null)
+      .classed('mr-1', true)
+      .style('width', '2rem')
+      .style('height', '2rem');
+  selection.append('span')
+      .text(label);
+}
+
+function dropdownMenuModal(selection, label, target, icon) {
+  selection.classed('dropdown-item', true)
+      .attr('href', '#')
+      .attr('data-toggle', 'modal')
+      .attr('data-target', `#${target}`);
+  selection.append('img')
+      .attr('src', `${iconBaseURL}${icon}.svg`)
+      .classed('mr-1', true)
+      .style('width', '2rem')
+      .style('height', '2rem');
+  selection.append('span')
+      .text(label);
+}
+
+
+function dropdownMenuFile(selection, label, accept, icon) {
+  selection.classed('dropdown-item', true)
+      .attr('href', '#')
+      .on('click', function () {
+        d3.select(this).select('input').node().click();
+      });
+  selection.append('form')
+      .style('display', 'none')
+    .append('input')
+      .attr('type', 'file')
+      .attr('accept', accept);
+  selection.append('img')
+      .attr('src', `${iconBaseURL}${icon}.svg`)
+      .classed('mr-1', true)
+      .style('width', '2rem')
+      .style('height', '2rem');
+  selection.append('span')
+      .text(label);
+}
+
+
+function dropdownMenuFileValue(selection) {
+  return selection.select('input').node().files[0];
+}
+
+
+export default {
+  iconBaseURL, buttonBox, menuButton, menuButtonLink, menuModalLink,
+  dropdownMenuButton, dropdownMenuItem, dropdownMenuModal,
+  dropdownMenuFile, dropdownMenuFileValue
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 05 2018 22:55:14 GMT+0900 (JST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

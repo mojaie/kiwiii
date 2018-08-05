@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: network/state.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: network/state.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+/** @module network/state */
+
+import Collection from '../common/collection.js';
+import TransformState from  '../common/transform.js';
+import {default as idb} from '../common/idb.js';
+
+
+export default class NetworkState extends TransformState {
+  constructor(view, nodes, edges) {
+    super(1200, 1200, view.fieldTransform);
+
+    /* Settings */
+
+    // Focused view mode (num of nodes displayed are less than the thld)
+    // Show node contents
+    // Disable smooth transition
+    this.focusedViewThreshold = 100;
+    this.enableFocusedView = true;
+    this.focusedView = false;
+    // Overlook view mode (num of nodes displayed are less than the thld)
+    // Hide edges
+    this.overlookViewThreshold = 500;
+    this.enableOverlookView = true;
+    this.overlookView = false;
+
+    /* Attributes */
+
+    this.viewID = view.viewID || null;
+    this.storeID = view.storeID || null;
+    this.name = view.name;
+
+    this.nodes = new Collection(nodes);
+    this.edges = new Collection(edges);
+
+    /* Appearance */
+    const defaultNodeField = this.nodes.fields[0].key || null;
+    const fillIfNull = (obj, updater) => {
+      Object.entries(updater).forEach(e => {
+        if (!obj.hasOwnProperty(e[0])) {
+          obj[e[0]] = e[1];
+        }
+      });
+    };
+
+    this.nodeColor = {};
+    const defaultNodeColor = {
+      field: defaultNodeField, color: 'nodeDefault',
+      scale: 'linear', domain: [0, 1],
+      range: ['#7fffd4', '#7fffd4'], unknown: '#7fffd4'
+    };
+    if (view.hasOwnProperty('nodeColor')) {
+      this.nodeColor = view.nodeColor;
+    }
+    fillIfNull(this.nodeColor, defaultNodeColor);
+
+    this.nodeSize = {};
+    const defaultNodeSize = {
+      field: defaultNodeField, scale: 'linear', domain: [1, 1],
+      range: [40, 40], unknown: 40
+    };
+    if (view.hasOwnProperty('nodeSize')) {
+      this.nodeSize = view.nodeSize;
+    }
+    fillIfNull(this.nodeSize, defaultNodeSize);
+
+    this.nodeLabel = {};
+    const defaultNodeLabel = {
+      field: defaultNodeField, size: 20, visible: false
+    };
+    if (view.hasOwnProperty('nodeLabel')) {
+      this.nodeLabel = view.nodeLabel;
+    }
+    fillIfNull(this.nodeLabel, defaultNodeLabel);
+
+    this.nodeLabelColor = {};
+    const defaultNodeLabelColor = {
+      field: defaultNodeField, color: 'monoblack',
+      scale: 'linear', domain: [1, 1],
+      range: ['#333333', '#333333'], unknown: '#cccccc'
+    };
+    if (view.hasOwnProperty('nodeLabelColor')) {
+      this.nodeLabelColor = view.nodeLabelColor;
+    }
+    fillIfNull(this.nodeLabelColor, defaultNodeLabelColor);
+
+    this.edgeColor = {};
+    const defaultEdgeColor = {
+      field: 'weight', color: 'monogray',
+      scale: 'linear', domain: [0, 1],
+      range: ['#999999', '#999999'], unknown: '#cccccc'
+    };
+    if (view.hasOwnProperty('edgeColor')) {
+      this.edgeColor = view.edgeColor;
+    }
+    fillIfNull(this.edgeColor, defaultEdgeColor);
+
+    this.edgeWidth = {};
+    const defaultEdgeWidth = {
+      field: 'weight', scale: 'linear', domain: [0.5, 1],
+      range: [10, 10], unknown: 1
+    };
+    if (view.hasOwnProperty('edgeWidth')) {
+      this.edgeWidth = view.edgeWidth;
+    }
+    fillIfNull(this.edgeWidth, defaultEdgeWidth);
+
+    this.edgeLabel = {};
+    const defaultEdgeLabel = {
+      field: 'weight', size: 12, visible: false
+    };
+    if (view.hasOwnProperty('edgeLabel')) {
+      this.edgeLabel = view.edgeLabel;
+    }
+    fillIfNull(this.edgeLabel, defaultEdgeLabel);
+
+    this.edgeLabelColor = {};
+    const defaultEdgeLabelColor = {
+      field: 'weight', color: 'monoblack',
+      scale: 'linear', domain: [1, 1],
+      range: ['#333333', '#333333'], unknown: '#cccccc'
+    };
+    if (view.hasOwnProperty('edgeLabelColor')) {
+      this.edgeLabelColor = view.edgeLabelColor;
+    }
+    fillIfNull(this.edgeLabelColor, defaultEdgeLabelColor);
+
+    // Connection threshold
+    this.connThldField = view.connThldField || 'weight';
+    this.minConnThld = view.minConnThld;
+    this.currentConnThld = view.currentConnThld || view.minConnThld;
+
+    // Force
+    this.simulationOnLoad = true;
+    this.forcePreset = view.forcePreset || 'aggregate';
+
+    // Event listeners
+    this.zoomListener = null;
+    this.dragListener = null;
+
+    // Event notifiers
+    this.updateAllNotifier = null;
+    this.updateComponentNotifier = null;
+    this.updateNodeNotifier = null;
+    this.updateEdgeNotifier = null;
+    this.updateNodeAttrNotifier = null;
+    this.updateEdgeAttrNotifier = null;
+    this.updateControlBoxNotifier = () => {};
+    this.fitNotifier = () => {};
+    this.setForceNotifier = () => {};
+    this.stickNotifier = () => {};
+    this.relaxNotifier = () => {};
+    this.restartNotifier = () => {};
+    this.tickCallback = () => {};
+
+    // Working copies
+    // D3.force does some destructive operations
+    this.ns = null;
+    this.es = null;
+    this.coords = view.coords;
+
+    // Init
+    this.updateWorkingCopy();
+  }
+
+  updateWorkingCopy() {
+    this.ns = JSON.parse(JSON.stringify(this.nodes.records()));
+    this.ns.forEach(n => { n.adjacency = []; });
+    this.es = JSON.parse(JSON.stringify(this.edges.records()));
+    this.es.forEach((e, i) => {
+      e.num = i;  // e.index will be overwritten by d3-force
+      this.ns[e.source].adjacency.push([e.target, i]);
+      this.ns[e.target].adjacency.push([e.source, i]);
+    });
+    if (this.coords) {
+      this.setAllCoords(this.coords);
+    }
+  }
+
+  setBoundary() {
+    const xs = this.ns.map(e => e.x);
+    const ys = this.ns.map(e => e.y);
+    this.boundary.top = Math.min.apply(null, ys);
+    this.boundary.left = Math.min.apply(null, xs);
+    this.boundary.bottom = Math.max.apply(null, ys);
+    this.boundary.right = Math.max.apply(null, xs);
+    // this.showBoundary(); // debug
+  }
+
+  setAllCoords(coordsList) {
+    this.ns.forEach(n => {
+      n.x = coordsList[n.index].x;
+      n.y = coordsList[n.index].y;
+      // this.es can be changed by forceSimulation so use adjacency
+      n.adjacency.forEach(e => {
+        const nbr = e[0];
+        const edge = e[1];
+        if (n.index &lt; nbr) {
+          this.es[edge].sx = coordsList[n.index].x;
+          this.es[edge].sy = coordsList[n.index].y;
+        } else {
+          this.es[edge].tx = coordsList[n.index].x;
+          this.es[edge].ty = coordsList[n.index].y;
+        }
+      });
+    });
+    this.simulationOnLoad = false;
+    this.setBoundary();
+  }
+
+  setCoords(n, x, y) {
+    this.ns[n].x = x;
+    this.ns[n].y = y;
+    this.ns[n].adjacency.forEach(e => {
+      const nbr = e[0];
+      const edge = e[1];
+      if (n &lt; nbr) {
+        this.es[edge].sx = x;
+        this.es[edge].sy = y;
+      } else {
+        this.es[edge].tx = x;
+        this.es[edge].ty = y;
+      }
+    });
+    this.setBoundary();
+  }
+
+  nodesToRender() {
+    return this.ns.filter(
+      e => e.y > this.focusArea.top &amp;&amp; e.x > this.focusArea.left
+        &amp;&amp; e.y &lt; this.focusArea.bottom &amp;&amp; e.x &lt; this.focusArea.right
+    );
+  }
+
+  currentEdges() {
+    return this.es.filter(e => e[this.connThldField] >= this.currentConnThld);
+  }
+
+  edgesToRender() {
+    return this.currentEdges().filter(
+      e => this.focusArea.top &lt; Math.max(e.sy, e.ty)
+        &amp;&amp; this.focusArea.left &lt; Math.max(e.sx, e.tx)
+        &amp;&amp; this.focusArea.bottom > Math.min(e.sy, e.ty)
+        &amp;&amp; this.focusArea.right > Math.min(e.sx, e.tx)
+    );
+  }
+
+  save() {
+    return idb.updateItem(this.storeID, item => {
+      const ni = item.dataset
+        .findIndex(e => e.collectionID === this.nodes.collectionID);
+      item.dataset[ni] = this.nodes.export();
+      const ei = item.dataset
+        .findIndex(e => e.collectionID === this.edges.collectionID);
+      item.dataset[ei] = this.edges.export();
+      const vi = item.views
+        .findIndex(e => e.viewID === this.viewID);
+      item.views[vi] = this.export();
+    });
+  }
+
+  export() {
+    return {
+      $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
+      viewID: this.viewID,
+      name: this.name,
+      viewType: "network",
+      nodes: this.nodes.collectionID,
+      edges: this.edges.collectionID,
+      nodeColor: this.nodeColor,
+      nodeSize: this.nodeSize,
+      nodeLabel: this.nodeLabel,
+      nodeLabelColor: this.nodeLabelColor,
+      edgeColor: this.edgeColor,
+      edgeWidth: this.edgeWidth,
+      edgeLabel: this.edgeLabel,
+      edgeLabelColor: this.edgeLabelColor,
+      connThldField: this.connThldField,
+      currentConnThld: this.currentConnThld,
+      minConnThld: this.minConnThld,
+      fieldTransform: this.transform,
+      coords: this.ns.map(e => ({x: e.x, y: e.y}))
+    };
+  }
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 05 2018 22:55:14 GMT+0900 (JST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

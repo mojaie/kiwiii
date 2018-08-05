@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: component/formBox.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: component/formBox.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+/** @module component/formBox */
+
+
+import d3 from 'd3';
+
+
+function textBox(selection, label) {
+  selection
+      .classed('form-group', true)
+      .classed('form-row', true)
+      .classed('align-items-center', true);
+  selection.append('label')
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
+      .text(label);
+  selection.append('input')
+      .classed('form-control', true)
+      .classed('form-control-sm', true)
+      .classed('col-8', true)
+      .attr('type', 'text');
+}
+
+function updateTextBox(selection, value) {
+  selection.select('input').property('value', value);
+}
+
+function textBoxValue(selection) {
+  return selection.select('input').property('value');
+}
+
+
+function readonlyBox(selection, label) {
+  selection
+      .classed('form-group', true)
+      .classed('form-row', true)
+      .classed('align-items-center', true);
+  selection.append('label')
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
+      .text(label);
+  selection.append('input')
+      .classed('form-control-plaintext', true)
+      .classed('form-control-sm', true)
+      .classed('col-8', true)
+      .attr('type', 'text')
+      .property('readonly', true);
+}
+
+
+function textareaBox(selection, label, rows) {
+  selection
+      .classed('form-group', true)
+      .classed('form-row', true);
+  selection.append('label')
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
+      .text(label);
+  selection.append('textarea')
+      .classed('form-control', true)
+      .classed('form-control-sm', true)
+      .classed('col-8', true)
+      .attr('rows', rows);
+}
+
+function updateTextareaBox(selection, value) {
+  selection.select('textarea').property('value', value);
+}
+
+function updateTextareaPlaceholder(selection, placeholder) {
+  selection.select('textarea').attr('placeholder', placeholder);
+}
+
+function textareaBoxValue(selection) {
+  const value = selection.select('textarea').property('value');
+  if (value) return value;  // TODO: 0 is falsy
+  const placeholder = selection.select('textarea').attr('placeholder');
+  if (placeholder) return placeholder;
+  return '';
+}
+
+function textareaBoxLines(selection) {
+  const value = selection.select('textarea').property('value');
+  if (value) return value.split('\n').filter(e => e.length > 0);
+  const placeholder = selection.select('textarea').attr('placeholder');
+  if (placeholder) return placeholder.split('\n').filter(e => e.length > 0);
+  return [];
+}
+
+
+function checkBox(selection, label) {
+  const box = selection
+      .classed('form-group', true)
+      .classed('form-row', true)
+      .classed('form-check', true)
+    .append('label')
+      .classed('form-check-label', true)
+      .classed('col-form-label-sm', true);
+  box.append('input')
+      .classed('form-check-input', true)
+      .attr('type', 'checkbox');
+  box.append('span')
+      .text(label);
+}
+
+function updateCheckBox(selection, checked) {
+  selection.select('input').property('checked', checked);
+}
+
+function checkBoxValue(selection) {
+  return selection.select('input').property('checked');
+}
+
+
+function numberBox(selection, label, min, max, step) {
+  selection
+      .classed('form-group', true)
+      .classed('form-row', true)
+      .classed('align-items-center', true);
+  selection.append('label')
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
+      .text(label);
+  selection.append('input')
+      .classed('form-control', true)
+      .classed('form-control-sm', true)
+      .classed('col-8', true)
+      .attr('type', 'number')
+      .attr('min', min)
+      .attr('max', max)
+      .attr('step', step);
+}
+
+function updateNumberBox(selection, value) {
+  selection.select('input').property('value', value);
+}
+
+function numberFloatValid(selection) {
+  const value = numberBoxFloatValue(selection);
+  const min = parseInt(selection.select('input').attr('min'));
+  const max = parseInt(selection.select('input').attr('max'));
+  const valid = !isNaN(value) &amp;&amp; value >= min &amp;&amp; value &lt;= max;
+  selection.select('input')
+      .style('background-color', valid ? '#ffffff' : '#ffcccc');
+  return valid;
+}
+
+function numberBoxIntValue(selection) {
+  return parseInt(selection.select('input').property('value'));
+}
+
+function numberBoxFloatValue(selection) {
+  return parseFloat(selection.select('input').property('value'));
+}
+
+
+/**
+ * Render color scale box components
+ * @param {d3.selection} selection - selection of box container (div element)
+ */
+function colorBox(selection, label) {
+  selection
+      .classed('form-row', true)
+      .classed('align-items-center', true)
+      .on('change', () => {
+        // avoid update by mousemove on the colorpicker
+        d3.event.stopPropagation();
+      });
+  selection.append('div')
+      .classed('form-group', true)
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
+      .classed('mb-1', true)
+      .text(label);
+  selection.append('div')
+      .classed('form-group', true)
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
+      .classed('mb-1', true)
+    .append('input')
+      .classed('form-control', true)
+      .classed('form-control-sm', true)
+      .attr('type', 'color');
+}
+
+
+function updateColorBox(selection, value) {
+  selection.select('input').property('value', value);
+}
+
+
+function colorBoxValue(selection) {
+  return selection.select('input').property('value');
+}
+
+
+function fileInputBox(selection, label, accept) {
+selection
+    .classed('form-group', true)
+    .classed('form-row', true);
+selection.append('label')
+    .classed('col-form-label', true)
+    .classed('col-form-label-sm', true)
+    .classed('col-4', true)
+    .text(label);
+selection.append('input')
+    .classed('form-control', true)
+    .classed('form-control-sm', true)
+    .classed('form-control-file', true)
+    .classed('col-8', true)
+    .attr('type', 'file')
+    .attr('accept', accept);
+}
+
+function clearFileInput(selection) {
+  // TODO: FileList object (input.files) may be a readonly property
+  const accept = selection.select('input').attr();
+  selection.select('input').remove();
+  selection.append('input')
+      .classed('form-control', true)
+      .classed('form-control-sm', true)
+      .classed('form-control-file', true)
+      .classed('col-8', true)
+      .attr('type', 'file')
+      .attr('accept', accept);
+}
+
+function fileInputBoxValue(selection) {
+  return selection.select('input').property('files')[0];
+}
+
+
+export default {
+  textBox, updateTextBox, textBoxValue, readonlyBox,
+  textareaBox, updateTextareaBox, updateTextareaPlaceholder,
+  textareaBoxValue, textareaBoxLines,
+  checkBox, updateCheckBox, checkBoxValue,
+  numberBox, updateNumberBox, numberFloatValid,
+  numberBoxIntValue, numberBoxFloatValue,
+  colorBox, updateColorBox, colorBoxValue,
+  fileInputBox, clearFileInput, fileInputBoxValue
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 05 2018 22:55:14 GMT+0900 (JST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

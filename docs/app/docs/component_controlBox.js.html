@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: component/controlBox.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: component/controlBox.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+/** @module component/controlBox */
+
+import d3 from 'd3';
+
+import {default as box} from '../component/formBox.js';
+import {default as lbox} from '../component/formListBox.js';
+import {default as rbox} from '../component/formRangeBox.js';
+import {default as group} from '../component/formBoxGroup.js';
+
+
+function colorControlBox(selection, colorScales, fieldName) {
+  selection.append('div')
+      .classed('field', true)
+      .call(lbox.selectBox, fieldName || 'Field');
+  selection.append('div')
+      .classed('range', true)
+      .call(group.colorRangeGroup, colorScales);
+  selection.append('div')
+      .classed('scale', true)
+      .call(group.scaleBoxGroup);
+}
+
+
+function updateColorControlBox(selection, fieldOptions, colorState) {
+  selection.select('.field')
+      .call(lbox.selectBoxItems, fieldOptions)
+      .call(lbox.updateSelectBox, colorState.field);
+  selection.select('.range')
+      .call(group.updateColorRangeGroup, colorState.color,
+            colorState.range, colorState.unknown);
+  selection.select('.scale')
+      .call(group.updateScaleBoxGroup, colorState.scale, colorState.domain);
+  selection.selectAll('.field, .range, .scale')
+      .on('change', function () {
+        if (!colorControlValid(selection)) {
+          d3.event.stopPropagation();
+        }
+      })
+      .dispatch('change');
+}
+
+
+function colorControlValid(selection) {
+  const values = group.colorRangeGroupValue(selection.select('.range'));
+  const noScale = ['categorical', 'monocolor'].includes(values.colorScaleType);
+  selection.select('.scale').selectAll('select,input')
+    .property('disabled', noScale)
+    .style('opacity', noScale ? 0.3 : null);
+  const scaleValid = group.scaleBoxGroupValid(selection.select('.scale'));
+  return noScale || scaleValid;
+}
+
+
+function colorControlBoxState(selection) {
+  const range = group.colorRangeGroupValue(selection.select('.range'));
+  const scale = group.scaleBoxGroupValue(selection.select('.scale'));
+  return {
+    field: lbox.selectBoxValue(selection.select('.field')),
+    color: range.color,
+    range: range.range,
+    unknown: range.unknown,
+    scale: range.colorScaleType === 'categorical' ? 'ordinal': scale.scale,
+    domain: scale.domain
+  };
+}
+
+
+function sizeControlBox(selection, fieldName) {
+  selection.append('div')
+      .classed('field', true)
+      .call(lbox.selectBox, fieldName || 'Field');
+  selection.append('div')
+      .classed('range', true)
+      .call(rbox.rangeBox, 'Range');
+  selection.append('div')
+      .classed('unknown', true)
+      .classed('mb-3', true)
+      .call(box.textBox, 'Unknown', 0, 1000, 1)
+    .select('input')
+      .classed('col-8', false)
+      .classed('col-3', true);
+  selection.append('div')
+      .classed('scale', true)
+      .call(group.scaleBoxGroup);
+}
+
+
+function updateSizeControlBox(selection, fieldOptions, sizeState) {
+  selection.select('.field')
+      .call(lbox.selectBoxItems, fieldOptions)
+      .call(lbox.updateSelectBox, sizeState.field);
+  selection.select('.range')
+      .call(rbox.updateRangeBox, sizeState.range);
+  selection.select('.unknown')
+      .call(box.updateTextBox, sizeState.unknown);
+  selection.select('.scale')
+      .call(group.updateScaleBoxGroup, sizeState.scale, sizeState.domain);
+  selection.selectAll('.range, .unknown')
+      .on('input', function () {
+        sizeRangeValid(selection);
+      });
+  selection.selectAll('.field, .range, .unknown, .scale')
+      .on('change', function () {
+        if (!sizeControlValid(selection)) {
+          d3.event.stopPropagation();
+        }
+      });
+}
+
+function sizeRangeValid(selection) {
+  if (!rbox.rangeBoxValid(selection.select('.range'))) return false;
+  const range = rbox.rangeBoxValues(selection.select('.range'));
+  const unk = box.textBoxValue(selection.select('.unknown'));
+  const validUnk = unk !== '' &amp;&amp; !isNaN(unk) &amp;&amp; unk > 0;
+  selection.select('.range').select('.min')
+      .style('background-color', range[0] > 0 ? '#ffffff' : '#ffcccc');
+  selection.select('.range').select('.max')
+      .style('background-color', range[1] > 0 ? '#ffffff' : '#ffcccc');
+  selection.select('.unknown').select('input')
+      .style('background-color', validUnk ? '#ffffff' : '#ffcccc');
+  return range[0] > 0 &amp;&amp; range[1] > 0 &amp;&amp; validUnk;
+}
+
+
+function sizeControlValid(selection) {
+  if (!group.scaleBoxGroupValid(selection.select('.scale'))) return false;
+  return sizeRangeValid(selection);
+}
+
+
+function sizeControlBoxState(selection) {
+  const scale = group.scaleBoxGroupValue(selection.select('.scale'));
+  return {
+    field: lbox.selectBoxValue(selection.select('.field')),
+    range: rbox.rangeBoxValues(selection.select('.range')),
+    unknown: box.textBoxValue(selection.select('.unknown')),
+    scale: scale.scale,
+    domain: scale.domain
+  };
+}
+
+
+function labelControlBox(selection, colorScales) {
+  // nodeLabel.visible
+  selection.append('div')
+    .append('div')
+      .classed('visible', true)
+      .call(box.checkBox, 'Show labels');
+  // nodeLabel
+  const labelGroup = selection.append('div')
+      .classed('mb-3', true);
+  labelGroup.append('div')
+      .classed('text', true)
+      .classed('mb-1', true)
+      .call(lbox.selectBox, 'Text field');
+  labelGroup.append('div')
+      .classed('size', true)
+      .classed('mb-1', true)
+      .call(box.numberBox, 'Font size', 4, 100, 1);
+  // nodeLabelColor
+  selection.call(colorControlBox, colorScales, 'Color field');
+}
+
+
+function updateLabelControlBox(selection, fieldOptions,
+                               labelState, colorState) {
+  // nodeLabel.visible
+  selection.select('.visible')
+      .call(box.updateCheckBox, labelState.visible);
+  // nodeLabel.field
+  selection.select('.text')
+      .call(lbox.selectBoxItems, fieldOptions)
+      .call(lbox.updateSelectBox, labelState.field);
+  // nodeLabel.size
+  selection.select('.size')
+      .call(box.updateNumberBox, labelState.size)
+      .on('input', function () {
+        box.numberFloatValid(d3.select(this));
+      });
+  // nodeLabelColor
+  selection.call(updateColorControlBox, fieldOptions, colorState)
+      .selectAll('.visible, .text, .size, .field, .range, .scale')
+      .on('change', function () {
+        if (!labelControlValid(selection)) {
+          d3.event.stopPropagation();
+        }
+      })
+      .dispatch('change');
+}
+
+
+function labelControlValid(selection) {
+  if (!box.numberFloatValid(selection.select('.size'))) return false;
+  return colorControlValid(selection);
+}
+
+
+function labelControlBoxState(selection) {
+  return {
+    label: {
+      field: lbox.selectBoxValue(selection.select('.text')),
+      size: box.numberBoxFloatValue(selection.select('.size')),
+      visible: box.checkBoxValue(selection.select('.visible'))
+    },
+    labelColor: colorControlBoxState(selection)
+  };
+}
+
+
+function controlBoxFrame(selection, navID, contentID) {
+  selection.append('nav')
+    .append('div')
+      .classed('nav', true)
+      .classed('nav-tabs', true)
+      .attr('id', navID)
+      .attr('role', 'tablist');
+  selection.append('div')
+      .classed('tab-content', true)
+      .classed('p-2', true)
+      .attr('id', contentID);
+}
+
+
+function controlBoxNav(selection, id, label) {
+  selection
+      .classed('nav-item', true)
+      .classed('nav-link', true)
+      .classed('py-1', true)
+      .attr('id', `${id}-tab`)
+      .attr('data-toggle', 'tab')
+      .attr('href', `#${id}`)
+      .attr('role', 'tab')
+      .attr('aria-controls', id)
+      .attr('aria-selected', 'false')
+      .text(label);
+}
+
+
+function controlBoxItem(selection, id) {
+  selection
+      .classed('tab-pane', true)
+      .classed('fade', true)
+      .classed('container', true)
+      .classed('px-0', true)
+      .attr('id', id)
+      .attr('role', 'tabpanel')
+      .attr('aria-labelledby', `${id}-tab`);
+}
+
+
+export default {
+  colorControlBox, updateColorControlBox, colorControlValid, colorControlBoxState,
+  sizeControlBox, updateSizeControlBox, sizeControlValid, sizeControlBoxState,
+  labelControlBox, updateLabelControlBox, labelControlValid, labelControlBoxState,
+  controlBoxFrame, controlBoxNav, controlBoxItem
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 05 2018 22:55:14 GMT+0900 (JST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
