@@ -29,17 +29,29 @@ Try interactive data view examples (Observable)
 Features and demo applications
 ---------------------------------
 
+
+### Dashboard
+
+[<img src="assets/screenshots/control-panel.png" width="260" height="160" alt="Dashboard" style="margin: 5px"/>](assets/screenshots/control-panel.png)
+
+[[Open dashboard app]](https://mojaie.github.io/kiwiii/app/dashboard.html)
+
+- Entry point of the application bundle
+- Show list of stored local data, server jobs and status
+- Open or delete stored datagrids and networks (You can save your data view into Indexed DB local storage by clicking "Save" on their menubar. Click "Reset local datastore" button to clean up it. Be careful not to leave confidential data on public access PC.)
+
+
+### Test data files
+
+- [DrugBank 5.0.5 FDA Approved](https://mojaie.github.io/kiwiii/assets/resources/DrugBank5.0.5_FDA_Approved_GLS08.gfc)
+- [SPR sensorgram plot table](https://mojaie.github.io/kiwiii/assets/resources/SPR_results_demo.ndc)
+
+
 ### Datagrid view
 
 [<img src="assets/screenshots/table-view.png" width="260" height="160" alt="Table view" style="margin: 5px"/>](assets/screenshots/table-view.png)
 [<img src="assets/screenshots/spr-plot-example.png" width="260" height="160" alt="Plot example" style="margin: 5px"/>](assets/screenshots/spr-plot-example.png)
 
-[[Open datagrid app]](https://mojaie.github.io/kiwiii/app/datagrid.html)
-
-### Test data files
-
-- [DrugBank 5.0.5 FDA Approved](https://mojaie.github.io/kiwiii/assets/resources/DrugBank5.0.5_FDA_Approved.ndc)
-- [SPR sensorgram plot table](https://mojaie.github.io/kiwiii/assets/resources/SPR_results_demo.ndc)
 
 ### Features
 - [SlickGrid](https://github.com/mleibman/SlickGrid)-like smooth scroll datatable
@@ -56,11 +68,6 @@ Features and demo applications
 
 [<img src="assets/screenshots/network-view.png" width="260" height="160" alt="Network view" style="margin: 5px"/>](assets/screenshots/network-view.png)
 
-[[Open network app]](https://mojaie.github.io/kiwiii/app/network.html)
-
-### Test data files
-
-- [DrugBank 5.0.5 FDA Approved](https://mojaie.github.io/kiwiii/assets/resources/DrugBank5.0.5_FDA_Approved_GLS08.gfc)
 
 ### Features
 
@@ -68,7 +75,6 @@ Features and demo applications
 - Force-directed layout implemented with d3-force
 - Interactive zoom and drag
 - Community detection ([jLouvain](https://github.com/upphiminn/jLouvain))
-
 
 
 ### Profile view
@@ -79,24 +85,10 @@ Features and demo applications
 - requires [Flashflood](https://github.com/mojaie/flashflood) server
 
 
-### Dashboard
-
-[<img src="assets/screenshots/control-panel.png" width="260" height="160" alt="Dashboard" style="margin: 5px"/>](assets/screenshots/control-panel.png)
-
-[[Dashboard app]](https://mojaie.github.io/kiwiii/app/dashboard.html)
-
-- Entry point of the application bundle
-- Show list of stored local data, server jobs and status
-- Open or delete stored datagrids and networks (You can save your data view into Indexed DB local storage by clicking "Save" on their menubar. Click "Reset local datastore" button to clean up it. Be careful not to leave confidential data on public access PC.)
-
-
-
-
-
 API Documentation (WIP)
 ------------------------
 
-https://mojaie.github.io/kiwiii/docs
+https://mojaie.github.io/kiwiii/app/docs
 
 
 

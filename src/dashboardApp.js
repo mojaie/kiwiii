@@ -322,7 +322,7 @@ function updateApp() {
     console.info('Server did not respond');
     console.error(err);
     // disable on-line commands
-    menubar.selectAll('.online-command')
+    d3.select('#menubar').selectAll('.online-command')
       .attr('data-target', null)
       .classed('disabled', true);
     d3.select('#contents').select('.calc').text('Off-line');
