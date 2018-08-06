@@ -80,7 +80,7 @@ const jsBundled = bundles.map(bundle => {
       sourcemap: true,
       name: module,
       banner: preamble,
-      // intro: `const debug = ${isDebugBuild};`,
+      intro: `const debug = ${isDebugBuild};`,
       globals: external
     });
   });

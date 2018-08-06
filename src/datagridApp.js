@@ -147,6 +147,7 @@ function app(view, coll) {
       .call(dg.updateViewport, state, state.viewportTop);
   };
 
+  state.updateContentsNotifier();
   updateApp(state);
 }
 

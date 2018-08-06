@@ -88,7 +88,6 @@ function datagrid(selection, state) {
     state.setFilterText(value);
     selection.call(updateViewport, state, 0);
   };
-  state.updateContentsNotifier();  // TODO: remove
 }
 
 

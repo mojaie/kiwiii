@@ -32,9 +32,13 @@ function compatibility() {
 
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('../sw.js');  // TODO: root path option
-    });
+    if (!debug) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('../sw.js');  // TODO: root path option
+      });
+    } else {
+      console.info('Service worker is disabled for debugging');
+    }
   } else {
     console.info('Service worker is not supported');
   }
