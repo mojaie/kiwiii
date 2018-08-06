@@ -131,7 +131,8 @@ export default class NetworkState extends TransformState {
     this.currentConnThld = view.currentConnThld || view.minConnThld;
 
     // Force
-    this.simulationOnLoad = true;
+    this.coords = view.coords;
+    this.forceActive = !this.coords;
     this.forcePreset = view.forcePreset || 'aggregate';
 
     // Event listeners
@@ -146,6 +147,7 @@ export default class NetworkState extends TransformState {
     this.updateNodeAttrNotifier = null;
     this.updateEdgeAttrNotifier = null;
     this.updateControlBoxNotifier = () => {};
+    this.updateInteractionNotifier = () => {};
     this.fitNotifier = () => {};
     this.setForceNotifier = () => {};
     this.stickNotifier = () => {};
@@ -157,13 +159,12 @@ export default class NetworkState extends TransformState {
     // D3.force does some destructive operations
     this.ns = null;
     this.es = null;
-    this.coords = view.coords;
-
-    // Init
-    this.updateWorkingCopy();
   }
 
   updateWorkingCopy() {
+    if (this.ns) {
+      this.coords = this.ns.map(e => ({x: e.x, y: e.y}));
+    }
     this.ns = JSON.parse(JSON.stringify(this.nodes.records()));
     this.ns.forEach(n => { n.adjacency = []; });
     this.es = JSON.parse(JSON.stringify(this.edges.records()));
@@ -204,7 +205,6 @@ export default class NetworkState extends TransformState {
         }
       });
     });
-    this.simulationOnLoad = false;
     this.setBoundary();
   }
 
@@ -279,7 +279,7 @@ export default class NetworkState extends TransformState {
       currentConnThld: this.currentConnThld,
       minConnThld: this.minConnThld,
       fieldTransform: this.transform,
-      coords: this.ns.map(e => ({x: e.x, y: e.y}))
+      coords: this.coords
     };
   }
 }

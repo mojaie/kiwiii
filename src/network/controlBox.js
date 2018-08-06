@@ -123,7 +123,6 @@ function updateMainControlBox(selection, state) {
         state.currentConnThld = thld;
         thldGroup.select('.logd').dispatch('update');
         state.updateComponentNotifier();
-        state.setForceNotifier();
       });
   thldGroup.select('.logd')
       .on('update', function () {
@@ -151,15 +150,17 @@ function updateMainControlBox(selection, state) {
         .attr('aria-valuenow', progress);
   };
   selection.select('.stick')
-      .call(box.updateCheckBox, !state.simulationOnLoad)
+      .call(box.updateCheckBox, !state.forceActive)
       .on('change', function () {
         const value = box.checkBoxValue(d3.select(this));
+        state.forceActive = !value;
         selection.select('.temperature')
             .style('background-color', value ? '#a3e4d7' : '#e9ecef')
           .select('.progress-bar')
             .style('width', `0%`)
             .attr('aria-valuenow', 0);
         value ? state.stickNotifier() : state.relaxNotifier();
+        state.updateComponentNotifier();
       });
   selection.select('.restart')
       .on('click', function () {

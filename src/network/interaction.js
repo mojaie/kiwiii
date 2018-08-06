@@ -33,8 +33,7 @@ function zoomListener(selection, state) {
         if (xMoved || yMoved && !zoomIn) {
           state.setTransform(t.x, t.y, t.k);
           state.prevTransform = {x: t.x, y: t.y, k: t.k};
-          selection
-            .call(component.updateComponents, state);
+          state.updateComponentNotifier();
         }
       }
     })
@@ -42,47 +41,39 @@ function zoomListener(selection, state) {
       const t = d3.event.transform;
       state.setTransform(t.x, t.y, t.k);
       state.prevTransform = {x: t.x, y: t.y, k: t.k};
-      selection
-        .call(component.updateComponents, state);
+      state.updateComponentNotifier();
     });
+}
+
+
+function resume(selection, tf) {
+  selection
+      .call(transform.transform, tf.x, tf.y, tf.k)
+      .call(
+        d3.zoom().transform,
+        d3.zoomIdentity.translate(tf.x, tf.y).scale(tf.k)
+      );
 }
 
 
 function setInteraction(selection, state) {
   state.zoomListener = zoomListener(selection, state);
   state.dragListener = dragListener(selection, state);
-  selection.call(state.zoomListener);
-  selection.select('.nw-nodes')
-    .selectAll('.node')
-      .call(state.dragListener);
-  state.fitNotifier = () => {
-    selection.call(fit, state);
+  state.updateInteractionNotifier = () => {
+    selection.call(state.zoomListener);
+    selection.select('.nw-nodes')
+      .selectAll('.node')
+        .call(state.dragListener);
+    selection.call(resume, state.transform);
   };
-  // Resume zoom event
-  const t = state.transform;
-  selection
-      .call(transform.transform, t.x, t.y, t.k)
-      .call(
-        d3.zoom().transform,
-        d3.zoomIdentity.translate(t.x, t.y).scale(t.k)
-      );
-
-}
-
-
-function fit(selection, state) {
-  state.fitTransform();
-  const t = state.transform;
-  selection
-      .call(component.updateComponents, state)
-      .call(transform.transform, t.x, t.y, t.k)
-      .call(
-        d3.zoom().transform,
-        d3.zoomIdentity.translate(t.x, t.y).scale(t.k)
-      );
+  state.fitNotifier = () => {
+    state.fitTransform();
+    state.updateComponentNotifier();
+    selection.call(resume, state.transform);
+  };
 }
 
 
 export default {
-  dragListener, zoomListener, setInteraction, fit
+  dragListener, zoomListener, setInteraction
 };

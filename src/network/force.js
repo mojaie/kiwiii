@@ -35,7 +35,7 @@ function forceSimulation(preset, width, height) {
 function forceDragListener(selection, simulation, state) {
   return d3.drag()
     .on('start', () => {
-      if (!d3.event.active) selection.call(relax, simulation, state);
+      if (!d3.event.active) state.relaxNotifier();
     })
     .on('drag', d => {
       d.fx = d3.event.x;
@@ -49,14 +49,6 @@ function forceDragListener(selection, simulation, state) {
 }
 
 
-function end(selection, simulation, state) {
-  const coords = state.ns.map(e => ({x: e.x, y: e.y}));
-  state.setAllCoords(coords);
-  selection
-    .call(component.updateComponents, state);
-}
-
-
 function stick(selection, simulation, state) {
   simulation.alpha(0).stop();
   selection.select('.nw-nodes').selectAll('.node')
@@ -65,7 +57,7 @@ function stick(selection, simulation, state) {
       d.fy = d.y;
     });
   state.dragListener = interaction.dragListener(selection, state);
-  selection.call(end, simulation, state);
+  state.forceActive = false;
 }
 
 
@@ -76,69 +68,48 @@ function unstick(selection, simulation, state) {
       d.fy = null;
     });
   state.dragListener = forceDragListener(selection, simulation, state);
-  // Render all nodes and do not render edges
-  // TODO: edge rendering behavior should be changed by data size or setting
-  const coords = state.ns.map(e => ({x: e.x, y: e.y}));
-  state.setAllCoords(coords);
-  selection
-    .call(component.updateComponents, state);
-}
-
-
-function relax(selection, simulation, state) {
-  selection.call(unstick, simulation, state);
-  simulation.alpha(0.1).restart();
-}
-
-
-function restart(selection, simulation, state) {
-  selection.call(unstick, simulation, state);
-  simulation.alpha(1).restart();
-}
-
-
-function setForce(selection, simulation, state) {
-  simulation.nodes(state.ns)
-    .force('link').links(state.currentEdges());
+  state.forceActive = true;
 }
 
 
 function activate(selection, simulation, state) {
   simulation
     .on('tick', () => {
-      selection.select('.nw-nodes').selectAll(".node")
-        .call(component.updateNodeCoords);
       const coords = state.ns.map(e => ({x: e.x, y: e.y}));
       state.setAllCoords(coords);
+      selection.select('.nw-nodes').selectAll(".node")
+        .call(component.updateNodeCoords);
       selection.select('.nw-edges').selectAll(".link")
         .call(component.updateEdgeCoords);
       state.tickCallback(simulation);
     })
     .on('end', () => {
-      selection.call(end, simulation, state);
+      state.updateComponentNotifier();
       state.tickCallback(simulation);
     });
   state.setForceNotifier = () => {
-    selection.call(setForce, simulation, state);
+    simulation.nodes(state.ns)
+      .force('link').links(state.currentEdges());
+    if (state.forceActive) {
+      state.coords ? state.relaxNotifier() : state.restartNotifier();
+    } else {
+      state.stickNotifier();
+    }
   };
   state.stickNotifier = () => {
     selection.call(stick, simulation, state);
   };
   state.relaxNotifier = () => {
-    selection.call(relax, simulation, state);
+    selection.call(unstick, simulation, state);
+    simulation.alpha(0.1).restart();
   };
   state.restartNotifier = () => {
-    selection.call(restart, simulation, state);
+    selection.call(unstick, simulation, state);
+    simulation.alpha(1).restart();
   };
-  state.setForceNotifier();
-  if (state.simulationOnLoad) {
-    selection.call(restart, simulation, state);
-  } else {
-    selection.call(stick, simulation, state);
-  }
 }
 
 
 export default {
-  forceSimulation, activate, stick, relax, restart
+  forceSimulation, activate
 };

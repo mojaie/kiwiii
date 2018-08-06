@@ -72,10 +72,10 @@ export default class TransformState {
     const br = bw / bh;
     const isPortrait = vr >= br;
     const tk = isPortrait ? vh / bh : vw / bw;
-    const adjustH = isPortrait ? (vw - bw) / 2 : 0;
-    const adjustV = isPortrait ? 0 : (vh - bh) / 2;
-    const tx = -(this.boundary.left + adjustH) * tk;
-    const ty = -(this.boundary.top + adjustV) * tk;
+    const adjustH = isPortrait ? (vw - bw * tk) / 2 : 0;
+    const adjustV = isPortrait ? 0 : (vh - bh * tk) / 2;
+    const tx = -(this.boundary.left) * tk + adjustH;
+    const ty = -(this.boundary.top) * tk + adjustV;
     this.setTransform(tx, ty, tk);
   }
 

@@ -90,20 +90,13 @@ function app(view, nodes, edges) {
   // Contents
   const frame = d3.select('#nw-frame')
       .call(transform.viewFrame, state);
-  const nwview = frame.select('.view')
-      .call(component.networkView, state);
-  const controlBox = d3.select('#nw-control')
+  frame.select('.view')
+      .call(component.networkView, state)
+      .call(force.activate, simulation, state)
+      .call(interaction.setInteraction, state);
+  d3.select('#nw-control')
       .call(control.controlBox, state);
 
-  state.updateAllNotifier = () => {
-    state.updateWorkingCopy();
-    nwview
-      .call(component.updateComponents, state)
-      .call(interaction.setInteraction, state)
-      .call(force.activate, simulation, state);
-    controlBox
-      .call(control.updateControlBox, state);
-  };
   // Resize window
   window.onresize = () =>
     d3.select('#nw-frame').call(transform.resize, state);
