@@ -205,7 +205,7 @@ function app() {
   // Server calc jobs
   // TODO: only for admin
   const calcFields = [
-    {key: 'id', name: 'Workflow ID', format: 'text'},
+    {key: 'name', name: 'Name', format: 'text'},
     {key: 'size', name: 'File size', format: 'd3_format', d3_format: '.3s'},
     {key: 'status', name: 'Status', format: 'text'},
     {key: 'created', name: 'Created', format: 'date', height: 40},

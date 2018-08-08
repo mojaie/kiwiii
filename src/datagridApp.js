@@ -46,11 +46,11 @@ function app(view, coll) {
   menu.append('a')
       .call(button.dropdownMenuItem, 'Generate tile view', 'menu-tiles')
       .on('click', function () {
-        const viewID = misc.uuidv4();
+        const viewID = misc.uuidv4().slice(0, 8);
         idb.appendView(state.storeID, state.viewID, {
-          $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
+          $schema: "https://mojaie.github.io/kiwiii/specs/tile_v1.0.json",
           viewID: viewID,
-          name: viewID,
+          name: `${state.name}_tiles`,
           viewType: 'tile',
           items: state.rows.collectionID,
           rowCount: 5,
@@ -245,27 +245,28 @@ function updateApp(state) {
           networkgenDialog
             .execute(d3.select(this), state.rows.records())
             .then(data => {
-              const wid = data.workflowID.slice(0, 8);
+              const viewID = misc.uuidv4().slice(0, 8);
+              const collectionID = data.workflowID.slice(0, 8);
               return Promise.all([
                 idb.appendView(state.storeID, state.viewID, {
                   $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
-                  viewID: wid,
-                  name: wid,
+                  viewID: viewID,
+                  name: `${state.name}_${data.name}`,
                   viewType: 'network',
                   nodes: state.rows.collectionID,
-                  edges: wid,
+                  edges: collectionID,
                   minConnThld: data.query.params.threshold
                 }),
                 idb.appendCollection(state.storeID, state.rows.collectionID, {
                   $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
-                  collectionID: wid,
-                  name: wid,
+                  collectionID: collectionID,
+                  name: `${state.name}_${data.name}`,
                   contents: [data]
                 })
               ])
               .then(() => {
                 d3.select('#loading-icon').style('display', 'none');
-                window.open(`network.html?store=${state.storeID}&view=${wid}`, '_blank');
+                window.open(`network.html?store=${state.storeID}&view=${viewID}`, '_blank');
               });
             });
         });

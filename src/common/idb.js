@@ -87,12 +87,12 @@ function newDatagrid(response) {
   const data = {
     $schema: "https://mojaie.github.io/kiwiii/specs/package_v1.0.json",
     storeID: storeID,
-    name: viewID,  // TODO: generate from response.query
+    name: response.name,
     views: [
       {
         $schema: "https://mojaie.github.io/kiwiii/specs/datagrid_v1.0.json",
         viewID: viewID,
-        name: viewID,  // TODO: generate from response.query
+        name: response.name,
         viewType: "datagrid",
         rows: collectionID,
         checkpoints: [
@@ -104,6 +104,7 @@ function newDatagrid(response) {
       {
         $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
         collectionID: collectionID,
+        name: response.name,
         contents: [response]
       }
     ],
