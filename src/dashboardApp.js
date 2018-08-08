@@ -254,6 +254,8 @@ function app() {
 }
 
 function updateApp() {
+  d3.select('#loading-icon').style('display', 'none');
+
   const dialogs = d3.select('#dialogs');
   // Server bound tasks
   fetcher.serverStatus().then(response => {
@@ -274,6 +276,7 @@ function updateApp() {
           searchDialog.execute(d3.select(this), chemrsrc)
             .then(idb.newDatagrid)
             .then(r => {
+              d3.select('#loading-icon').style('display', 'none');
               window.open(
                 `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
             });
@@ -284,6 +287,7 @@ function updateApp() {
           structDialog.execute(d3.select(this))
             .then(idb.newDatagrid)
             .then(r => {
+              d3.select('#loading-icon').style('display', 'none');
               window.open(
                 `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
             });
@@ -294,6 +298,7 @@ function updateApp() {
           filterDialog.execute(d3.select(this))
             .then(idb.newDatagrid)
             .then(r => {
+              d3.select('#loading-icon').style('display', 'none');
               window.open(
                 `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
             });
@@ -304,6 +309,7 @@ function updateApp() {
           sdfDialog.execute(d3.select(this))
             .then(idb.newDatagrid)
             .then(r => {
+              d3.select('#loading-icon').style('display', 'none');
               window.open(
                 `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
             });

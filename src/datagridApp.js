@@ -57,7 +57,6 @@ function app(view, coll) {
           columnCount: 5,
           tileContent: {field: 'structure', visible: true}
         }).then(() => {
-          d3.select('#loading-icon').style('display', 'none');
           window.open(
             `tile.html?store=${state.storeID}&view=${viewID}`, '_blank');
         });
