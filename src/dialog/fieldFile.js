@@ -17,7 +17,7 @@ import {default as table} from '../datagrid/table.js';
 
 
 const id = 'fieldfile-dialog';
-const title = 'Append JSON fields';
+const title = 'Import fields from file';
 
 
 function menuLink(selection) {

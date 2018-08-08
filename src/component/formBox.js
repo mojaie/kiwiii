@@ -46,7 +46,7 @@ function readonlyBox(selection, label) {
       .classed('form-control-sm', true)
       .classed('col-8', true)
       .attr('type', 'text')
-      .property('readonly', true);
+      .attr('readonly', 'readonly');
 }
 
 
@@ -137,6 +137,16 @@ function numberBox(selection, label, min, max, step) {
 
 function updateNumberBox(selection, value) {
   selection.select('input').property('value', value);
+}
+
+function numberIntValid(selection) {
+  const value = numberBoxIntValue(selection);
+  const min = parseInt(selection.select('input').attr('min'));
+  const max = parseInt(selection.select('input').attr('max'));
+  const valid = !isNaN(value) && value >= min && value <= max;
+  selection.select('input')
+      .style('background-color', valid ? '#ffffff' : '#ffcccc');
+  return valid;
 }
 
 function numberFloatValid(selection) {
@@ -241,7 +251,7 @@ export default {
   textareaBox, updateTextareaBox, updateTextareaPlaceholder,
   textareaBoxValue, textareaBoxLines,
   checkBox, updateCheckBox, checkBoxValue,
-  numberBox, updateNumberBox, numberFloatValid,
+  numberBox, updateNumberBox, numberIntValid, numberFloatValid,
   numberBoxIntValue, numberBoxFloatValue,
   colorBox, updateColorBox, colorBoxValue,
   fileInputBox, clearFileInput, fileInputBoxValue

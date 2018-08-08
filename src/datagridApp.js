@@ -201,17 +201,16 @@ function updateApp(state) {
 
   // Input field dialog
   dialogs.select('.fieldinputd')
-      .call(fieldInputDialog.updateBody)
+      .call(fieldInputDialog.updateBody, state.rows.fields)
       .on('submit', function () {
-        const value = fieldInputDialog.value(d3.select(this));
-        state.rows.addField(value.field);
+        const values = fieldInputDialog.value(d3.select(this));
+        state.rows.addField(values.field);
         state.rows.records().forEach(e => {
-          e[value.field.key] = value.default;
+          e[values.field.key] = values.converter(e);
         });
         state.updateContentsNotifier();
         updateApp(state);
       });
-
   // Rename dialog
   dialogs.select('.renamed')
       .call(renameDialog.updateBody, state.name)

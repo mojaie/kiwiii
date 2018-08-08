@@ -14,7 +14,7 @@ import {default as table} from '../datagrid/table.js';
 
 
 const id = 'fieldfetch-dialog';
-const title = 'Append assays';
+const title = 'Fetch assays';
 
 
 function menuLink(selection) {
