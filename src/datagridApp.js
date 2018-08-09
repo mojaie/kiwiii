@@ -243,26 +243,10 @@ function updateApp(state) {
           return networkgenDialog
             .execute(d3.select(this), state.rows.records())
             .then(data => {
-              const viewID = misc.uuidv4().slice(0, 8);
-              const collectionID = data.workflowID.slice(0, 8);
-              return Promise.all([
-                idb.appendView(state.storeID, state.viewID, {
-                  $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
-                  viewID: viewID,
-                  name: `${state.name}_${data.name}`,
-                  viewType: 'network',
-                  nodes: state.rows.collectionID,
-                  edges: collectionID,
-                  minConnThld: data.query.params.threshold
-                }),
-                idb.appendCollection(state.storeID, state.rows.collectionID, {
-                  $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
-                  collectionID: collectionID,
-                  name: `${state.name}_${data.name}`,
-                  contents: [data]
-                })
-              ])
-              .then(() => {
+              return idb.newNetwork(
+                state.storeID, state.rows.collectionID, state.name, data
+              )
+              .then(viewID => {
                 d3.select('#loading-icon').style('display', 'none');
                 window.open(`network.html?store=${state.storeID}&view=${viewID}`, '_blank');
               });

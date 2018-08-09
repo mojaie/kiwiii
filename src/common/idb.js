@@ -57,65 +57,6 @@ function getItem(storeID) {
 
 
 /**
- * Insert a data object to the store
- * @param {object} data - data
- * @return {string} - storeID if sucessfully added
- */
-function importItem(data) {
-  // Legacy format converter
-  if (!data.hasOwnProperty('views')) {
-    data = legacy.convertPackage(data);
-  }
-  const now = new Date();
-  data.storeID = misc.uuidv4().slice(0, 8);
-  data.sessionStarted = now.toString();
-  return idb.items.put(data);
-}
-
-
-/**
- * Insert a data object to the store
- * @param {object} response - response data
- * @return {string} - viewID if sucessfully added
- */
-function newDatagrid(response) {
-  const now = new Date();
-  const date = now.toLocaleString('en-GB', { timeZone: 'Asia/Tokyo'});
-  const storeID = misc.uuidv4().slice(0, 8);
-  const viewID = misc.uuidv4().slice(0, 8);
-  const collectionID = response.workflowID.slice(0, 8);
-  const data = {
-    $schema: "https://mojaie.github.io/kiwiii/specs/package_v1.0.json",
-    storeID: storeID,
-    name: response.name,
-    views: [
-      {
-        $schema: "https://mojaie.github.io/kiwiii/specs/datagrid_v1.0.json",
-        viewID: viewID,
-        name: response.name,
-        viewType: "datagrid",
-        rows: collectionID,
-        checkpoints: [
-          {type: 'creation', date: date}
-        ]
-      }
-    ],
-    dataset: [
-      {
-        $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
-        collectionID: collectionID,
-        name: response.name,
-        contents: [response]
-      }
-    ],
-    sessionStarted: date
-  };
-  return idb.items.put(data)
-    .then(() => ({storeID: storeID, viewID:viewID}));
-}
-
-
-/**
  * Update data object in the store
  * @param {string} storeID - store ID
  * @param {function} updateFunc - update function
@@ -223,6 +164,23 @@ function deleteView(storeID, viewID) {
 
 
 /**
+ * Returns all collections in the store
+ * @return {array} Collection objects
+ */
+function getAllCollections() {
+  return getAllItems()
+    .then(items => _.flatten(
+      items.map(item => {
+        return item.dataset.map(coll => {
+          coll.storeID = item.storeID;
+          return coll;
+        });
+      })
+    ));
+}
+
+
+/**
  * Returns a collection
  * @param {string} storeID - store ID
  * @param {string} collID - Collection ID
@@ -237,20 +195,6 @@ function getCollection(storeID, collID) {
       coll.storeID = storeID;
       return coll;
     });
-}
-
-
-/**
- * Append a view next to a specific view
- * @param {string} storeID - store ID
- * @param {string} collID - Collection ID
- * @param {object} collObj - Collection object
- */
-function appendCollection(storeID, collID, collObj) {
-  return updateItem(storeID, item => {
-    const pos = item.dataset.findIndex(e => e.collectionID === collID);
-    item.dataset.splice(pos + 1, 0, collObj);
-  });
 }
 
 
@@ -272,8 +216,98 @@ function updateCollection(storeID, collID, collObj) {
 }
 
 
+/**
+ * Insert a data object to the store
+ * @param {object} data - data
+ * @return {string} - storeID if sucessfully added
+ */
+function importItem(data) {
+  // Legacy format converter
+  if (!data.hasOwnProperty('views')) {
+    data = legacy.convertPackage(data);
+  }
+  const now = new Date();
+  data.storeID = misc.uuidv4().slice(0, 8);
+  data.sessionStarted = now.toString();
+  return idb.items.put(data);
+}
+
+
+/**
+ * Insert a data object to the store
+ * @param {object} response - response data
+ * @return {string} - viewID if sucessfully added
+ */
+function newDatagrid(response) {
+  const now = new Date();
+  const date = now.toLocaleString('en-GB', { timeZone: 'Asia/Tokyo'});
+  const storeID = misc.uuidv4().slice(0, 8);
+  const viewID = misc.uuidv4().slice(0, 8);
+  const collectionID = response.workflowID.slice(0, 8);
+  const data = {
+    $schema: "https://mojaie.github.io/kiwiii/specs/package_v1.0.json",
+    storeID: storeID,
+    name: response.name,
+    views: [
+      {
+        $schema: "https://mojaie.github.io/kiwiii/specs/datagrid_v1.0.json",
+        viewID: viewID,
+        name: response.name,
+        viewType: "datagrid",
+        rows: collectionID,
+        checkpoints: [
+          {type: 'creation', date: date}
+        ]
+      }
+    ],
+    dataset: [
+      {
+        $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
+        collectionID: collectionID,
+        name: response.name,
+        contents: [response]
+      }
+    ],
+    sessionStarted: date
+  };
+  return idb.items.put(data)
+    .then(() => ({storeID: storeID, viewID:viewID}));
+}
+
+
+/**
+ * Store new network view
+ * @param {string} storeID - Store ID
+ * @param {string} nodesID - ID of nodes collection
+ * @param {string} nodesName - Name of nodes collection
+ * @param {object} response - Response object
+ */
+function newNetwork(storeID, nodesID, nodesName, response) {
+  const viewID = misc.uuidv4().slice(0, 8);
+  const edgesID = response.workflowID.slice(0, 8);
+  return updateItem(storeID, item => {
+    item.views.push({
+      $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
+      viewID: viewID,
+      name: `${nodesName}_${response.name}`,
+      viewType: 'network',
+      nodes: nodesID,
+      edges: edgesID,
+      minConnThld: response.query.params.threshold
+    });
+    item.dataset.push({
+      $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
+      collectionID: edgesID,
+      name: response.name,
+      contents: [response]
+    });
+  }).then(() => viewID);
+}
+
+
 export default {
-  reset, getAllItems, getItem, importItem, newDatagrid, updateItem, deleteItem,
+  reset, getAllItems, getItem, updateItem, deleteItem,
   getView, appendView, updateView, deleteView,
-  getCollection, appendCollection, updateCollection
+  getAllCollections, getCollection, updateCollection,
+  importItem, newDatagrid, newNetwork
 };

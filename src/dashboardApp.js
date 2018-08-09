@@ -316,8 +316,7 @@ function updateApp() {
         });
 
     // Fetch all ongoing tasks
-    return idb.getAllItems()
-      .then(items => _.flatten(items.map(e => e.dataset)))
+    return idb.getAllCollections()
       .then(colls => {
         const ongoings = colls.map(e => new Collection(e))
           .filter(e => e.ongoing());
