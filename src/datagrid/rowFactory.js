@@ -22,6 +22,7 @@ function date(selection, record, field) {
 
 
 function html(selection, record, field) {
+  // TODO: Check vulnerabilities
   selection.html(record[field.key]);
 }
 

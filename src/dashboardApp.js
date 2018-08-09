@@ -1,7 +1,6 @@
 
 /** @module dashboardApp */
 
-import _ from 'lodash';
 import d3 from 'd3';
 
 import {default as client} from './common/client.js';

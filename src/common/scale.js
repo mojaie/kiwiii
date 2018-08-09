@@ -90,6 +90,16 @@ function scaleFunction(state) {
 }
 
 
+function isD3Format(notation) {
+  try {
+    d3.format(notation);
+  } catch (err) {
+    return false;
+  }
+  return true;
+}
+
+
 export default {
-  colorScales, types, scaleFunction
+  colorScales, types, scaleFunction, isD3Format
 };

@@ -1,6 +1,10 @@
 
 /** @module dialog/fieldConfig */
 
+import d3 from 'd3';
+
+import {default as scale} from '../common/scale.js';
+
 import {default as button} from '../component/button.js';
 import {default as modal} from '../component/modal.js';
 
@@ -29,7 +33,7 @@ function rowFactory(fields) {
       .append('input')
         .attr('type', 'checkbox')
         .property('checked', record.visible)
-        .on('click', function () {
+        .on('change', function () {
           record.visible = this.checked;
         });
     const select = selection.append('div')
@@ -57,8 +61,14 @@ function rowFactory(fields) {
         .style('width', '90%')
         .property('value', record.d3_format)
         .property('disabled', record.format !== 'd3_format')
-        .on('change', function () {
-          record.d3_format = this.value;
+        .on('input', function () {
+          const valid = scale.isD3Format(this.value);
+          d3.select(this)
+              .style('background-color', valid ? '#ffffff' : '#ffcccc');
+          if (valid) {
+            record.d3_format = this.value;
+            selection.dispatch('change', {bubbles: true});
+          }
         });
   };
 }
@@ -78,14 +88,21 @@ function body(selection) {
   const dialog = selection.call(modal.submitDialog, id, title);
   dialog.select('.modal-dialog').classed('modal-lg', true);
   dialog.select('.modal-body').append('div')
-    .classed('dgfields', true)
-    .call(table.table, fields, [], rowFactory, 300);
+      .classed('dgfields', true)
+      .call(table.table, fields, [], rowFactory, 300);
 }
 
 
 function updateBody(selection, dgfields) {
   selection.select('.dgfields')
-    .call(table.updateRecords, dgfields);
+      .call(table.updateRecords, dgfields)
+      .on('change', function () {
+        const d3fValid = d3.select(this).selectAll('.d3f input')
+          .nodes().map(e => e.value)
+          .every(n => scale.isD3Format(n));
+        selection.select('.submit')
+            .property('disabled', !d3fValid);
+      });
 }
 
 
