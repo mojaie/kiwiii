@@ -6,6 +6,7 @@ import d3 from 'd3';
 import {default as client} from './common/client.js';
 import {default as idb} from './common/idb.js';
 
+import {default as badge} from './component/badge.js';
 import {default as button} from './component/button.js';
 import {default as transform} from './component/transform.js';
 
@@ -18,7 +19,8 @@ import {default as control} from './tile/controlBox.js';
 
 
 function app(view, coll) {
-  const menubar = d3.select('#menubar');
+  const menubar = d3.select('#menubar')
+      .classed('my-1', true);
   menubar.selectAll('div,span,a').remove();  // Clean up
   const dialogs = d3.select('#dialogs');
   dialogs.selectAll('div').remove();  // Clean up
@@ -33,7 +35,8 @@ function app(view, coll) {
   menu.append('a')
       .call(button.dropdownMenuItem, 'Save', 'menu-save')
       .on('click', function () {
-        return state.save().then(() => console.info('Tile view saved'));
+        return state.save()
+          .then(() => menubar.select('.notify-saved').call(badge.notify));
       });
   // Dashboard link
   menubar.append('a')
@@ -41,6 +44,11 @@ function app(view, coll) {
             'outline-secondary', 'status-gray')
       .attr('href', 'dashboard.html')
       .attr('target', '_blank');
+  // Status
+  menubar.append('span')
+    .classed('notify-saved', true)
+    .call(badge.badge, 'State saved', 'success', 'check-green')
+    .call(badge.hide);
   // Dialogs
   dialogs.append('div')
       .classed('renamed', true)

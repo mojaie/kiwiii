@@ -9,6 +9,7 @@ import {default as hfile} from './common/file.js';
 import {default as idb} from './common/idb.js';
 import {default as misc} from './common/misc.js';
 
+import {default as badge} from './component/badge.js';
 import {default as button} from './component/button.js';
 import {default as modal} from './component/modal.js';
 
@@ -26,7 +27,8 @@ import {default as dg} from './datagrid/component.js';
 
 
 function app(view, coll) {
-  const menubar = d3.select('#menubar');
+  const menubar = d3.select('#menubar')
+      .classed('my-1', true);
   menubar.selectAll('div,span,a').remove();  // Clean up
   const dialogs = d3.select('#dialogs');
   dialogs.selectAll('div').remove();  // Clean up
@@ -68,7 +70,8 @@ function app(view, coll) {
   menu.append('a')
       .call(button.dropdownMenuItem, 'Save', 'menu-save')
       .on('click', function () {
-        return state.save().then(() => console.info('Datagrid saved'));
+        return state.save()
+          .then(() => menubar.select('.notify-saved').call(badge.notify));
       });
   menu.append('a')
       .classed('online-command', true)
@@ -104,12 +107,16 @@ function app(view, coll) {
             'Abort server job', 'warning', 'delete-gray')
       .attr('data-toggle', 'modal')
       .attr('data-target', '#abort-dialog');
+  // Status
+  menubar.append('span')
+      .classed('notify-saved', true)
+      .call(badge.badge, 'State saved', 'success', 'check-green')
+      .call(badge.hide);
   menubar.append('span').classed('progress', true)
     .append('progress')
       .attr('max', 100);
   menubar.append('span').classed('title', true);
   menubar.append('span').classed('status', true);
-
   // Dialogs
   dialogs.append('div')
       .classed('fieldconfd', true)

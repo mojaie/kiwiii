@@ -7,6 +7,7 @@ import d3 from 'd3';
 import {default as client} from './common/client.js';
 import {default as idb} from './common/idb.js';
 
+import {default as badge} from './component/badge.js';
 import {default as button} from './component/button.js';
 import {default as modal} from './component/modal.js';
 import {default as transform} from './component/transform.js';
@@ -23,7 +24,8 @@ import {default as interaction} from './network/interaction.js';
 
 
 function app(view, nodes, edges) {
-  const menubar = d3.select('#menubar');
+  const menubar = d3.select('#menubar')
+      .classed('my-1', true);
   menubar.selectAll('div,span,a').remove();  // Clean up
   const dialogs = d3.select('#dialogs');
   dialogs.selectAll('div').remove();  // Clean up
@@ -42,7 +44,8 @@ function app(view, nodes, edges) {
   menu.append('a')
       .call(button.dropdownMenuItem, 'Save', 'menu-save')
       .on('click', function () {
-        return state.save().then(() => console.info('Snapshot saved'));
+        return state.save()
+            .then(() => menubar.select('.notify-saved').call(badge.notify));
       });
   // Dashboard link
   menubar.append('a')
@@ -67,6 +70,11 @@ function app(view, nodes, edges) {
             'Abort server job', 'warning', 'delete-gray')
       .attr('data-toggle', 'modal')
       .attr('data-target', '#abort-dialog');
+  // Status
+  menubar.append('span')
+      .classed('notify-saved', true)
+      .call(badge.badge, 'State saved', 'success', 'check-green')
+      .call(badge.hide);
   menubar.append('span').classed('progress', true)
     .append('progress')
       .attr('max', 100);

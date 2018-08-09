@@ -137,7 +137,8 @@ function run() {
     return;
   }
   // Menubar
-  const menubar = d3.select('#menubar');
+  const menubar = d3.select('#menubar')
+      .classed('my-1', true);
   menubar.append('a')
       .call(button.menuButtonLink, 'Dashboard', 'outline-secondary', 'db-gray')
       .attr('href', 'dashboard.html')
