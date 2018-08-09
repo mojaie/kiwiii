@@ -70,12 +70,11 @@ function body(selection) {
 
 
 function updateBody(selection, fields) {
-  const tmpFields = fields.filter(e => misc.sortType(e.format) !== 'none');
   selection.select('.key')
       .call(box.updateTextBox, '')
       .on('input', function () {
         selection.select('.submit')
-            .property('disabled', !valid(selection, tmpFields));
+            .property('disabled', !valid(selection, fields));
       });
   selection.select('.type')
       .call(lbox.updateSelectBox, 'checkbox')
@@ -87,9 +86,10 @@ function updateBody(selection, fields) {
             .property('disabled', !custom)
             .style('opacity',  custom ? null : 0.3);
         selection.select('.submit')
-            .property('disabled', !valid(selection, tmpFields));
+            .property('disabled', !valid(selection, fields));
       })
       .dispatch('change');
+  const tmpFields = fields.filter(e => misc.sortType(e.format) !== 'none');
   selection.select('.tmpfield')
       .call(lbox.selectBoxItems, tmpFields)
       .call(lbox.updateSelectBox, 'index')
@@ -106,7 +106,7 @@ function updateBody(selection, fields) {
       .call(box.updateTextareaBox, '')
       .on('input', function () {
         selection.select('.submit')
-            .property('disabled', !valid(selection, tmpFields));
+            .property('disabled', !valid(selection, fields));
       });
 }
 
@@ -140,9 +140,11 @@ const formatterGen = {
 
 
 function valid(selection, fields) {
-  const keyValid = box.textBoxValue(selection.select('.key')) !== '';
+  const key = box.textBoxValue(selection.select('.key'));
+  const keyValid = key !== '' && !fields.map(e => e.key).includes(key);
   selection.select('.key').select('input')
     .style('background-color', keyValid ? '#ffffff' : '#ffcccc');
+  const tmpFields = fields.filter(e => misc.sortType(e.format) !== 'none');
   const cont = box.textareaBoxValue(selection.select('.contents'));
   const contEmpty = cont === '';
   const contOuter = cont.split(/\{.+?\}/g);
@@ -150,7 +152,7 @@ function valid(selection, fields) {
   const contInvalidKey = contInner
     .some(n => {
       const ns = n.split(':');
-      if (!fields.map(e => e.key).includes(ns[0])) return true;
+      if (!tmpFields.map(e => e.key).includes(ns[0])) return true;
       if (ns.length > 2) return true;
       if (ns.length === 1) return false;
       try {

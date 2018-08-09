@@ -21,8 +21,13 @@ export default class Collection {
     this.collectionID = coll.collectionID || null;
     this.storeID = coll.storeID || null;
     this.name = coll.name || null;
-    this.contents = coll.contents || [coll];
-    this.fields = [];
+    if (coll.records) {
+      this.contents = [coll];
+      this.fields = [];
+    } else {
+      this.contents = coll.contents;
+      this.fields = coll.fields || [];
+    }
     this.contents.forEach(content => {
       content.fields.forEach(e => this.addField(e));
     });
@@ -63,6 +68,19 @@ export default class Collection {
     } else {
       this.addField(mapping.field);
     }
+  }
+
+  /**
+   * Apply function to the original data records
+   * new fields should be manually added by Collection.addField
+   * @param {function} func - function to be applied
+   */
+  apply(func) {
+    this.contents.forEach(content => {
+      content.records.forEach(rcd => {
+        func(rcd);
+      });
+    });
   }
 
   /**

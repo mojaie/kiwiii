@@ -205,8 +205,8 @@ function updateApp(state) {
       .on('submit', function () {
         const values = fieldInputDialog.value(d3.select(this));
         state.rows.addField(values.field);
-        state.rows.records().forEach(e => {
-          e[values.field.key] = values.converter(e);
+        state.rows.apply(rcd => {
+          rcd[values.field.key] = values.converter(rcd);
         });
         state.updateContentsNotifier();
         return updateApp(state);
