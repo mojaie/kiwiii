@@ -86,7 +86,7 @@ function fetchProfile(compoundID, resources) {
 
 
 function render(compoundID) {
-  fetcher.get('schema')
+  return fetcher.get('schema')
     .then(fetcher.json)
     .then(schema => fetchProfile(compoundID, schema.resources))
     .catch(() => {

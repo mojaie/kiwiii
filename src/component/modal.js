@@ -44,7 +44,6 @@ function confirmDialog(selection, id) {
       .classed('ok', true)
       .attr('type', 'button')
       .attr('data-dismiss', 'modal')
-      .attr('data-target', `${id}-submit`)
       .text('OK')
       .on('click', () => {
         d3.select('#loading-icon').style('display', 'inline');
@@ -87,10 +86,13 @@ function submitDialog(selection, id, title) {
       .classed('submit', true)
       .attr('type', 'button')
       .attr('data-dismiss', 'modal')
-      .attr('data-target', `${id}-submit`)
       .text('Submit')
       .on('click', () => {
         d3.select('#loading-icon').style('display', 'inline');
+        // Dismiss before submit
+        // Submit event can update the modal itself
+        // (ex. disable submit button before onSubmit call has completed)
+        $(`#${id}`).modal('hide');
         selection.dispatch('submit');
       });
 }

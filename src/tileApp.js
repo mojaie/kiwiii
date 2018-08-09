@@ -33,7 +33,7 @@ function app(view, coll) {
   menu.append('a')
       .call(button.dropdownMenuItem, 'Save', 'menu-save')
       .on('click', function () {
-        state.save().then(() => console.info('Tile view saved'));
+        return state.save().then(() => console.info('Tile view saved'));
       });
   // Dashboard link
   menubar.append('a')

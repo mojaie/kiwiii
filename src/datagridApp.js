@@ -47,7 +47,7 @@ function app(view, coll) {
       .call(button.dropdownMenuItem, 'Generate tile view', 'menu-tiles')
       .on('click', function () {
         const viewID = misc.uuidv4().slice(0, 8);
-        idb.appendView(state.storeID, state.viewID, {
+        return idb.appendView(state.storeID, state.viewID, {
           $schema: "https://mojaie.github.io/kiwiii/specs/tile_v1.0.json",
           viewID: viewID,
           name: `${state.name}_tiles`,
@@ -68,7 +68,7 @@ function app(view, coll) {
   menu.append('a')
       .call(button.dropdownMenuItem, 'Save', 'menu-save')
       .on('click', function () {
-        state.save().then(() => console.info('Datagrid saved'));
+        return state.save().then(() => console.info('Datagrid saved'));
       });
   menu.append('a')
       .classed('online-command', true)
@@ -95,7 +95,7 @@ function app(view, coll) {
       .on('click', function () {
         return state.rows.pull().then(() => {
           state.updateContentsNotifier();
-          updateApp(state);
+          return updateApp(state);
         });
       });
   menubar.append('a')
@@ -147,7 +147,7 @@ function app(view, coll) {
   };
 
   state.updateContentsNotifier();
-  updateApp(state);
+  return updateApp(state);
 }
 
 
@@ -184,7 +184,7 @@ function updateApp(state) {
         const values = fieldConfigDialog.value(d3.select(this));
         state.updateFields(values);
         state.updateContentsNotifier();
-        updateApp(state);
+        return updateApp(state);
       });
 
   // Import fields dialog
@@ -195,7 +195,7 @@ function updateApp(state) {
           .then(data => {
             state.joinFields(data);
             state.updateContentsNotifier();
-            updateApp(state);
+            return updateApp(state);
           });
       });
 
@@ -209,30 +209,30 @@ function updateApp(state) {
           e[values.field.key] = values.converter(e);
         });
         state.updateContentsNotifier();
-        updateApp(state);
+        return updateApp(state);
       });
   // Rename dialog
   dialogs.select('.renamed')
       .call(renameDialog.updateBody, state.name)
       .on('submit', function () {
         state.name = renameDialog.value(d3.select(this));
-        updateApp(state);
+        return updateApp(state);
   });
 
 
   // Server bound tasks
-  fetcher.serverStatus().then(response => {
+  return fetcher.serverStatus().then(response => {
     // Fetch db fields dialog
     dialogs.select('.fieldfetchd')
         .call(fieldFetchDialog.updateBody, response.schema, state.rows.fields)
         .on('submit', function () {
           const compounds = state.rows.records().map(e => e.compound_id);
-          fieldFetchDialog
+          return fieldFetchDialog
             .execute(d3.select(this), compounds, response.schema)
             .then(res => {
               state.joinFields(res);
               state.updateContentsNotifier();
-              updateApp(state);
+              return updateApp(state);
             });
         });
 
@@ -240,7 +240,7 @@ function updateApp(state) {
     dialogs.select('.netgend')
         .call(networkgenDialog.updateBody, response.server.rdkit)
         .on('submit', function () {
-          networkgenDialog
+          return networkgenDialog
             .execute(d3.select(this), state.rows.records())
             .then(data => {
               const viewID = misc.uuidv4().slice(0, 8);
@@ -274,9 +274,9 @@ function updateApp(state) {
         .call(modal.updateConfirmDialog,
               'Are you sure you want to abort this calculation job?')
         .on('submit', function () {
-          state.rows.abort().then(() => {
+          return state.rows.abort().then(() => {
             state.updateContentsNotifier();
-            updateApp(state);
+            return updateApp(state);
           });
         });
   })

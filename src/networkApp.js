@@ -42,7 +42,7 @@ function app(view, nodes, edges) {
   menu.append('a')
       .call(button.dropdownMenuItem, 'Save', 'menu-save')
       .on('click', function () {
-        state.save().then(() => console.info('Snapshot saved'));
+        return state.save().then(() => console.info('Snapshot saved'));
       });
   // Dashboard link
   menubar.append('a')
@@ -177,7 +177,7 @@ function updateApp(state) {
       .call(modal.updateConfirmDialog,
             'Are you sure you want to abort this calculation job?')
       .on('submit', function () {
-        state.edges.abort().then(() => {
+        return state.edges.abort().then(() => {
           state.updateAllNotifier();
           updateApp(state);
         });
