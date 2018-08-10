@@ -30,6 +30,9 @@ function updateNodes(selection, records, showStruct) {
       .attr('class', 'node-label')
       .attr('x', 0)
       .attr('text-anchor', 'middle');
+  entered.append('foreignObject')
+      .attr('class', 'node-html')
+    .append('xhtml:div');
   const merged = entered.merge(nodes);
   if (showStruct) {
     merged.select('.node-content').html(d => d.structure);
@@ -73,13 +76,35 @@ function updateNodeAttrs(selection, state) {
   selection.selectAll('.node').select('.node-symbol')
       .attr('r', d => sizeConv(d[state.nodeSize.field]))
       .style('fill', d => colorConv(d[state.nodeColor.field]));
+  // TODO: tidy up (like rowFactory?)
+  if (state.nodeLabel.field !== null) {
+    const htwidth = 200;
+    const hoge = state.nodes.fields
+          .find(e => e.key === state.nodeLabel.field);
+    if (hoge.format === 'html') {
+      const fo = selection.selectAll('.node').select('.node-html');
+      fo.attr('x', -htwidth / 2)
+        .attr('y', d => state.focusedView ? svgWidth / 2 - 10
+          : parseFloat(sizeConv(d[state.nodeSize.field])))
+        .attr('width', htwidth);
+      fo.select('div')
+        .style('font-size', `${state.nodeLabel.size}px`)
+        .style('color', d => labelColorConv(d[state.nodeLabelColor.field]))
+        .style('text-align', 'center')
+        .style('display', state.nodeLabel.visible ? 'block' : 'none')
+        .html(d => d[state.nodeLabel.field]);
+      selection.selectAll('.node').select('.node-label').text('');
+      return;
+    }
+  }
   selection.selectAll('.node').select('.node-label')
       .attr('font-size', state.nodeLabel.size)
-      .attr('y', d => parseFloat(sizeConv(d[state.nodeSize.field]))
-             + parseInt(state.nodeLabel.size))
+      .attr('y', d => state.focusedView ? svgWidth / 2 - 10
+        : parseFloat(sizeConv(d[state.nodeSize.field])))
       .attr('visibility', state.nodeLabel.visible ? 'inherit' : 'hidden')
       .style('fill', d => labelColorConv(d[state.nodeLabelColor.field]))
       .text(d => textConv(d[state.nodeLabel.field]));
+  selection.selectAll('.node').select('.node-html div').html('');
 }
 
 

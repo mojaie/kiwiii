@@ -4,9 +4,11 @@
 import d3 from 'd3';
 
 
+// TODO: re-define
 function sortType(fmt) {
   if (['numeric', 'd3_format'].includes(fmt)) return 'numeric';
   if (['text', 'compound_id', 'assay_id', 'list'].includes(fmt)) return 'text';
+  if (['text_field', 'checkbox', 'html'].includes(fmt)) return 'html';
   return 'none';
 }
 

@@ -28,6 +28,7 @@ export default class DatagridState {
     this.defaultColumnHeight = {
       numeric: 40,
       text: 40,
+      html: 40,
       none: 200
     };
     this.scrollBarSpace = 20;
