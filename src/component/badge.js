@@ -3,22 +3,29 @@
 
 import d3 from 'd3';
 
+const assetBaseURL = '../assets/';
 const iconBaseURL = '../assets/icon/';
 
 
-function badge(selection, text, type, icon) {
+function badge(selection) {
   const body = selection
       .classed('badge', true)
-      .classed(`badge-${type}`, true)
       .append('span');
   body.append('img')
-      .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null)
+      .classed('icon', true)
       .style('width', '1.25rem')
       .style('height', '1.25rem');
   body.append('span')
-      .text(text);
+      .classed('text', true);
 }
 
+function updateBadge(selection, text, type, icon) {
+  selection.classed(`badge-${type}`, true);
+  selection.select('.icon')
+      .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null);
+  selection.select('.text')
+      .text(text);
+}
 
 function hide(selection) {
   selection.style('display', 'none');
@@ -44,6 +51,15 @@ function notify(selection) {
 }
 
 
+function loadingCircle(selection) {
+  selection.append('img')
+      .attr('src', `${assetBaseURL}loading1.gif`)
+      .style('width', '2rem')
+      .style('height', '2rem');
+  selection.style('display', 'none');
+}
+
+
 export default {
-  badge, hide, notify
+  badge, updateBadge, hide, notify, loadingCircle
 };

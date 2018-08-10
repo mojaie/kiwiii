@@ -37,7 +37,7 @@ function app(view, nodes, edges) {
 
   // Network view control
   const menu = menubar.append('div')
-      .call(button.dropdownMenuButton, 'Network', 'primary', 'network-white')
+      .call(button.dropdownMenuButton, 'Menu', 'primary', 'network-white')
       .select('.dropdown-menu');
   menu.append('a').call(communityDialog.menuLink);
   menu.append('a').call(renameDialog.menuLink);
@@ -45,23 +45,26 @@ function app(view, nodes, edges) {
       .call(button.dropdownMenuItem, 'Save', 'menu-save')
       .on('click', function () {
         return state.save()
-            .then(() => menubar.select('.notify-saved').call(badge.notify));
+          .then(() => menubar.select('.notify-saved').call(badge.notify));
       });
+
   // Dashboard link
   menubar.append('a')
       .call(button.menuButtonLink, 'Dashboard',
             'outline-secondary', 'status-gray')
       .attr('href', 'dashboard.html')
       .attr('target', '_blank');
+
   // Fetch control
   menubar.append('a')
       .classed('refresh', true)
       .call(button.menuButtonLink,
             'Refresh', 'outline-secondary', 'refresh-gray')
       .on('click', function () {
+        d3.select('#menubar .loading-circle').style('display', 'inline-block');
         return state.edges.pull().then(() => {
           state.updateAllNotifier();
-          updateApp(state);
+          return updateApp(state);
         });
       });
   menubar.append('a')
@@ -70,16 +73,30 @@ function app(view, nodes, edges) {
             'Abort server job', 'warning', 'delete-gray')
       .attr('data-toggle', 'modal')
       .attr('data-target', '#abort-dialog');
+
   // Status
   menubar.append('span')
+      .classed('loading-circle', true)
+      .call(badge.loadingCircle);
+  menubar.append('span')
       .classed('notify-saved', true)
-      .call(badge.badge, 'State saved', 'success', 'check-green')
+      .call(badge.badge)
+      .call(badge.updateBadge, 'State saved', 'success', 'check-white')
       .call(badge.hide);
-  menubar.append('span').classed('progress', true)
-    .append('progress')
-      .attr('max', 100);
-  menubar.append('span').classed('title', true);
-  menubar.append('span').classed('status', true);
+  menubar.append('span')
+      .classed('name', true);
+  menubar.append('span')
+      .classed('nodes-count', true)
+      .call(badge.badge);
+  menubar.append('span')
+      .classed('edges-count', true)
+      .call(badge.badge);
+  menubar.append('span')
+      .classed('fetch-status', true)
+      .call(badge.badge);
+  menubar.append('span')
+      .classed('exec-time', true)
+      .call(badge.badge);
 
   // Dialogs
   dialogs.append('div')
@@ -116,28 +133,53 @@ function app(view, nodes, edges) {
 
 
 function updateApp(state) {
-  d3.select('#loading-icon').style('display', 'none');
-
   // Title
   d3.select('title').text(state.name);
-  d3.select('#menubar').select('.title').text(state.name);
 
-  // Menubar
-  const menubar = d3.select('#menubar');
-  const fstatus = state.edges.status();
-  const fsize = state.edges.size();
-  const ftime = state.edges.execTime();
-  const fprog = state.edges.progress();
-  const ongoing = state.edges.ongoing();
-  menubar.select('.title').text(state.name);
-  menubar.select('.status')
-      .text(`(${fstatus} - ${fsize} connections created in ${ftime} sec.)`);
-  menubar.select('.progress').select('progress')
-      .attr('value', fprog)
-      .text(`${fprog}%`);
   // hide fetch commands
-  menubar.selectAll('.progress, .refresh, .abort')
-    .style('display', ongoing ? null : 'none');
+  d3.select('#menubar').selectAll('.refresh, .abort')
+    .style('display', state.edges.ongoing() ? null : 'none');
+
+  // Status
+  d3.select('#menubar .name').text(state.name);
+
+  const onLoading = d3.select('#menubar .loading-circle');
+  const colors = {
+    done: 'green', running: 'darkorange',
+    ready: 'cornflowerblue', queued: 'cornflowerblue',
+    interrupted: 'salmon', aborted: 'salmon', failure: 'salmon'
+  };
+  const icons = {
+    done: 'check-green', running: 'running-darkorange',
+    ready: 'clock-cornflowerblue', queued: 'clock-cornflowerblue',
+    interrupted: 'caution-salmon', aborted: 'caution-salmon',
+    failure: 'caution-salmon'
+  };
+  const fstatus = state.edges.status();
+  const fstext = fstatus === 'done' ?
+    fstatus : `${fstatus} ${state.edges.progress()}%`;
+  const commaf = d3.format(',');
+  const timef = d3.format(',.4g');
+  d3.select('#menubar .nodes-count')
+      .call(badge.updateBadge, `${commaf(state.nodes.size())} nodes`,
+            'light', 'nodes-gray')
+    .select('.text')
+      .style('color', 'gray');
+  d3.select('#menubar .edges-count')
+      .call(badge.updateBadge, `${commaf(state.edges.size())} edges`,
+            'light', 'edges-gray')
+    .select('.text')
+      .style('color', 'gray');
+  d3.select('#menubar .fetch-status')
+      .call(badge.updateBadge, fstext, 'light', icons[fstatus])
+    .select('.text')
+      .style('color', colors[fstatus]);
+  d3.select('#menubar .exec-time')
+      .call(badge.updateBadge, `${timef(state.edges.execTime())} seconds`,
+            'light', 'clock-cornflowerblue')
+    .select('.text')
+      .style('color', 'cornflowerblue');
+
 
   // Dialogs
   const dialogs = d3.select('#dialogs');
@@ -146,6 +188,7 @@ function updateApp(state) {
   dialogs.select('.communityd')
       .call(communityDialog.updateBody)
       .on('submit', function () {
+        onLoading.style('display', 'inline-block');
         const value = communityDialog.value(d3.select(this));
         const ns = state.nodes.records();
         const es = state.currentEdges();
@@ -176,6 +219,7 @@ function updateApp(state) {
   dialogs.select('.renamed')
       .call(renameDialog.updateBody, state.name)
       .on('submit', function () {
+        onLoading.style('display', 'inline-block');
         state.name = renameDialog.value(d3.select(this));
         updateApp(state);
       });
@@ -185,11 +229,14 @@ function updateApp(state) {
       .call(modal.updateConfirmDialog,
             'Are you sure you want to abort this calculation job?')
       .on('submit', function () {
+        onLoading.style('display', 'inline-block');
         return state.edges.abort().then(() => {
           state.updateAllNotifier();
           updateApp(state);
         });
       });
+
+  onLoading.style('display', 'none');
 }
 
 

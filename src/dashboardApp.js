@@ -10,6 +10,7 @@ import {default as hfile} from './common/file.js';
 import {default as idb} from './common/idb.js';
 import {default as specs} from './common/specs.js';
 
+import {default as badge} from './component/badge.js';
 import {default as button} from './component/button.js';
 import {default as modal} from './component/modal.js';
 import {default as tree} from './component/tree.js';
@@ -106,6 +107,8 @@ function nodeFactory(selection, record) {
         d3.select('#rename-dialog')
           .call(renameDialog.updateBody, record.name)
           .on('submit', function () {
+            d3.select('#menubar .loading-circle')
+                .style('display', 'inline-block');
             if (record.viewID) {
               idb.updateView(record.parent, record.viewID, view => {
                 view.name = renameDialog.value(d3.select(this));
@@ -132,6 +135,8 @@ function nodeFactory(selection, record) {
               `Are you sure you want to delete ${deleteType} ${deleteName} ?`
             )
             .on('submit', () => {
+              d3.select('#menubar .loading-circle')
+                  .style('display', 'inline-block');
               if (record.viewID && !record.alone) {
                 idb.deleteView(record.parent, record.viewID)
                   .then(updateApp);
@@ -154,7 +159,8 @@ function nodeFactory(selection, record) {
 
 function app() {
   // Menubar
-  const menubar = d3.select('#menubar');
+  const menubar = d3.select('#menubar')
+      .classed('my-1', true);
   // Start
   const startMenu = menubar.append('div')
       .call(button.dropdownMenuButton, 'Start', 'primary', 'plus-white')
@@ -171,24 +177,32 @@ function app() {
       .call(button.dropdownMenuFile, 'Open file',
             '.apc,.apr,.ndc,.ndr,.gfc,.gfr,.json,.gz', 'menu-import')
       .on('change', function () {
+        d3.select('#menubar .loading-circle').style('display', 'inline-block');
         const file = button.dropdownMenuFileValue(d3.select(this));
-        hfile.loadJSON(file)
+        return hfile.loadJSON(file)
           .then(idb.importItem)
           .then(updateApp);
       });
-
   // Refresh
   menubar.append('a')
       .classed('refresh', true)
       .classed('online-command', true)
       .call(button.menuButtonLink,
             'Refresh all', 'outline-secondary', 'refresh-gray')
-      .on('click', () => updateApp());
+      .on('click', () => {
+        d3.select('#menubar .loading-circle').style('display', 'inline-block');
+        return updateApp();
+      });
   // Delete all
   menubar.append('a')
       .call(button.menuModalLink, 'reset-dialog',
             'Reset local datastore', 'warning', 'delete-gray');
+  // Status
+  menubar.append('span')
+      .classed('loading-circle', true)
+      .call(badge.loadingCircle);
 
+  // Contents
   const contents = d3.select('#contents')
       .style('padding-left', '10%')
       .style('padding-right', '10%');
@@ -244,20 +258,24 @@ function app() {
       .call(modal.confirmDialog, 'reset-dialog')
       .call(modal.updateConfirmDialog,
             'Are you sure you want to delete all local tables and reset the datastore ?')
-      .on('submit', () => idb.reset().then(updateApp));
+      .on('submit', () => {
+        d3.select('#menubar .loading-circle').style('display', 'inline-block');
+        return idb.reset().then(updateApp);
+      });
   dialogs.append('div')
       .call(modal.confirmDialog, 'delete-dialog');
 
   // Update
-  updateApp();
+  return updateApp();
 }
 
-function updateApp() {
-  d3.select('#loading-icon').style('display', 'none');
 
+function updateApp() {
+  const onLoading = d3.select('#menubar .loading-circle');
   const dialogs = d3.select('#dialogs');
+
   // Server bound tasks
-  fetcher.serverStatus().then(response => {
+  return fetcher.serverStatus().then(response => {
     // Update server status table
     d3.select('#contents').select('.calc')
       .call(table.updateRecords, response.server.calc.records);
@@ -272,10 +290,10 @@ function updateApp() {
     dialogs.select('.searchd')
         .call(searchDialog.updateBody, chemrsrc, response.schema.compoundIDPlaceholder)
         .on('submit', function () {
-          searchDialog.execute(d3.select(this), chemrsrc)
+          return searchDialog.execute(d3.select(this), chemrsrc)
             .then(idb.newDatagrid)
             .then(r => {
-              d3.select('#loading-icon').style('display', 'none');
+              onLoading.style('display', 'none');
               window.open(
                 `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
             });
@@ -283,10 +301,10 @@ function updateApp() {
     dialogs.select('.structd')
         .call(structDialog.updateBody, chemrsrc, response.server.rdkit)
         .on('submit', function () {
-          structDialog.execute(d3.select(this))
+          return structDialog.execute(d3.select(this))
             .then(idb.newDatagrid)
             .then(r => {
-              d3.select('#loading-icon').style('display', 'none');
+              onLoading.style('display', 'none');
               window.open(
                 `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
             });
@@ -294,10 +312,10 @@ function updateApp() {
     dialogs.select('.filterd')
         .call(filterDialog.updateBody, chemrsrc)
         .on('submit', function () {
-          filterDialog.execute(d3.select(this))
+          return filterDialog.execute(d3.select(this))
             .then(idb.newDatagrid)
             .then(r => {
-              d3.select('#loading-icon').style('display', 'none');
+              onLoading.style('display', 'none');
               window.open(
                 `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
             });
@@ -305,10 +323,10 @@ function updateApp() {
     dialogs.select('.sdfd')
         .call(sdfDialog.updateBody, chemrsrc)
         .on('submit', function () {
-          sdfDialog.execute(d3.select(this))
+          return sdfDialog.execute(d3.select(this))
             .then(idb.newDatagrid)
             .then(r => {
-              d3.select('#loading-icon').style('display', 'none');
+              onLoading.style('display', 'none');
               window.open(
                 `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
             });
@@ -363,6 +381,7 @@ function updateApp() {
       });
       d3.select('#contents').select('.stored')
         .call(tree.treeItems, treeNodes, d => d.storeID, nodeFactory);
+      onLoading.style('display', 'none');
     });
   });
 }

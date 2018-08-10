@@ -29,7 +29,7 @@ function app(view, coll) {
 
   // Tile view control
   const menu = menubar.append('div')
-      .call(button.dropdownMenuButton, 'Tile', 'primary', 'tiles-white')
+      .call(button.dropdownMenuButton, 'Menu', 'primary', 'tiles-white')
       .select('.dropdown-menu');
   menu.append('a').call(renameDialog.menuLink);
   menu.append('a')
@@ -38,17 +38,35 @@ function app(view, coll) {
         return state.save()
           .then(() => menubar.select('.notify-saved').call(badge.notify));
       });
+
   // Dashboard link
   menubar.append('a')
       .call(button.menuButtonLink, 'Dashboard',
             'outline-secondary', 'status-gray')
       .attr('href', 'dashboard.html')
       .attr('target', '_blank');
+
   // Status
   menubar.append('span')
-    .classed('notify-saved', true)
-    .call(badge.badge, 'State saved', 'success', 'check-green')
-    .call(badge.hide);
+      .classed('loading-circle', true)
+      .call(badge.loadingCircle);
+  menubar.append('span')
+      .classed('notify-saved', true)
+      .call(badge.badge)
+      .call(badge.updateBadge, 'State saved', 'success', 'check-white')
+      .call(badge.hide);
+  menubar.append('span')
+      .classed('name', true);
+  menubar.append('span')
+      .classed('items-count', true)
+      .call(badge.badge);
+  menubar.append('span')
+      .classed('fetch-status', true)
+      .call(badge.badge);
+  menubar.append('span')
+      .classed('exec-time', true)
+      .call(badge.badge);
+
   // Dialogs
   dialogs.append('div')
       .classed('renamed', true)
@@ -73,19 +91,41 @@ function app(view, coll) {
 
 
 function updateApp(state) {
-  d3.select('#loading-icon').style('display', 'none');
-
   // Title
   d3.select('title').text(state.name);
 
-  // Menubar
-  const menubar = d3.select('#menubar');
+  // Status
+  d3.select('#menubar .name').text(state.name);
+
+  const onLoading = d3.select('#menubar .loading-circle');
+  const colors = {
+    done: 'green', running: 'darkorange',
+    ready: 'cornflowerblue', queued: 'cornflowerblue',
+    interrupted: 'salmon', aborted: 'salmon', failure: 'salmon'
+  };
+  const icons = {
+    done: 'check-green', running: 'running-darkorange',
+    ready: 'clock-cornflowerblue', queued: 'clock-cornflowerblue',
+    interrupted: 'caution-salmon', aborted: 'caution-salmon',
+    failure: 'caution-salmon'
+  };
   const fstatus = state.items.status();
-  const fsize = state.items.size();
-  const ftime = state.items.execTime();
-  menubar.select('.title').text(state.name);
-  menubar.select('.status')
-      .text(`(${fstatus} - ${fsize} records found in ${ftime} sec.)`);
+  const fstext = fstatus === 'done' ?
+    fstatus : `${fstatus} ${state.items.progress()}%`;
+  d3.select('#menubar .items-count')
+      .call(badge.updateBadge, `${state.items.size()} items`,
+            'light', 'tiles-gray')
+    .select('.text')
+      .style('color', 'gray');
+  d3.select('#menubar .fetch-status')
+      .call(badge.updateBadge, fstext, 'light', icons[fstatus])
+    .select('.text')
+      .style('color', colors[fstatus]);
+  d3.select('#menubar .exec-time')
+      .call(badge.updateBadge, `${state.items.execTime()} seconds`,
+            'light', 'clock-cornflowerblue')
+    .select('.text')
+      .style('color', 'cornflowerblue');
 
   // Dialogs
   const dialogs = d3.select('#dialogs');
@@ -94,9 +134,12 @@ function updateApp(state) {
   dialogs.select('.renamed')
       .call(renameDialog.updateBody, state.name)
       .on('submit', function () {
+        onLoading.style('display', 'inline-block');
         state.name = renameDialog.value(d3.select(this));
         updateApp(state);
   });
+
+  onLoading.style('display', 'none');
 }
 
 

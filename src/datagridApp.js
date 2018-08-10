@@ -37,7 +37,7 @@ function app(view, coll) {
 
   // Datagrid view control
   const menu = menubar.append('div')
-      .call(button.dropdownMenuButton, 'Datagrid', 'primary', 'table-white')
+      .call(button.dropdownMenuButton, 'Menu', 'primary', 'table-white')
       .select('.dropdown-menu');
   menu.append('a').call(fieldConfigDialog.menuLink);
   menu.append('a')
@@ -48,6 +48,7 @@ function app(view, coll) {
   menu.append('a')
       .call(button.dropdownMenuItem, 'Generate tile view', 'menu-tiles')
       .on('click', function () {
+        d3.select('#menubar .loading-circle').style('display', 'inline-block');
         const viewID = misc.uuidv4().slice(0, 8);
         return idb.appendView(state.storeID, state.viewID, {
           $schema: "https://mojaie.github.io/kiwiii/specs/tile_v1.0.json",
@@ -59,6 +60,7 @@ function app(view, coll) {
           columnCount: 5,
           tileContent: {field: 'structure', visible: true}
         }).then(() => {
+          d3.select('#menubar .loading-circle').style('display', 'none');
           window.open(
             `tile.html?store=${state.storeID}&view=${viewID}`, '_blank');
         });
@@ -77,25 +79,32 @@ function app(view, coll) {
       .classed('online-command', true)
       .call(button.dropdownMenuItem, 'Download Excel', 'menu-exportexcel')
       .on('click', () => {
+        d3.select('#menubar .loading-circle').style('display', 'inline-block');
         const coll = state.rows.export();
         const formData = new FormData();
         formData.append('contents', new Blob([JSON.stringify(coll)]));
         return fetcher.post('xlsx', formData)
           .then(fetcher.blob)
-          .then(blob => hfile.downloadDataFile(blob, `${state.name}.xlsx`));
+          .then(blob => {
+            d3.select('#menubar .loading-circle').style('display', 'none');
+            hfile.downloadDataFile(blob, `${state.name}.xlsx`);
+          });
       });
+
   // Dashboard link
   menubar.append('a')
       .call(button.menuButtonLink, 'Dashboard',
             'outline-secondary', 'status-gray')
       .attr('href', 'dashboard.html')
       .attr('target', '_blank');
+
   // Fetch control
   menubar.append('a')
       .classed('refresh', true)
       .call(button.menuButtonLink,
             'Refresh', 'outline-secondary', 'refresh-gray')
       .on('click', function () {
+        d3.select('#menubar .loading-circle').style('display', 'inline-block');
         return state.rows.pull().then(() => {
           state.updateContentsNotifier();
           return updateApp(state);
@@ -107,16 +116,28 @@ function app(view, coll) {
             'Abort server job', 'warning', 'delete-gray')
       .attr('data-toggle', 'modal')
       .attr('data-target', '#abort-dialog');
+
   // Status
   menubar.append('span')
+      .classed('loading-circle', true)
+      .call(badge.loadingCircle);
+  menubar.append('span')
       .classed('notify-saved', true)
-      .call(badge.badge, 'State saved', 'success', 'check-green')
+      .call(badge.badge)
+      .call(badge.updateBadge, 'State saved', 'success', 'check-white')
       .call(badge.hide);
-  menubar.append('span').classed('progress', true)
-    .append('progress')
-      .attr('max', 100);
-  menubar.append('span').classed('title', true);
-  menubar.append('span').classed('status', true);
+  menubar.append('span')
+      .classed('name', true);
+  menubar.append('span')
+      .classed('rows-count', true)
+      .call(badge.badge);
+  menubar.append('span')
+      .classed('fetch-status', true)
+      .call(badge.badge);
+  menubar.append('span')
+      .classed('exec-time', true)
+      .call(badge.badge);
+
   // Dialogs
   dialogs.append('div')
       .classed('fieldconfd', true)
@@ -159,27 +180,46 @@ function app(view, coll) {
 
 
 function updateApp(state) {
-  d3.select('#loading-icon').style('display', 'none');
-
   // Title
   d3.select('title').text(state.name);
 
-  // Menubar
-  const menubar = d3.select('#menubar');
-  const fstatus = state.rows.status();
-  const fsize = state.rows.size();
-  const ftime = state.rows.execTime();
-  const fprog = state.rows.progress();
-  const ongoing = state.rows.ongoing();
-  menubar.select('.title').text(state.name);
-  menubar.select('.status')
-      .text(`(${fstatus} - ${fsize} records found in ${ftime} sec.)`);
-  menubar.select('.progress').select('progress')
-      .attr('value', fprog)
-      .text(`${fprog}%`);
   // hide fetch commands
-  menubar.selectAll('.progress, .refresh, .abort')
-    .style('display', ongoing ? null : 'none');
+  d3.select('#menubar').selectAll('.refresh, .abort')
+    .style('display', state.rows.ongoing() ? null : 'none');
+
+  // Status
+  d3.select('#menubar .name').text(state.name);
+
+  const onLoading = d3.select('#menubar .loading-circle');
+  const colors = {
+    done: 'green', running: 'darkorange',
+    ready: 'cornflowerblue', queued: 'cornflowerblue',
+    interrupted: 'salmon', aborted: 'salmon', failure: 'salmon'
+  };
+  const icons = {
+    done: 'check-green', running: 'running-darkorange',
+    ready: 'clock-cornflowerblue', queued: 'clock-cornflowerblue',
+    interrupted: 'caution-salmon', aborted: 'caution-salmon',
+    failure: 'caution-salmon'
+  };
+  const fstatus = state.rows.status();
+  const fstext = fstatus === 'done' ?
+    fstatus : `${fstatus} ${state.rows.progress()}%`;
+  d3.select('#menubar .rows-count')
+      .call(badge.updateBadge, `${state.rows.size()} rows`,
+            'light', 'table-gray')
+    .select('.text')
+      .style('color', 'gray');
+  d3.select('#menubar .fetch-status')
+      .call(badge.updateBadge, fstext, 'light', icons[fstatus])
+    .select('.text')
+      .style('color', colors[fstatus]);
+  d3.select('#menubar .exec-time')
+      .call(badge.updateBadge, `${state.rows.execTime()} seconds`,
+            'light', 'clock-cornflowerblue')
+    .select('.text')
+      .style('color', 'cornflowerblue');
+
 
   // Dialogs
   const dialogs = d3.select('#dialogs');
@@ -252,11 +292,12 @@ function updateApp(state) {
             .then(data => {
               return idb.newNetwork(
                 state.storeID, state.rows.collectionID, state.name, data
-              )
-              .then(viewID => {
-                d3.select('#loading-icon').style('display', 'none');
-                window.open(`network.html?store=${state.storeID}&view=${viewID}`, '_blank');
-              });
+              );
+            })
+            .then(viewID => {
+              onLoading.style('display', 'none');
+              window.open(
+                `network.html?store=${state.storeID}&view=${viewID}`, '_blank');
             });
         });
 
@@ -277,6 +318,9 @@ function updateApp(state) {
       .attr('data-target', null)
       .classed('disabled', true)
       .on('click', null);
+  })
+  .finally(() => {
+    onLoading.style('display', 'none');
   });
 }
 
