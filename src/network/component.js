@@ -64,47 +64,40 @@ function updateNodeAttrs(selection, state) {
   const colorConv = scale.scaleFunction(state.nodeColor);
   const sizeConv = scale.scaleFunction(state.nodeSize);
   const labelColorConv = scale.scaleFunction(state.nodeLabelColor);
+  const field = state.nodes.fields
+    .find(e => e.key === state.nodeLabel.field);
   const textConv = value => {
-    if (state.nodeLabel.field === null) return '';
-    const field = state.nodes.fields
-      .find(e => e.key === state.nodeLabel.field);
-    if (field.format === 'd3_format') {
-      return misc.formatNum(value, field.d3_format);
-    }
-    return value;
+    return field.format === 'd3_format'
+      ? misc.formatNum(value, field.d3_format) : value;
   };
   selection.selectAll('.node').select('.node-symbol')
       .attr('r', d => sizeConv(d[state.nodeSize.field]))
       .style('fill', d => colorConv(d[state.nodeColor.field]));
   // TODO: tidy up (like rowFactory?)
-  if (state.nodeLabel.field !== null) {
+  if (field.format === 'html') {
     const htwidth = 200;
-    const hoge = state.nodes.fields
-          .find(e => e.key === state.nodeLabel.field);
-    if (hoge.format === 'html') {
-      const fo = selection.selectAll('.node').select('.node-html');
-      fo.attr('x', -htwidth / 2)
-        .attr('y', d => state.focusedView ? svgWidth / 2 - 10
-          : parseFloat(sizeConv(d[state.nodeSize.field])))
-        .attr('width', htwidth);
-      fo.select('div')
-        .style('font-size', `${state.nodeLabel.size}px`)
-        .style('color', d => labelColorConv(d[state.nodeLabelColor.field]))
-        .style('text-align', 'center')
-        .style('display', state.nodeLabel.visible ? 'block' : 'none')
-        .html(d => d[state.nodeLabel.field]);
-      selection.selectAll('.node').select('.node-label').text('');
-      return;
-    }
-  }
-  selection.selectAll('.node').select('.node-label')
-      .attr('font-size', state.nodeLabel.size)
+    const fo = selection.selectAll('.node').select('.node-html');
+    fo.attr('x', -htwidth / 2)
       .attr('y', d => state.focusedView ? svgWidth / 2 - 10
         : parseFloat(sizeConv(d[state.nodeSize.field])))
-      .attr('visibility', state.nodeLabel.visible ? 'inherit' : 'hidden')
-      .style('fill', d => labelColorConv(d[state.nodeLabelColor.field]))
-      .text(d => textConv(d[state.nodeLabel.field]));
-  selection.selectAll('.node').select('.node-html div').html('');
+      .attr('width', htwidth);
+    fo.select('div')
+      .style('font-size', `${state.nodeLabel.size}px`)
+      .style('color', d => labelColorConv(d[state.nodeLabelColor.field]))
+      .style('text-align', 'center')
+      .style('display', state.nodeLabel.visible ? 'block' : 'none')
+      .html(d => d[state.nodeLabel.field]);
+    selection.selectAll('.node').select('.node-label').text('');
+  } else {
+    selection.selectAll('.node').select('.node-label')
+        .attr('font-size', state.nodeLabel.size)
+        .attr('y', d => state.focusedView ? svgWidth / 2 - 10
+          : parseFloat(sizeConv(d[state.nodeSize.field])))
+        .attr('visibility', state.nodeLabel.visible ? 'inherit' : 'hidden')
+        .style('fill', d => labelColorConv(d[state.nodeLabelColor.field]))
+        .text(d => textConv(d[state.nodeLabel.field]));
+    selection.selectAll('.node').select('.node-html div').html('');
+  }
 }
 
 

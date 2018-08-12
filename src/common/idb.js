@@ -223,9 +223,8 @@ function updateCollection(storeID, collID, collObj) {
  */
 function importItem(data) {
   // Legacy format converter
-  if (!data.hasOwnProperty('views')) {
-    data = legacy.convertPackage(data);
-  }
+  data = legacy.convertPackage(data);
+
   const now = new Date();
   data.storeID = misc.uuidv4().slice(0, 8);
   data.sessionStarted = now.toString();

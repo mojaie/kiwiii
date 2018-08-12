@@ -256,7 +256,7 @@ function updateEdgeLabelControlBox(selection, state) {
     .filter(e => !['source', 'target'].includes(e.key));
   selection
       .call(cbox.updateLabelControlBox, fieldOptions,
-            state.nodeLabel, state.nodeLabelColor)
+            state.edgeLabel, state.edgeLabelColor)
       .on('change', function() {
         const values = cbox.labelControlBoxState(selection);
         state.edgeLabel = values.label;

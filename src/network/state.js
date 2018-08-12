@@ -34,99 +34,61 @@ export default class NetworkState extends TransformState {
     this.edges = new Collection(edges);
 
     /* Appearance */
-    const defaultNodeField = this.nodes.fields[0].key || null;
-    const fillIfNull = (obj, updater) => {
-      Object.entries(updater).forEach(e => {
-        if (!obj.hasOwnProperty(e[0])) {
-          obj[e[0]] = e[1];
-        }
-      });
-    };
+    const defaultNodeField = 'index';
+    const defaultEdgeField = 'weight';
 
-    this.nodeColor = {};
-    const defaultNodeColor = {
+    this.nodeColor = {
       field: defaultNodeField, color: 'nodeDefault',
       scale: 'linear', domain: [0, 1],
       range: ['#7fffd4', '#7fffd4'], unknown: '#7fffd4'
     };
-    if (view.hasOwnProperty('nodeColor')) {
-      this.nodeColor = view.nodeColor;
-    }
-    fillIfNull(this.nodeColor, defaultNodeColor);
+    Object.assign(this.nodeColor, view.nodeColor || {});
 
-    this.nodeSize = {};
-    const defaultNodeSize = {
+    this.nodeSize = {
       field: defaultNodeField, scale: 'linear', domain: [1, 1],
       range: [40, 40], unknown: 40
     };
-    if (view.hasOwnProperty('nodeSize')) {
-      this.nodeSize = view.nodeSize;
-    }
-    fillIfNull(this.nodeSize, defaultNodeSize);
+    Object.assign(this.nodeSize, view.nodeSize || {});
 
-    this.nodeLabel = {};
-    const defaultNodeLabel = {
+    this.nodeLabel = {
       field: defaultNodeField, size: 20, visible: false
     };
-    if (view.hasOwnProperty('nodeLabel')) {
-      this.nodeLabel = view.nodeLabel;
-    }
-    fillIfNull(this.nodeLabel, defaultNodeLabel);
+    Object.assign(this.nodeLabel, view.nodeLabel || {});
 
-    this.nodeLabelColor = {};
-    const defaultNodeLabelColor = {
+    this.nodeLabelColor = {
       field: defaultNodeField, color: 'monoblack',
       scale: 'linear', domain: [1, 1],
       range: ['#333333', '#333333'], unknown: '#cccccc'
     };
-    if (view.hasOwnProperty('nodeLabelColor')) {
-      this.nodeLabelColor = view.nodeLabelColor;
-    }
-    fillIfNull(this.nodeLabelColor, defaultNodeLabelColor);
+    Object.assign(this.nodeLabelColor, view.nodeLabelColor || {});
 
-    this.edgeColor = {};
-    const defaultEdgeColor = {
-      field: 'weight', color: 'monogray',
+    this.edgeColor = {
+      field: defaultEdgeField, color: 'monogray',
       scale: 'linear', domain: [0, 1],
       range: ['#999999', '#999999'], unknown: '#cccccc'
     };
-    if (view.hasOwnProperty('edgeColor')) {
-      this.edgeColor = view.edgeColor;
-    }
-    fillIfNull(this.edgeColor, defaultEdgeColor);
+    Object.assign(this.edgeColor, view.edgeColor || {});
 
-    this.edgeWidth = {};
-    const defaultEdgeWidth = {
-      field: 'weight', scale: 'linear', domain: [0.5, 1],
+    this.edgeWidth = {
+      field: defaultEdgeField, scale: 'linear', domain: [0.5, 1],
       range: [10, 10], unknown: 1
     };
-    if (view.hasOwnProperty('edgeWidth')) {
-      this.edgeWidth = view.edgeWidth;
-    }
-    fillIfNull(this.edgeWidth, defaultEdgeWidth);
+    Object.assign(this.edgeWidth, view.edgeWidth || {});
 
-    this.edgeLabel = {};
-    const defaultEdgeLabel = {
-      field: 'weight', size: 12, visible: false
+    this.edgeLabel = {
+      field: defaultEdgeField, size: 12, visible: false
     };
-    if (view.hasOwnProperty('edgeLabel')) {
-      this.edgeLabel = view.edgeLabel;
-    }
-    fillIfNull(this.edgeLabel, defaultEdgeLabel);
+    Object.assign(this.edgeLabel, view.edgeLabel || {});
 
-    this.edgeLabelColor = {};
-    const defaultEdgeLabelColor = {
-      field: 'weight', color: 'monoblack',
+    this.edgeLabelColor = {
+      field: defaultEdgeField, color: 'monoblack',
       scale: 'linear', domain: [1, 1],
       range: ['#333333', '#333333'], unknown: '#cccccc'
     };
-    if (view.hasOwnProperty('edgeLabelColor')) {
-      this.edgeLabelColor = view.edgeLabelColor;
-    }
-    fillIfNull(this.edgeLabelColor, defaultEdgeLabelColor);
+    Object.assign(this.edgeLabelColor, view.edgeLabelColor || {});
 
     // Connection threshold
-    this.connThldField = view.connThldField || 'weight';
+    this.connThldField = view.connThldField || defaultEdgeField;
     this.minConnThld = view.minConnThld;
     this.currentConnThld = view.currentConnThld || view.minConnThld;
 

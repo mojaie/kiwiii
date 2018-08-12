@@ -311,104 +311,129 @@ function convertNetwork(json) {
 
 
 function convertPackage(json) {
-  if (json.hasOwnProperty('views')) return json;
-  const now = new Date();
-  const isNW = json.hasOwnProperty('edges');
-  const data = isNW ? convertNetwork(json) : convertTable(json);
-  const nodes = isNW ? data.nodes : data;
-  const specs = {
-    $schema: "https://mojaie.github.io/kiwiii/specs/package_v1.0.json",
-    name: data.edges.name,
-    views: [],
-    dataset: []
-  };
-  specs.dataset.push({
-    $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
-    collectionID: nodes.id,
-    name: nodes.name,
-    contents: [{
-      $schema: nodes.$schema,
-      workflowID: nodes.reference.workflow,
-      name: nodes.name,
-      fields: nodes.fields,
-      records: nodes.records,
-      created: nodes.created,
-      status: nodes.status,
-      query: nodes.query,
-      execTime: nodes.execTime,
-      progress: nodes.progress
-    }]
-  });
-  specs.views.push({
-    $schema: "https://mojaie.github.io/kiwiii/specs/datagrid_v1.0.json",
-    viewID: nodes.id,
-    name: nodes.name,
-    viewType: "datagrid",
-    rows: nodes.id,
-    fields: nodes.fields,
-    sortOrder: null,
-    filterText: null,
-    checkpoints: [{
-      type: 'convert',
-      date: now.toString(),
-      description: 'converted from legacy format'
-    }]
-  });
-  if (isNW) {
+  let specs = {};
+  if (!json.hasOwnProperty('views')) {
+    const now = new Date();
+    const isNW = json.hasOwnProperty('edges');
+    const data = isNW ? convertNetwork(json) : convertTable(json);
+    const nodes = isNW ? data.nodes : data;
+    specs = {
+      $schema: "https://mojaie.github.io/kiwiii/specs/package_v1.0.json",
+      name: data.edges.name,
+      views: [],
+      dataset: []
+    };
     specs.dataset.push({
       $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
-      collectionID: data.edges.id,
-      name: data.edges.name,
+      collectionID: nodes.id,
+      name: nodes.name,
       contents: [{
-        $schema: data.edges.$schema,
-        workflowID: data.edges.reference.workflow,
-        name: data.edges.name,
-        fields: data.edges.fields,
-        records: data.edges.records,
-        created: data.edges.created,
-        status: data.edges.status,
-        query: data.edges.query,
-        execTime: data.edges.execTime,
-        progress: data.edges.progress
+        $schema: nodes.$schema,
+        workflowID: nodes.reference.workflow,
+        name: nodes.name,
+        fields: nodes.fields,
+        records: nodes.records,
+        created: nodes.created,
+        status: nodes.status,
+        query: nodes.query,
+        execTime: nodes.execTime,
+        progress: nodes.progress
       }]
     });
     specs.views.push({
-      $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
-      viewID: data.edges.id,
-      name: data.edges.name,
-      viewType: "network",
-      nodes: nodes.id,
-      edges: data.edges.id,
-      nodeColor: data.edges.snapshot.nodeColor,
-      nodeSize: data.edges.snapshot.nodeSize,
-      nodeLabel: data.edges.snapshot.nodeLabel,
-      nodeLabelColor: data.edges.snapshot.nodeLabelColor,
-      edgeWidth: data.edges.snapshot.edgeWidth,
-      edgeLabel: data.edges.snapshot.edgeLabel,
-      networkThreshold: data.edges.snapshot.networkThreshold,
-      networkThresholdCutoff: data.edges.snapshot.networkThresholdCutoff,
-      fieldTransform: data.edges.snapshot.fieldTransform,
-      coords: data.edges.snapshot.coords,
+      $schema: "https://mojaie.github.io/kiwiii/specs/datagrid_v1.0.json",
+      viewID: nodes.id,
+      name: nodes.name,
+      viewType: "datagrid",
+      rows: nodes.id,
+      fields: nodes.fields,
+      sortOrder: null,
+      filterText: null,
       checkpoints: [{
         type: 'convert',
         date: now.toString(),
         description: 'converted from legacy format'
       }]
     });
+    if (isNW) {
+      specs.dataset.push({
+        $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
+        collectionID: data.edges.id,
+        name: data.edges.name,
+        contents: [{
+          $schema: data.edges.$schema,
+          workflowID: data.edges.reference.workflow,
+          name: data.edges.name,
+          fields: data.edges.fields,
+          records: data.edges.records,
+          created: data.edges.created,
+          status: data.edges.status,
+          query: data.edges.query,
+          execTime: data.edges.execTime,
+          progress: data.edges.progress
+        }]
+      });
+      specs.views.push({
+        $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
+        viewID: data.edges.id,
+        name: data.edges.name,
+        viewType: "network",
+        nodes: nodes.id,
+        edges: data.edges.id,
+        nodeColor: data.edges.snapshot.nodeColor,
+        nodeSize: data.edges.snapshot.nodeSize,
+        nodeLabel: data.edges.snapshot.nodeLabel,
+        nodeLabelColor: data.edges.snapshot.nodeLabelColor,
+        edgeWidth: data.edges.snapshot.edgeWidth,
+        edgeLabel: data.edges.snapshot.edgeLabel,
+        networkThreshold: data.edges.snapshot.networkThreshold,
+        networkThresholdCutoff: data.edges.snapshot.networkThresholdCutoff,
+        fieldTransform: data.edges.snapshot.fieldTransform,
+        coords: data.edges.snapshot.coords,
+        checkpoints: [{
+          type: 'convert',
+          date: now.toString(),
+          description: 'converted from legacy format'
+        }]
+      });
+    }
+    specs.views.filter(e => e.viewType === 'network')
+      .forEach(view => {
+        view.minConnThld = view.networkThresholdCutoff;
+        view.currentConnThld = view.networkThreshold;
+        if (view.hasOwnProperty('nodeLabel')) {
+          view.nodeLabel.field = view.nodeLabel.text;
+        }
+        if (view.hasOwnProperty('edgeLabel')) {
+          view.edgeLabel.field = 'weight';
+        }
+        if (view.hasOwnProperty('edgeWidth')) {
+          view.edgeWidth.field = 'weight';
+        }
+      });
   }
   specs.views.filter(e => e.viewType === 'network')
     .forEach(view => {
-      view.minConnThld = view.networkThresholdCutoff;
-      view.currentConnThld = view.networkThreshold;
-      if (view.hasOwnProperty('nodeLabel')) {
-        view.nodeLabel.field = view.nodeLabel.text;
-      }
-      if (view.hasOwnProperty('edgeLabel')) {
-        view.edgeLabel.field = 'weight';
-      }
-      if (view.hasOwnProperty('edgeWidth')) {
-        view.edgeWidth.field = 'weight';
-      }
+      if (!view.nodeColor.field) { view.nodeColor.field = 'index' ;}
+      if (!view.nodeSize.field) { view.nodeSize.field = 'index' ;}
+      if (!view.nodeLabel.field) { view.nodeLabel.field = 'index' ;}
+      if (!view.nodeLabelColor.field) { view.nodeLabelColor.field = 'index' ;}
+      if (!view.edgeColor) {
+        view.edgeColor = {
+          field: 'weight', color: 'monogray',
+          scale: 'linear', domain: [0, 1],
+          range: ['#999999', '#999999'], unknown: '#cccccc'
+        };
+      } else if (!view.edgeColor.field) { view.edgeColor.field = 'weight' ;}
+      if (!view.edgeWidth.field) { view.edgeWidth.field = 'weight' ;}
+      if (!view.edgeLabel.field) { view.edgeLabel.field = 'weight' ;}
+      if (!view.edgeLabelColor) {
+        view.edgeLabelColor = {
+          field: 'weight', color: 'monoblack',
+          scale: 'linear', domain: [1, 1],
+          range: ['#333333', '#333333'], unknown: '#cccccc'
+        };
+      } else if (!view.edgeLabelColor.field) { view.edgeLabelColor.field = 'weight' ;}
     });
   return specs;
 }
