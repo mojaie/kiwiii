@@ -218,11 +218,11 @@ function app() {
   // Server calc jobs
   // TODO: only for admin
   const calcFields = [
+    {key: 'workflowID', name: 'WorkflowID', format: 'text'},
     {key: 'name', name: 'Name', format: 'text'},
     {key: 'size', name: 'File size', format: 'd3_format', d3_format: '.3s'},
     {key: 'status', name: 'Status', format: 'text'},
-    {key: 'created', name: 'Created', format: 'date', height: 40},
-    {key: 'expires', name: 'Expires', format: 'date', height: 40}
+    {key: 'created', name: 'Created', format: 'date', height: 40}
   ];
   contents.append('h5').classed('mt-5', true).text('Server calculation job');
   contents.append('div').classed('mb-5', true).classed('calc', true)
