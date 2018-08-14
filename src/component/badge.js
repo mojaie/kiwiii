@@ -7,10 +7,17 @@ const assetBaseURL = '../assets/';
 const iconBaseURL = '../assets/icon/';
 
 
+function icon(selection, icon) {
+  selection.append('img')
+      .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null)
+      .style('width', '1rem')
+      .style('height', '1rem');
+}
+
+
 function badge(selection) {
   const body = selection
-      .classed('badge', true)
-      .append('span');
+      .classed('badge', true);
   body.append('img')
       .classed('icon', true)
       .style('width', '1.25rem')
@@ -19,16 +26,13 @@ function badge(selection) {
       .classed('text', true);
 }
 
+
 function updateBadge(selection, text, type, icon) {
   selection.classed(`badge-${type}`, true);
   selection.select('.icon')
       .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null);
   selection.select('.text')
       .text(text);
-}
-
-function hide(selection) {
-  selection.style('display', 'none');
 }
 
 
@@ -46,7 +50,7 @@ function notify(selection) {
       .ease(d3.easeLinear)
       .style("opacity", 0)
       .on('end', function () {
-        hide(selection);
+        selection.style('display', 'none');
       });
 }
 
@@ -60,6 +64,31 @@ function loadingCircle(selection) {
 }
 
 
+function alert(selection) {
+  const body = selection
+      .classed('alert', true)
+      .classed('px-1', true)
+      .classed('py-0', true);
+  body.append('img')
+      .classed('icon', true)
+      .style('width', '1.25rem')
+      .style('height', '1.25rem');
+  body.append('span')
+      .classed('text', true)
+      .style('font-size', '75%');
+}
+
+
+function updateAlert(selection, text, type, icon) {
+  selection.classed(`alert-${type}`, true);
+  selection.select('.icon')
+      .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null);
+  selection.select('.text')
+      .text(text);
+}
+
+
 export default {
-  badge, updateBadge, hide, notify, loadingCircle
+  icon, badge, updateBadge, notify, loadingCircle,
+  alert, updateAlert
 };

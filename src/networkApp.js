@@ -80,9 +80,9 @@ function app(view, nodes, edges) {
       .call(badge.loadingCircle);
   menubar.append('span')
       .classed('notify-saved', true)
-      .call(badge.badge)
-      .call(badge.updateBadge, 'State saved', 'success', 'check-white')
-      .call(badge.hide);
+      .call(badge.alert)
+      .call(badge.updateAlert, 'State saved', 'success', 'check-green')
+      .style('display', 'none');
   menubar.append('span')
       .classed('name', true);
   menubar.append('span')
