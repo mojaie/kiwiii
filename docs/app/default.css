@@ -17,6 +17,7 @@ body,
   margin: auto;
   width: 100px;
   height: 100px;
+  z-index: 9999;
   display: none;
 }
 .listbox {
@@ -50,10 +51,10 @@ body,
   background-color: #f6fcf9;
 }
 .form-group {
-  margin-bottom: 0.5rem;
+  margin-bottom: .5rem;
 }
 .form-control-sm {
-  padding: 0.1rem 0.25rem;
+  padding: .1rem .25rem;
 }
 input[type="color"].form-control-sm {
   padding: 0;

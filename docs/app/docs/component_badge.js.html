@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Module: common/legacySchema</title>
+    <title>JSDoc: Source: component/badge.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,52 +17,83 @@
 
 <div id="main">
 
-    <h1 class="page-title">Module: common/legacySchema</h1>
+    <h1 class="page-title">Source: component/badge.js</h1>
 
     
 
 
 
-
-<section>
-
-<header>
     
-        
-    
-</header>
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+/** @module component/badge */
 
-<article>
-    <div class="container-overview">
-    
-        
+import d3 from 'd3';
 
-        
-    
-    </div>
+const assetBaseURL = '../assets/';
+const iconBaseURL = '../assets/icon/';
 
-    
 
-    
+function badge(selection) {
+  const body = selection
+      .classed('badge', true)
+      .append('span');
+  body.append('img')
+      .classed('icon', true)
+      .style('width', '1.25rem')
+      .style('height', '1.25rem');
+  body.append('span')
+      .classed('text', true);
+}
 
-    
+function updateBadge(selection, text, type, icon) {
+  selection.classed(`badge-${type}`, true);
+  selection.select('.icon')
+      .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null);
+  selection.select('.text')
+      .text(text);
+}
 
-    
+function hide(selection) {
+  selection.style('display', 'none');
+}
 
-    
 
-    
+function notify(selection) {
+  selection
+    .style('opacity', 0)
+    .style('display', 'inline')
+    .transition()
+      .duration(500)
+      .ease(d3.easeLinear)
+      .style("opacity", 1.0)
+    .transition()
+      .delay(3000)
+      .duration(1000)
+      .ease(d3.easeLinear)
+      .style("opacity", 0)
+      .on('end', function () {
+        hide(selection);
+      });
+}
 
-    
 
-    
+function loadingCircle(selection) {
+  selection.append('img')
+      .attr('src', `${assetBaseURL}loading1.gif`)
+      .style('width', '2rem')
+      .style('height', '2rem');
+  selection.style('display', 'none');
+}
 
-    
 
-    
-</article>
-
-</section>
+export default {
+  badge, updateBadge, hide, notify, loadingCircle
+};
+</code></pre>
+        </article>
+    </section>
 
 
 

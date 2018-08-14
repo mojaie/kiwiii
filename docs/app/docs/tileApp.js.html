@@ -34,6 +34,7 @@ import d3 from 'd3';
 import {default as client} from './common/client.js';
 import {default as idb} from './common/idb.js';
 
+import {default as badge} from './component/badge.js';
 import {default as button} from './component/button.js';
 import {default as transform} from './component/transform.js';
 
@@ -46,7 +47,8 @@ import {default as control} from './tile/controlBox.js';
 
 
 function app(view, coll) {
-  const menubar = d3.select('#menubar');
+  const menubar = d3.select('#menubar')
+      .classed('my-1', true);
   menubar.selectAll('div,span,a').remove();  // Clean up
   const dialogs = d3.select('#dialogs');
   dialogs.selectAll('div').remove();  // Clean up
@@ -55,20 +57,44 @@ function app(view, coll) {
 
   // Tile view control
   const menu = menubar.append('div')
-      .call(button.dropdownMenuButton, 'Tile', 'primary', 'tiles-white')
+      .call(button.dropdownMenuButton, 'Menu', 'primary', 'tiles-white')
       .select('.dropdown-menu');
   menu.append('a').call(renameDialog.menuLink);
   menu.append('a')
       .call(button.dropdownMenuItem, 'Save', 'menu-save')
       .on('click', function () {
-        state.save().then(() => console.info('Tile view saved'));
+        return state.save()
+          .then(() => menubar.select('.notify-saved').call(badge.notify));
       });
+
   // Dashboard link
   menubar.append('a')
       .call(button.menuButtonLink, 'Dashboard',
             'outline-secondary', 'status-gray')
       .attr('href', 'dashboard.html')
       .attr('target', '_blank');
+
+  // Status
+  menubar.append('span')
+      .classed('loading-circle', true)
+      .call(badge.loadingCircle);
+  menubar.append('span')
+      .classed('notify-saved', true)
+      .call(badge.badge)
+      .call(badge.updateBadge, 'State saved', 'success', 'check-white')
+      .call(badge.hide);
+  menubar.append('span')
+      .classed('name', true);
+  menubar.append('span')
+      .classed('items-count', true)
+      .call(badge.badge);
+  menubar.append('span')
+      .classed('fetch-status', true)
+      .call(badge.badge);
+  menubar.append('span')
+      .classed('exec-time', true)
+      .call(badge.badge);
+
   // Dialogs
   dialogs.append('div')
       .classed('renamed', true)
@@ -93,19 +119,41 @@ function app(view, coll) {
 
 
 function updateApp(state) {
-  d3.select('#loading-icon').style('display', 'none');
-
   // Title
   d3.select('title').text(state.name);
 
-  // Menubar
-  const menubar = d3.select('#menubar');
+  // Status
+  d3.select('#menubar .name').text(state.name);
+
+  const onLoading = d3.select('#menubar .loading-circle');
+  const colors = {
+    done: 'green', running: 'darkorange',
+    ready: 'cornflowerblue', queued: 'cornflowerblue',
+    interrupted: 'salmon', aborted: 'salmon', failure: 'salmon'
+  };
+  const icons = {
+    done: 'check-green', running: 'running-darkorange',
+    ready: 'clock-cornflowerblue', queued: 'clock-cornflowerblue',
+    interrupted: 'caution-salmon', aborted: 'caution-salmon',
+    failure: 'caution-salmon'
+  };
   const fstatus = state.items.status();
-  const fsize = state.items.size();
-  const ftime = state.items.execTime();
-  menubar.select('.title').text(state.name);
-  menubar.select('.status')
-      .text(`(${fstatus} - ${fsize} records found in ${ftime} sec.)`);
+  const fstext = fstatus === 'done' ?
+    fstatus : `${fstatus} ${state.items.progress()}%`;
+  d3.select('#menubar .items-count')
+      .call(badge.updateBadge, `${state.items.size()} items`,
+            'light', 'tiles-gray')
+    .select('.text')
+      .style('color', 'gray');
+  d3.select('#menubar .fetch-status')
+      .call(badge.updateBadge, fstext, 'light', icons[fstatus])
+    .select('.text')
+      .style('color', colors[fstatus]);
+  d3.select('#menubar .exec-time')
+      .call(badge.updateBadge, `${state.items.execTime()} seconds`,
+            'light', 'clock-cornflowerblue')
+    .select('.text')
+      .style('color', 'cornflowerblue');
 
   // Dialogs
   const dialogs = d3.select('#dialogs');
@@ -114,9 +162,12 @@ function updateApp(state) {
   dialogs.select('.renamed')
       .call(renameDialog.updateBody, state.name)
       .on('submit', function () {
+        onLoading.style('display', 'inline-block');
         state.name = renameDialog.value(d3.select(this));
         updateApp(state);
   });
+
+  onLoading.style('display', 'none');
 }
 
 
@@ -163,13 +214,13 @@ export default {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_badge.html">component/badge</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 05 2018 22:55:14 GMT+0900 (JST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Aug 14 2018 09:06:32 GMT+0900 (JST)
 </footer>
 
 <script> prettyPrint(); </script>

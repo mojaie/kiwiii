@@ -29,7 +29,6 @@
             <pre class="prettyprint source linenums"><code>
 /** @module dashboardApp */
 
-import _ from 'lodash';
 import d3 from 'd3';
 
 import {default as client} from './common/client.js';
@@ -39,6 +38,7 @@ import {default as hfile} from './common/file.js';
 import {default as idb} from './common/idb.js';
 import {default as specs} from './common/specs.js';
 
+import {default as badge} from './component/badge.js';
 import {default as button} from './component/button.js';
 import {default as modal} from './component/modal.js';
 import {default as tree} from './component/tree.js';
@@ -135,6 +135,8 @@ function nodeFactory(selection, record) {
         d3.select('#rename-dialog')
           .call(renameDialog.updateBody, record.name)
           .on('submit', function () {
+            d3.select('#menubar .loading-circle')
+                .style('display', 'inline-block');
             if (record.viewID) {
               idb.updateView(record.parent, record.viewID, view => {
                 view.name = renameDialog.value(d3.select(this));
@@ -161,6 +163,8 @@ function nodeFactory(selection, record) {
               `Are you sure you want to delete ${deleteType} ${deleteName} ?`
             )
             .on('submit', () => {
+              d3.select('#menubar .loading-circle')
+                  .style('display', 'inline-block');
               if (record.viewID &amp;&amp; !record.alone) {
                 idb.deleteView(record.parent, record.viewID)
                   .then(updateApp);
@@ -183,7 +187,8 @@ function nodeFactory(selection, record) {
 
 function app() {
   // Menubar
-  const menubar = d3.select('#menubar');
+  const menubar = d3.select('#menubar')
+      .classed('my-1', true);
   // Start
   const startMenu = menubar.append('div')
       .call(button.dropdownMenuButton, 'Start', 'primary', 'plus-white')
@@ -200,24 +205,32 @@ function app() {
       .call(button.dropdownMenuFile, 'Open file',
             '.apc,.apr,.ndc,.ndr,.gfc,.gfr,.json,.gz', 'menu-import')
       .on('change', function () {
+        d3.select('#menubar .loading-circle').style('display', 'inline-block');
         const file = button.dropdownMenuFileValue(d3.select(this));
-        hfile.loadJSON(file)
+        return hfile.loadJSON(file)
           .then(idb.importItem)
           .then(updateApp);
       });
-
   // Refresh
   menubar.append('a')
       .classed('refresh', true)
       .classed('online-command', true)
       .call(button.menuButtonLink,
             'Refresh all', 'outline-secondary', 'refresh-gray')
-      .on('click', () => updateApp());
+      .on('click', () => {
+        d3.select('#menubar .loading-circle').style('display', 'inline-block');
+        return updateApp();
+      });
   // Delete all
   menubar.append('a')
       .call(button.menuModalLink, 'reset-dialog',
             'Reset local datastore', 'warning', 'delete-gray');
+  // Status
+  menubar.append('span')
+      .classed('loading-circle', true)
+      .call(badge.loadingCircle);
 
+  // Contents
   const contents = d3.select('#contents')
       .style('padding-left', '10%')
       .style('padding-right', '10%');
@@ -233,11 +246,11 @@ function app() {
   // Server calc jobs
   // TODO: only for admin
   const calcFields = [
-    {key: 'id', name: 'Workflow ID', format: 'text'},
+    {key: 'workflowID', name: 'WorkflowID', format: 'text'},
+    {key: 'name', name: 'Name', format: 'text'},
     {key: 'size', name: 'File size', format: 'd3_format', d3_format: '.3s'},
     {key: 'status', name: 'Status', format: 'text'},
-    {key: 'created', name: 'Created', format: 'date', height: 40},
-    {key: 'expires', name: 'Expires', format: 'date', height: 40}
+    {key: 'created', name: 'Created', format: 'date', height: 40}
   ];
   contents.append('h5').classed('mt-5', true).text('Server calculation job');
   contents.append('div').classed('mb-5', true).classed('calc', true)
@@ -273,18 +286,24 @@ function app() {
       .call(modal.confirmDialog, 'reset-dialog')
       .call(modal.updateConfirmDialog,
             'Are you sure you want to delete all local tables and reset the datastore ?')
-      .on('submit', () => idb.reset().then(updateApp));
+      .on('submit', () => {
+        d3.select('#menubar .loading-circle').style('display', 'inline-block');
+        return idb.reset().then(updateApp);
+      });
   dialogs.append('div')
       .call(modal.confirmDialog, 'delete-dialog');
 
   // Update
-  updateApp();
+  return updateApp();
 }
 
+
 function updateApp() {
+  const onLoading = d3.select('#menubar .loading-circle');
   const dialogs = d3.select('#dialogs');
+
   // Server bound tasks
-  fetcher.serverStatus().then(response => {
+  return fetcher.serverStatus().then(response => {
     // Update server status table
     d3.select('#contents').select('.calc')
       .call(table.updateRecords, response.server.calc.records);
@@ -299,9 +318,10 @@ function updateApp() {
     dialogs.select('.searchd')
         .call(searchDialog.updateBody, chemrsrc, response.schema.compoundIDPlaceholder)
         .on('submit', function () {
-          searchDialog.execute(d3.select(this), chemrsrc)
+          return searchDialog.execute(d3.select(this), chemrsrc)
             .then(idb.newDatagrid)
             .then(r => {
+              onLoading.style('display', 'none');
               window.open(
                 `datagrid.html?store=${r.storeID}&amp;view=${r.viewID}`, '_blank');
             });
@@ -309,9 +329,10 @@ function updateApp() {
     dialogs.select('.structd')
         .call(structDialog.updateBody, chemrsrc, response.server.rdkit)
         .on('submit', function () {
-          structDialog.execute(d3.select(this))
+          return structDialog.execute(d3.select(this))
             .then(idb.newDatagrid)
             .then(r => {
+              onLoading.style('display', 'none');
               window.open(
                 `datagrid.html?store=${r.storeID}&amp;view=${r.viewID}`, '_blank');
             });
@@ -319,9 +340,10 @@ function updateApp() {
     dialogs.select('.filterd')
         .call(filterDialog.updateBody, chemrsrc)
         .on('submit', function () {
-          filterDialog.execute(d3.select(this))
+          return filterDialog.execute(d3.select(this))
             .then(idb.newDatagrid)
             .then(r => {
+              onLoading.style('display', 'none');
               window.open(
                 `datagrid.html?store=${r.storeID}&amp;view=${r.viewID}`, '_blank');
             });
@@ -329,17 +351,17 @@ function updateApp() {
     dialogs.select('.sdfd')
         .call(sdfDialog.updateBody, chemrsrc)
         .on('submit', function () {
-          sdfDialog.execute(d3.select(this))
+          return sdfDialog.execute(d3.select(this))
             .then(idb.newDatagrid)
             .then(r => {
+              onLoading.style('display', 'none');
               window.open(
                 `datagrid.html?store=${r.storeID}&amp;view=${r.viewID}`, '_blank');
             });
         });
 
     // Fetch all ongoing tasks
-    return idb.getAllItems()
-      .then(items => _.flatten(items.map(e => e.dataset)))
+    return idb.getAllCollections()
       .then(colls => {
         const ongoings = colls.map(e => new Collection(e))
           .filter(e => e.ongoing());
@@ -350,7 +372,7 @@ function updateApp() {
     console.info('Server did not respond');
     console.error(err);
     // disable on-line commands
-    menubar.selectAll('.online-command')
+    d3.select('#menubar').selectAll('.online-command')
       .attr('data-target', null)
       .classed('disabled', true);
     d3.select('#contents').select('.calc').text('Off-line');
@@ -387,6 +409,7 @@ function updateApp() {
       });
       d3.select('#contents').select('.stored')
         .call(tree.treeItems, treeNodes, d => d.storeID, nodeFactory);
+      onLoading.style('display', 'none');
     });
   });
 }
@@ -422,13 +445,13 @@ export default {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_badge.html">component/badge</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sun Aug 05 2018 22:55:14 GMT+0900 (JST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Aug 14 2018 09:06:32 GMT+0900 (JST)
 </footer>
 
 <script> prettyPrint(); </script>

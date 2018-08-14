@@ -1,6 +1,6 @@
 
 const tape = require("tape");
-const mapper = require("../_build/main.js").mapper;
+const mapper = require("../docs/_build/main.js").mapper;
 
 tape("singleToMulti", function(t) {
   const data = {
