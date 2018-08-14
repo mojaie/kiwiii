@@ -4,6 +4,8 @@
 
 import d3 from 'd3';
 
+import {default as badge} from './badge.js';
+
 
 function textBox(selection, label) {
   selection
@@ -19,11 +21,21 @@ function textBox(selection, label) {
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('col-8', true)
-      .attr('type', 'text');
+      .attr('type', 'text')
+      .attr('required', 'required')
+      .on('input', function () {
+        const valid = this.checkValidity();
+        // TODO bubble disable event if invalid
+      });
+  selection.append('div')
+      .call(badge.invalidFeedback);
 }
 
 function updateTextBox(selection, value) {
   selection.select('input').property('value', value);
+  // TODO:
+  /*    .on('input', function () { selection.call(setValidity, valid); });
+  */
 }
 
 function textBoxValue(selection) {
@@ -50,44 +62,57 @@ function readonlyBox(selection, label) {
 }
 
 
-function textareaBox(selection, label, rows) {
+function textareaBox(selection, label, rows, placeholder) {
   selection
       .classed('form-group', true)
       .classed('form-row', true);
-  selection.append('label')
+  const formLabel = selection.append('label')
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
       .classed('col-4', true)
       .text(label);
+  formLabel.append('div')
+      .call(badge.invalidFeedback);
   selection.append('textarea')
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('col-8', true)
-      .attr('rows', rows);
+      .attr('rows', rows)
+      .attr('placeholder', placeholder);
 }
 
 function updateTextareaBox(selection, value) {
   selection.select('textarea').property('value', value);
 }
 
-function updateTextareaPlaceholder(selection, placeholder) {
-  selection.select('textarea').attr('placeholder', placeholder);
-}
-
 function textareaBoxValue(selection) {
   const value = selection.select('textarea').property('value');
   if (value) return value;  // TODO: 0 is falsy
-  const placeholder = selection.select('textarea').attr('placeholder');
-  if (placeholder) return placeholder;
   return '';
 }
 
 function textareaBoxLines(selection) {
   const value = selection.select('textarea').property('value');
-  if (value) return value.split('\n').filter(e => e.length > 0);
-  const placeholder = selection.select('textarea').attr('placeholder');
-  if (placeholder) return placeholder.split('\n').filter(e => e.length > 0);
+  if (value) return value.split('\n')
+    .map(e => e.replace(/^\s+|\s+$/g, ''))  // strip spaces
+    .filter(e => e.length > 0);
   return [];
+}
+
+function textareaValid(selection) {
+  return /\s*?\w\s*?/.test(textareaBoxValue(selection));
+}
+
+function setValidity(selection, valid) {
+  selection.select('.form-control')
+      .style('background-color', valid ? '#ffffff' : '#ffcccc');
+  selection.select('.invalid-feedback')
+      .style('display', valid ? 'none' : 'block');
+}
+
+function setInvalidMessage(selection, msg) {
+  selection.select('.invalid-msg')
+      .text(msg);
 }
 
 
@@ -248,8 +273,9 @@ function fileInputBoxValue(selection) {
 
 export default {
   textBox, updateTextBox, textBoxValue, readonlyBox,
-  textareaBox, updateTextareaBox, updateTextareaPlaceholder,
-  textareaBoxValue, textareaBoxLines,
+  textareaBox, updateTextareaBox,
+  textareaBoxValue, textareaBoxLines, textareaValid,
+  setValidity, setInvalidMessage,
   checkBox, updateCheckBox, checkBoxValue,
   numberBox, updateNumberBox, numberIntValid, numberFloatValid,
   numberBoxIntValue, numberBoxFloatValue,

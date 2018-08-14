@@ -34,10 +34,12 @@ function queryMolGroup(selection) {
   selection.append('div')
       .classed('textquery', true)
       .classed('mb-1', true)
+      .attr('required', 'required')
       .call(box.textBox, 'Query');
   selection.append('div')
       .classed('areaquery', true)
       .classed('mb-1', true)
+      .attr('required', 'required')
       .call(box.textareaBox, 'Query', 6, null);
   // Popover
   $(function () {
@@ -72,7 +74,7 @@ function updateQueryMolGroup(selection, resources) {
   const res = resources.map(d => ({key: d.id, name: d.name}));
   selection.select('.source')
       .call(lbox.selectBoxItems, res)
-      .call(lbox.updateSelectBox, null);
+      .call(lbox.updateSelectBox, res[0].key);
   selection.select('.preview')
       .on('click', function () {
         const query = queryMolGroupValue(selection);
@@ -83,11 +85,13 @@ function updateQueryMolGroup(selection, resources) {
   selection.select('.textquery')
       .call(box.updateTextBox, '')
       .on('input', function() {
+        // TODO: setValidity and if valid dispatch change
         selection.dispatch('validate');
       });
   selection.select('.areaquery')
       .call(box.updateTextareaBox, '')
       .on('input', function() {
+        // TODO: setValidity and if valid dispatch change
         selection.dispatch('validate');
       });
 }
@@ -158,9 +162,15 @@ function updateSimOptionGroup(selection) {
   selection.select('.ignoreh')
       .call(box.updateCheckBox, true);
   selection.select('.timeout')
-      .call(box.updateNumberBox, 2);
+      .call(box.updateNumberBox, 2)
+      .on('input', function() {
+        // TODO: setValidity and if valid dispatch change
+      });
   selection.select('.diam')
-      .call(box.updateNumberBox, 8);
+      .call(box.updateNumberBox, 8)
+      .on('input', function() {
+        // TODO: setValidity and if valid dispatch change
+      });
 }
 
 

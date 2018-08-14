@@ -7,14 +7,6 @@ const assetBaseURL = '../assets/';
 const iconBaseURL = '../assets/icon/';
 
 
-function icon(selection, icon) {
-  selection.append('img')
-      .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null)
-      .style('width', '1rem')
-      .style('height', '1rem');
-}
-
-
 function badge(selection) {
   const body = selection
       .classed('badge', true);
@@ -88,7 +80,25 @@ function updateAlert(selection, text, type, icon) {
 }
 
 
+function invalidFeedback(selection) {
+  const fb = selection.classed('invalid-feedback', true)
+      .style('display', 'none');
+  fb.append('img')
+      .attr('src', `${iconBaseURL}caution-salmon.svg`)
+      .style('width', '1rem')
+      .style('height', '1rem');
+  fb.append('span').classed('invalid-msg', true);
+}
+
+
+function updateInvalidMessage(selection, msg) {
+  selection.select('.invalid-msg')
+      .text(msg);
+}
+
+
+
 export default {
-  icon, badge, updateBadge, notify, loadingCircle,
-  alert, updateAlert
+  badge, updateBadge, notify, loadingCircle,
+  alert, updateAlert, invalidFeedback, updateInvalidMessage
 };

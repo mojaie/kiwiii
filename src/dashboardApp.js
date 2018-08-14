@@ -288,7 +288,7 @@ function updateApp() {
     // Dialogs
     const chemrsrc = response.schema.resources.filter(e => e.domain === 'chemical');
     dialogs.select('.searchd')
-        .call(searchDialog.updateBody, chemrsrc, response.schema.compoundIDPlaceholder)
+        .call(searchDialog.updateBody, chemrsrc)
         .on('submit', function () {
           return searchDialog.execute(d3.select(this), chemrsrc)
             .then(idb.newDatagrid)
@@ -331,6 +331,17 @@ function updateApp() {
                 `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
             });
         });
+
+    // Form auto-fill for debug (Ctrl+F)
+    client.registerCtrlCommand('f', () => {
+      const activeID = dialogs.select('.show').attr('id');
+      const modals = {
+        'search-dialog': searchDialog,
+        'struct-dialog': structDialog,
+        'filter-dialog': filterDialog
+      };
+      dialogs.select(`#${activeID}`).call(modals[activeID].fill);
+    });
 
     // Fetch all ongoing tasks
     return idb.getAllCollections()
