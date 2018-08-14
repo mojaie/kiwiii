@@ -411,6 +411,8 @@ function convertPackage(json) {
           view.edgeWidth.field = 'weight';
         }
       });
+  } else {
+    specs = json;
   }
   specs.views.filter(e => e.viewType === 'network')
     .forEach(view => {
