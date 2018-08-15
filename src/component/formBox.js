@@ -1,15 +1,23 @@
 
 /** @module component/formBox */
 
-
 import d3 from 'd3';
+
+import {default as badge} from '../component/badge.js';
+
+
+function setValidity(selection, valid) {
+  selection.select('.invalid-feedback')
+      .style('display', valid ? 'none': 'inherit');
+  selection.select('.form-control')
+      .style('background-color', valid ? '#ffffff' : '#ffcccc');
+}
 
 
 function textBox(selection, label) {
   selection
       .classed('form-group', true)
-      .classed('form-row', true)
-      .classed('align-items-center', true);
+      .classed('form-row', true);
   selection.append('label')
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
@@ -19,7 +27,16 @@ function textBox(selection, label) {
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('col-8', true)
-      .attr('type', 'text');
+      .attr('type', 'text')
+      .on('input', function () {
+        const valid = textValid(selection);
+        selection.call(setValidity, valid);
+      });
+  selection.append('div')
+      .classed('col-4', true);
+  selection.append('div')
+      .call(badge.invalidFeedback)
+      .classed('col-8', true);
 }
 
 function updateTextBox(selection, value) {
@@ -28,6 +45,10 @@ function updateTextBox(selection, value) {
 
 function textBoxValue(selection) {
   return selection.select('input').property('value');
+}
+
+function textValid(selection) {
+  return selection.select('input').node().checkValidity();
 }
 
 
@@ -247,7 +268,7 @@ function fileInputBoxValue(selection) {
 
 
 export default {
-  textBox, updateTextBox, textBoxValue, readonlyBox,
+  textBox, updateTextBox, textBoxValue, textValid, readonlyBox,
   textareaBox, updateTextareaBox, updateTextareaPlaceholder,
   textareaBoxValue, textareaBoxLines,
   checkBox, updateCheckBox, checkBoxValue,

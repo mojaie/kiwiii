@@ -6,6 +6,7 @@ import d3 from 'd3';
 import {default as fetcher} from '../common/fetcher.js';
 import {default as misc} from '../common/misc.js';
 
+import {default as badge} from '../component/badge.js';
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as lbox} from '../component/formListBox.js';
@@ -31,10 +32,17 @@ function queryMolGroup(selection) {
       .classed('source', true)
       .classed('mb-1', true)
       .call(lbox.selectBox, 'Source');
-  selection.append('div')
+  const queryBox = selection.append('div')
       .classed('textquery', true)
       .classed('mb-1', true)
-      .call(box.textBox, 'Query');
+      .call(box.textBox, 'Query')
+      .on('input', function() {
+        selection.dispatch('validate');
+      });
+  queryBox.select('.form-control')
+      .attr('required', 'required');
+  queryBox.select('.invalid-feedback')
+      .call(badge.invalidFeedbackMsg, 'Please provide a valid query');
   selection.append('div')
       .classed('areaquery', true)
       .classed('mb-1', true)
@@ -81,10 +89,7 @@ function updateQueryMolGroup(selection, resources) {
           .then(res => d3.select('#previmg').html(res), fetcher.error);
       });
   selection.select('.textquery')
-      .call(box.updateTextBox, '')
-      .on('input', function() {
-        selection.dispatch('validate');
-      });
+      .call(box.updateTextBox, '');
   selection.select('.areaquery')
       .call(box.updateTextareaBox, '')
       .on('input', function() {
@@ -106,9 +111,9 @@ function queryMolGroupValue(selection) {
 
 function queryMolGroupValid(selection) {
   const format = lbox.selectBoxValue(selection.select('.format'));
-  const textquery = box.textBoxValue(selection.select('.textquery'));
+  const textValid = box.textValid(selection.select('.textquery'));
   const areaquery = box.textareaBoxLines(selection.select('.areaquery'));
-  return format === 'molfile' ? areaquery.length : textquery !== '';
+  return format === 'molfile' ? areaquery.length : textValid;
 }
 
 

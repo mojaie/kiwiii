@@ -7,22 +7,13 @@ const assetBaseURL = '../assets/';
 const iconBaseURL = '../assets/icon/';
 
 
-function icon(selection, icon) {
-  selection.append('img')
-      .attr('src', icon ? `${iconBaseURL}${icon}.svg` : null)
-      .style('width', '1rem')
-      .style('height', '1rem');
-}
-
-
 function badge(selection) {
-  const body = selection
-      .classed('badge', true);
-  body.append('img')
+  selection.classed('badge', true);
+  selection.append('img')
       .classed('icon', true)
       .style('width', '1.25rem')
       .style('height', '1.25rem');
-  body.append('span')
+  selection.append('span')
       .classed('text', true);
 }
 
@@ -56,24 +47,24 @@ function notify(selection) {
 
 
 function loadingCircle(selection) {
-  selection.append('img')
+  selection
+      .style('display', 'none')
+    .append('img')
       .attr('src', `${assetBaseURL}loading1.gif`)
       .style('width', '2rem')
       .style('height', '2rem');
-  selection.style('display', 'none');
 }
 
 
 function alert(selection) {
-  const body = selection
-      .classed('alert', true)
+  selection.classed('alert', true)
       .classed('px-1', true)
       .classed('py-0', true);
-  body.append('img')
+  selection.append('img')
       .classed('icon', true)
       .style('width', '1.25rem')
       .style('height', '1.25rem');
-  body.append('span')
+  selection.append('span')
       .classed('text', true)
       .style('font-size', '75%');
 }
@@ -88,7 +79,24 @@ function updateAlert(selection, text, type, icon) {
 }
 
 
+function invalidFeedback(selection) {
+  selection.classed('invalid-feedback', true)
+      .style('display', 'none');
+  selection.append('img')
+      .classed('icon', true)
+      .attr('src', `${iconBaseURL}caution-salmon.svg`)
+      .style('width', '1rem')
+      .style('height', '1rem');
+  selection.append('span')
+      .classed('text', true);
+}
+
+function invalidFeedbackMsg(selection, msg) {
+  selection.select('.text')
+      .text(msg);
+}
+
 export default {
-  icon, badge, updateBadge, notify, loadingCircle,
-  alert, updateAlert
+  badge, updateBadge, notify, loadingCircle,
+  alert, updateAlert, invalidFeedback, invalidFeedbackMsg
 };
