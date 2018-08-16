@@ -6,11 +6,27 @@ import d3 from 'd3';
 import {default as badge} from './badge.js';
 
 
+function updateFormValue(selection, value) {
+  selection.select('.form-control').property('value', value);
+  selection.call(setValidity, true);  // Clear validity state
+}
+
+
+function formValue(selection) {
+  return selection.select('.form-control').property('value');
+}
+
+
+function formValid(selection) {
+  return selection.select('.form-control').node().checkValidity();
+}
+
+
 function setValidity(selection, valid) {
   selection.select('.invalid-feedback')
       .style('display', valid ? 'none': 'inherit');
   selection.select('.form-control')
-      .style('background-color', valid ? '#ffffff' : '#ffcccc');
+      .style('background-color', valid ? null : '#ffcccc');
 }
 
 
@@ -29,7 +45,7 @@ function textBox(selection, label) {
       .classed('col-8', true)
       .attr('type', 'text')
       .on('input', function () {
-        const valid = textValid(selection);
+        const valid = formValid(selection);
         selection.call(setValidity, valid);
       });
   selection.append('div')
@@ -39,27 +55,11 @@ function textBox(selection, label) {
       .classed('col-8', true);
 }
 
-function updateTextBox(selection, value) {
-  selection.select('input').property('value', value);
-  // TODO:
-  /*    .on('input', function () { selection.call(setValidity, valid); });
-  */
-}
-
-function textBoxValue(selection) {
-  return selection.select('input').property('value');
-}
-
-function textValid(selection) {
-  return selection.select('input').node().checkValidity();
-}
-
 
 function readonlyBox(selection, label) {
   selection
       .classed('form-group', true)
-      .classed('form-row', true)
-      .classed('align-items-center', true);
+      .classed('form-row', true);
   selection.append('label')
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
@@ -90,17 +90,11 @@ function textareaBox(selection, label, rows, placeholder) {
       .classed('form-control-sm', true)
       .classed('col-8', true)
       .attr('rows', rows)
-      .attr('placeholder', placeholder);
-}
-
-function updateTextareaBox(selection, value) {
-  selection.select('textarea').property('value', value);
-}
-
-function textareaBoxValue(selection) {
-  const value = selection.select('textarea').property('value');
-  if (value) return value;  // TODO: 0 is falsy
-  return '';
+      .attr('placeholder', placeholder)
+      .on('input', function () {
+        const valid = textareaValid(selection);
+        selection.call(setValidity, valid);
+      });
 }
 
 function textareaBoxLines(selection) {
@@ -112,19 +106,7 @@ function textareaBoxLines(selection) {
 }
 
 function textareaValid(selection) {
-  return /\s*?\w\s*?/.test(textareaBoxValue(selection));
-}
-
-function setValidity(selection, valid) {
-  selection.select('.form-control')
-      .style('background-color', valid ? '#ffffff' : '#ffcccc');
-  selection.select('.invalid-feedback')
-      .style('display', valid ? 'none' : 'block');
-}
-
-function setInvalidMessage(selection, msg) {
-  selection.select('.invalid-msg')
-      .text(msg);
+  return /\s*?\w\s*?/.test(formValue(selection));
 }
 
 
@@ -152,11 +134,10 @@ function checkBoxValue(selection) {
 }
 
 
-function numberBox(selection, label, min, max, step) {
+function numberBox(selection, label) {
   selection
       .classed('form-group', true)
-      .classed('form-row', true)
-      .classed('align-items-center', true);
+      .classed('form-row', true);
   selection.append('label')
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
@@ -167,41 +148,23 @@ function numberBox(selection, label, min, max, step) {
       .classed('form-control-sm', true)
       .classed('col-8', true)
       .attr('type', 'number')
+      .on('input', function () {
+        const valid = formValid(selection);
+        selection.call(setValidity, valid);
+      });
+  selection.append('div')
+      .classed('col-4', true);
+  selection.append('div')
+      .call(badge.invalidFeedback)
+      .classed('col-8', true);
+}
+
+function updateNumberRange(selection, min, max, step) {
+  selection.select('.form-control')
       .attr('min', min)
       .attr('max', max)
-      .attr('step', step);
-}
-
-function updateNumberBox(selection, value) {
-  selection.select('input').property('value', value);
-}
-
-function numberIntValid(selection) {
-  const value = numberBoxIntValue(selection);
-  const min = parseInt(selection.select('input').attr('min'));
-  const max = parseInt(selection.select('input').attr('max'));
-  const valid = !isNaN(value) && value >= min && value <= max;
-  selection.select('input')
-      .style('background-color', valid ? '#ffffff' : '#ffcccc');
-  return valid;
-}
-
-function numberFloatValid(selection) {
-  const value = numberBoxFloatValue(selection);
-  const min = parseInt(selection.select('input').attr('min'));
-  const max = parseInt(selection.select('input').attr('max'));
-  const valid = !isNaN(value) && value >= min && value <= max;
-  selection.select('input')
-      .style('background-color', valid ? '#ffffff' : '#ffcccc');
-  return valid;
-}
-
-function numberBoxIntValue(selection) {
-  return parseInt(selection.select('input').property('value'));
-}
-
-function numberBoxFloatValue(selection) {
-  return parseFloat(selection.select('input').property('value'));
+      .attr('step', step)
+      .dispatch('input', {bubbles: true});
 }
 
 
@@ -237,60 +200,57 @@ function colorBox(selection, label) {
 }
 
 
-function updateColorBox(selection, value) {
-  selection.select('input').property('value', value);
-}
-
-
-function colorBoxValue(selection) {
-  return selection.select('input').property('value');
-}
-
-
 function fileInputBox(selection, label, accept) {
-selection
-    .classed('form-group', true)
-    .classed('form-row', true);
-selection.append('label')
-    .classed('col-form-label', true)
-    .classed('col-form-label-sm', true)
-    .classed('col-4', true)
-    .text(label);
-selection.append('input')
-    .classed('form-control', true)
-    .classed('form-control-sm', true)
-    .classed('form-control-file', true)
-    .classed('col-8', true)
-    .attr('type', 'file')
-    .attr('accept', accept);
-}
-
-function clearFileInput(selection) {
-  // TODO: FileList object (input.files) may be a readonly property
-  const accept = selection.select('input').attr();
-  selection.select('input').remove();
+  selection
+      .classed('form-group', true)
+      .classed('form-row', true);
+  selection.append('label')
+      .classed('col-form-label', true)
+      .classed('col-form-label-sm', true)
+      .classed('col-4', true)
+      .text(label);
   selection.append('input')
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('form-control-file', true)
       .classed('col-8', true)
       .attr('type', 'file')
-      .attr('accept', accept);
+      .attr('accept', accept)
+      .on('change', function () {
+        const valid = fileInputValid(selection);
+        selection.call(setValidity, valid);
+      });
+  selection.append('div')
+      .classed('col-4', true);
+  selection.append('div')
+      .call(badge.invalidFeedback)
+      .classed('col-8', true);
 }
 
-function fileInputBoxValue(selection) {
+function clearFileInput(selection) {
+  // TODO: FileList object (input.files) may be a readonly property
+  const label = selection.select('label').text();
+  const accept = selection.select('input').attr('accept');
+  selection.selectAll('*').remove();
+  selection.call(fileInputBox, label, accept);
+}
+
+function fileInputValue(selection) {
   return selection.select('input').property('files')[0];
+}
+
+function fileInputValid(selection) {
+  // TODO: attribute 'require' does not work with input type=file
+  return selection.select('input').property('files').length > 0;
 }
 
 
 export default {
-  setValidity,
-  textBox, updateTextBox, textBoxValue, textValid, readonlyBox,
-  textareaBox, updateTextareaBox,
-  textareaBoxValue, textareaBoxLines, textareaValid,
+  updateFormValue, formValue, formValid, setValidity,
+  textBox, readonlyBox,
+  textareaBox, textareaBoxLines, textareaValid,
+  numberBox, updateNumberRange,
   checkBox, updateCheckBox, checkBoxValue,
-  numberBox, updateNumberBox, numberIntValid, numberFloatValid,
-  numberBoxIntValue, numberBoxFloatValue,
-  colorBox, updateColorBox, colorBoxValue,
-  fileInputBox, clearFileInput, fileInputBoxValue
+  colorBox,
+  fileInputBox, clearFileInput, fileInputValue, fileInputValid
 };

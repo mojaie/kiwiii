@@ -5,7 +5,9 @@ import _ from 'lodash';
 import d3 from 'd3';
 
 import {default as fetcher} from '../common/fetcher.js';
+import {default as misc} from '../common/misc.js';
 
+import {default as badge} from '../component/badge.js';
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as lbox} from '../component/formListBox.js';
@@ -29,13 +31,25 @@ function body(selection) {
       .classed('small', true)
       .classed('text-right', true)
       .text('Ctrl+F to fill the form with demo queries');
+
+  // Key
   mbody.append('div')
       .classed('key', true)
-      .call(lbox.selectBox, 'Field');
+      .call(lbox.selectBox, 'Field')
+      .on('change', function () {
+        const field = lbox.selectedRecord(d3.select(this));
+        const fmt = misc.sortType(field.format || 'd3_format');
+        selection.select('.textvalue')
+            .property('hidden', fmt !== 'text');
+        selection.select('.numvalue')
+            .property('hidden', fmt !== 'numeric');
+      });
+
+  // Operator
   mbody.append('div')
       .classed('operator', true)
       .call(lbox.selectBox, 'Operator')
-      .call(lbox.selectBoxItems, [
+      .call(lbox.updateSelectBoxOptions, [
               {key: 'eq', name: '='},
               {key: 'gt', name: '>'},
               {key: 'lt', name: '<'},
@@ -43,13 +57,43 @@ function body(selection) {
               {key: 'le', name: '>='},
               {key: 'lk', name: 'LIKE'}
             ]);
-  mbody.append('div')
-      .classed('value', true)
-      .call(box.textBox, 'Value');
-  // Targets
+
+  // Text value
+  const textValueBox = mbody.append('div')
+      .classed('textvalue', true)
+      .call(box.textBox, 'Value')
+      .on('input', function() {
+        const valid = dialogFormValid(selection);
+        selection.select('.submit').property('disabled', !valid);
+      });
+  textValueBox.select('.form-control')
+      .attr('required', 'required');
+  textValueBox.select('.invalid-feedback')
+      .call(badge.updateInvalidMessage, 'Please provide a valid text');
+
+  // Numeric value
+  const numValueBox = mbody.append('div')
+      .classed('numvalue', true)
+      .call(box.numberBox, 'Value')
+      .on('input', function() {
+        const valid = dialogFormValid(selection);
+        selection.select('.submit').property('disabled', !valid);
+      });
+  numValueBox.select('.form-control')
+      .attr('required', 'required');
+  numValueBox.select('.invalid-feedback')
+      .call(badge.updateInvalidMessage, 'Please provide a valid number');
+
+  // Target databases
   mbody.append('div')
       .classed('target', true)
-      .call(lbox.checklistBox, 'Target databases');
+      .call(lbox.checklistBox, 'Target databases')
+      .on('change', function() {
+        const valid = dialogFormValid(selection);
+        selection.select('.submit').property('disabled', !valid);
+      })
+    .select('.invalid-feedback')
+      .call(badge.updateInvalidMessage, 'Please choose at least one items');
 }
 
 
@@ -61,42 +105,37 @@ function updateBody(selection, resources) {
     .filter(e => e.hasOwnProperty('d3_format')
                  || ['compound_id', 'numeric', 'text'].includes(e.format));
   selection.select('.key')
-      .call(lbox.selectBoxItems, fields)
-      .call(lbox.updateSelectBox, fields[0].key);
-  selection.select('.operator')
-      .call(lbox.updateSelectBox, 'eq');
-  selection.select('.value')
-      .call(box.updateTextBox, '')
-      .on('input', function () {
-        d3.select(this).dispatch('validate');
-      });
+      .call(lbox.updateSelectBoxOptions, fields)
+      .call(box.updateFormValue, fields[0].key)
+      .dispatch('change');
+  selection.select('.operator').call(box.updateFormValue, 'eq');
+  selection.select('.textvalue').call(box.formValue, null);
+  selection.select('.numvalue').call(box.formValue, null);
   const res = resources.map(d => ({key: d.id, name: d.name}));
   selection.select('.target')
-      .call(lbox.checklistBoxItems, res)
-      .call(lbox.updateChecklistBox, null)
-      .on('change', function () {
-        d3.select(this).dispatch('validate');
-      });
-  // Input validation
-  selection.selectAll('.value,.target')
-      .on('validate', function () {
-        const textValid = box.textBoxValue(selection.select('.value')) !== '';
-        const targetChecked = lbox.anyChecked(selection.select('.target'));
-        selection.select('.submit')
-          .property('disabled', !(textValid && targetChecked));
-      })
-      .dispatch('validate');
+      .call(lbox.updateChecklistItems, res)
+      .call(lbox.checkRequired)
+      .call(lbox.updateChecklistValues, []);
 }
 
+
+function dialogFormValid(selection) {
+  const fmt = lbox.selectedRecord(selection.select('.key')).format;
+  const type = misc.sortType(fmt);
+  const textValid = box.formValid(selection.select('.textvalue'));
+  const numValid = box.formValid(selection.select('.numvalue'));
+  const targetChecked = lbox.anyChecked(selection.select('.target'));
+  return (type === 'text' ? textValid : numValid) && targetChecked;
+}
 
 
 function execute(selection) {
   const query = {
     workflow: 'filter',
     targets: lbox.checklistBoxValue(selection.select('.target')),
-    key: lbox.selectBoxValue(selection.select('.key')),
-    value: box.textBoxValue(selection.select('.value')),
-    operator: lbox.selectBoxValue(selection.select('.operator'))
+    key: box.formValue(selection.select('.key')),
+    value: box.formValue(selection.select('.value')),
+    operator: box.formValue(selection.select('.operator'))
   };
   return fetcher.get(query.workflow, query)
     .then(fetcher.json);
@@ -104,10 +143,10 @@ function execute(selection) {
 
 
 function fill(selection) {
-  selection.select('.key').call(lbox.updateSelectBox, '_mw');
-  selection.select('.operator').call(lbox.updateSelectBox, 'gt');
-  selection.select('.value').call(box.updateTextBox, '1500');
-  selection.select('.target').call(lbox.updateChecklistBox, ['drugbankfda'])
+  selection.select('.key').call(box.updateFormValue, '_mw');
+  selection.select('.operator').call(box.updateFormValue, 'gt');
+  selection.select('.value').call(box.formValue, '1500');
+  selection.select('.target').call(lbox.updateChecklistValues, ['drugbankfda'])
       .dispatch('change');
 }
 

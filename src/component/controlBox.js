@@ -24,8 +24,8 @@ function colorControlBox(selection, colorScales, fieldName) {
 
 function updateColorControlBox(selection, fieldOptions, colorState) {
   selection.select('.field')
-      .call(lbox.selectBoxItems, fieldOptions)
-      .call(lbox.updateSelectBox, colorState.field);
+      .call(lbox.updateSelectBoxOptions, fieldOptions)
+      .call(box.updateFormValue, colorState.field);
   selection.select('.range')
       .call(group.updateColorRangeGroup, colorState.color,
             colorState.range, colorState.unknown);
@@ -56,7 +56,7 @@ function colorControlBoxState(selection) {
   const range = group.colorRangeGroupValue(selection.select('.range'));
   const scale = group.scaleBoxGroupValue(selection.select('.scale'));
   return {
-    field: lbox.selectBoxValue(selection.select('.field')),
+    field: box.formValue(selection.select('.field')),
     color: range.color,
     range: range.range,
     unknown: range.unknown,
@@ -88,12 +88,12 @@ function sizeControlBox(selection, fieldName) {
 
 function updateSizeControlBox(selection, fieldOptions, sizeState) {
   selection.select('.field')
-      .call(lbox.selectBoxItems, fieldOptions)
-      .call(lbox.updateSelectBox, sizeState.field);
+      .call(lbox.updateSelectBoxOptions, fieldOptions)
+      .call(box.updateFormValue, sizeState.field);
   selection.select('.range')
       .call(rbox.updateRangeBox, sizeState.range);
   selection.select('.unknown')
-      .call(box.updateTextBox, sizeState.unknown);
+      .call(box.formValue, sizeState.unknown);
   selection.select('.scale')
       .call(group.updateScaleBoxGroup, sizeState.scale, sizeState.domain);
   selection.selectAll('.range, .unknown')
@@ -132,7 +132,7 @@ function sizeControlValid(selection) {
 function sizeControlBoxState(selection) {
   const scale = group.scaleBoxGroupValue(selection.select('.scale'));
   return {
-    field: lbox.selectBoxValue(selection.select('.field')),
+    field: box.formValue(selection.select('.field')),
     range: rbox.rangeBoxValues(selection.select('.range')),
     unknown: box.textBoxValue(selection.select('.unknown')),
     scale: scale.scale,
@@ -170,11 +170,11 @@ function updateLabelControlBox(selection, fieldOptions,
       .call(box.updateCheckBox, labelState.visible);
   // nodeLabel.field
   selection.select('.text')
-      .call(lbox.selectBoxItems, fieldOptions)
-      .call(lbox.updateSelectBox, labelState.field);
+      .call(lbox.updateSelectBoxOptions, fieldOptions)
+      .call(box.updateFormValue, labelState.field);
   // nodeLabel.size
   selection.select('.size')
-      .call(box.updateNumberBox, labelState.size)
+      .call(box.formValue, labelState.size)
       .on('input', function () {
         box.numberFloatValid(d3.select(this));
       });
@@ -199,7 +199,7 @@ function labelControlValid(selection) {
 function labelControlBoxState(selection) {
   return {
     label: {
-      field: lbox.selectBoxValue(selection.select('.text')),
+      field: box.formValue(selection.select('.text')),
       size: box.numberBoxFloatValue(selection.select('.size')),
       visible: box.checkBoxValue(selection.select('.visible'))
     },

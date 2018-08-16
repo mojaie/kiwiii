@@ -32,7 +32,7 @@ function body(selection) {
 
 function updateBody(selection) {
   selection.select('.name')
-      .call(box.updateTextBox, null)
+      .call(box.formValue, null)
       .on('input', function () {  // Validation
         const keyValid = box.textBoxValue(d3.select(this)) !== '';
         selection.select('.submit').property('disabled', !keyValid);

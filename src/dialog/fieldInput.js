@@ -34,7 +34,7 @@ function body(selection) {
   body.append('div')
       .classed('type', true)
       .call(lbox.selectBox, 'Type')
-      .call(lbox.selectBoxItems, options);
+      .call(lbox.updateSelectBoxOptions, options);
   // Template builder
   const coid = misc.uuidv4().slice(0, 8);
   const tmpBox = body.append('div')
@@ -71,15 +71,15 @@ function body(selection) {
 
 function updateBody(selection, fields) {
   selection.select('.key')
-      .call(box.updateTextBox, '')
+      .call(box.formValue, '')
       .on('input', function () {
         selection.select('.submit')
             .property('disabled', !valid(selection, fields));
       });
   selection.select('.type')
-      .call(lbox.updateSelectBox, 'checkbox')
+      .call(box.updateFormValue, 'checkbox')
       .on('change',  function () {
-        const type = lbox.selectBoxValue(selection.select('.type'));
+        const type = box.formValue(selection.select('.type'));
         const custom = type === 'template';
         selection.selectAll('.tmpfield, .notation, .contents')
             .selectAll('select, input, textarea')
@@ -91,8 +91,8 @@ function updateBody(selection, fields) {
       .dispatch('change');
   const tmpFields = fields.filter(e => misc.sortType(e.format) !== 'none');
   selection.select('.tmpfield')
-      .call(lbox.selectBoxItems, tmpFields)
-      .call(lbox.updateSelectBox, 'index')
+      .call(lbox.updateSelectBoxOptions, tmpFields)
+      .call(box.updateFormValue, 'index')
       .on('change', function () {
         const field = d3.select(this).select('select').property('value');
         const frcd = d3.select(this).selectAll('option').data()
@@ -103,7 +103,7 @@ function updateBody(selection, fields) {
       })
       .dispatch('change');
   selection.select('.contents')
-      .call(box.updateTextareaBox, '')
+      .call(box.updateFormValue, '')
       .on('input', function () {
         selection.select('.submit')
             .property('disabled', !valid(selection, fields));
@@ -168,7 +168,7 @@ function valid(selection, fields) {
   selection.select('.contents').select('textarea')
     .style('background-color', contValid ? '#ffffff' : '#ffcccc');
   if (!keyValid) return false;
-  if (lbox.selectBoxValue(selection.select('.type')) !== 'template') {
+  if (box.formValue(selection.select('.type')) !== 'template') {
     return true;
   }
   return contValid;
@@ -177,7 +177,7 @@ function valid(selection, fields) {
 
 function value(selection) {
   const key = box.textBoxValue(selection.select('.key'));
-  const type = lbox.selectBoxValue(selection.select('.type'));
+  const type = box.formValue(selection.select('.type'));
   const format = selection.select('.type').selectAll('option').data()
     .find(e => e.key === type).format;
   const cont = box.textareaBoxValue(selection.select('.contents'));

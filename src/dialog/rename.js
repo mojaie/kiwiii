@@ -3,6 +3,7 @@
 
 import d3 from 'd3';
 
+import {default as badge} from '../component/badge.js';
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as modal} from '../component/modal.js';
@@ -18,19 +19,23 @@ function menuLink(selection) {
 
 
 function body(selection) {
-  selection.call(modal.submitDialog, id, title)
+  const renameBox = selection.call(modal.submitDialog, id, title)
     .select('.modal-body').append('div')
       .classed('rename', true)
       .call(box.textBox, 'New name');
+  renameBox.select('.form-control')
+      .attr('required', 'required');
+  renameBox.select('.invalid-feedback')
+      .call(badge.updateInvalidMessage, 'Please provide a valid name');
 }
 
 
 function updateBody(selection, name) {
   selection.select('.rename')
-      .call(box.updateTextBox, name)
-      .on('input', function () {  // Validation
-        const keyValid = box.textBoxValue(d3.select(this)) !== '';
-        selection.select('.submit').property('disabled', !keyValid);
+      .call(box.formValue, name)
+      .on('input', function () {
+        const valid = box.formValid(d3.select(this));
+        selection.select('.submit').property('disabled', !valid);
       })
       .dispatch('input');
 }

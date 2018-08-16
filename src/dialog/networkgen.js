@@ -5,6 +5,7 @@ import d3 from 'd3';
 
 import {default as fetcher} from '../common/fetcher.js';
 
+import {default as badge} from '../component/badge.js';
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as lbox} from '../component/formListBox.js';
@@ -23,18 +24,44 @@ function menuLink(selection) {
 
 
 function body(selection) {
-  const dialog = selection.call(modal.submitDialog, id, title);
-  dialog.select('.modal-body').append('div')
+  const mbody = selection.call(modal.submitDialog, id, title)
+      .select('.modal-body');
+
+  // Similarity measure
+  mbody.append('div')
       .classed('measure', true)
-      .call(lbox.selectBox, 'Measure');
+      .call(lbox.selectBox, 'Measure')
+      .on('change', function () {
+        const value = box.formValue(d3.select(this));
+        selection.select('.diam input')
+            .property('disabled', value !== 'gls');
+        selection.select('.timeout input')
+            .property('disabled', !['gls', 'rdfmcs'].includes(value));
+      });
+
   // Threshold
-  dialog.select('.modal-body').append('div')
+  const thldBox = mbody.append('div')
       .classed('thld', true)
-      .call(box.numberBox, 'Threshold', 0.5, 1, 0.01);
+      .call(box.numberBox, 'Threshold')
+      .call(box.updateNumberRange, 0.4, 1, 0.01)
+      .on('input', function() {
+        const valid = dialogFormValid(selection);
+        selection.select('.submit').property('disabled', !valid);
+      });
+  thldBox.select('.form-control')
+      .attr('required', 'required');
+  thldBox.select('.invalid-feedback')
+      .call(badge.updateInvalidMessage,
+            'Please provide a valid number (0.40 to 1.00)');
+
   // Similarity search options
-  dialog.select('.modal-body').append('div')
+  mbody.append('div')
       .classed('option', true)
-      .call(group.simOptionGroup);
+      .call(group.simOptionGroup)
+      .on('input', function() {
+        const valid = dialogFormValid(selection);
+        selection.select('.submit').property('disabled', !valid);
+      });
 }
 
 
@@ -48,33 +75,31 @@ function updateBody(selection, rdk) {
     measures.push({key: 'rdfmcs', name: 'RDKit FMCS'});
   }
   selection.select('.measure')
-      .call(lbox.selectBoxItems, measures)
-      .call(lbox.updateSelectBox, 'gls')
-      .on('change', function () {
-        const value = lbox.selectBoxValue(d3.select(this));
-        selection.select('.diam')
-          .select('input')
-            .property('disabled', value !== 'gls');
-        selection.select('.timeout')
-          .select('input')
-            .property('disabled', !['gls', 'rdfmcs'].includes(value));
-      });
-  selection.select('.thld')
-      .call(box.updateNumberBox, 0.5);
+      .call(lbox.updateSelectBoxOptions, measures)
+      .call(box.updateFormValue, 'gls');
+  selection.select('.thld').call(box.formValue, 0.5);
   selection.select('.option')
-      .call(group.updateSimOptionGroup);
+      .call(group.updateSimOptionValues,
+            {ignoreHs: true, timeout: 2, diameter: 8});
+}
+
+
+function dialogFormValid(selection) {
+  const thldValid = box.formValid(selection.select('.thld'));
+  const simOptionValid = group.simOptionValid(selection.select('.option'));
+  return thldValid && simOptionValid;
 }
 
 
 function execute(selection, rcds) {
   const measure = selection.select('.measure');
   const thld = selection.select('.thld');
-  const params = group.simOptionGroupValue(selection.select('.option'));
+  const params = group.simOptionValues(selection.select('.option'));
   if (!measure.select('select').property('disabled')) {
-    params.measure = lbox.selectBoxValue(measure);
+    params.measure = box.formValue(measure);
   }
   if (!thld.select('input').property('disabled')) {
-    params.threshold = box.numberBoxFloatValue(thld);
+    params.threshold = box.formValue(thld);
   }
   const formData = new FormData();
   // TODO: need updates in flashflood query schema

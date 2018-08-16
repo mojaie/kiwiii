@@ -3,6 +3,8 @@
 
 import d3 from 'd3';
 
+import {default as badge} from './badge.js';
+import {default as box} from './formBox.js';
 import {default as shape} from './shape.js';
 
 
@@ -23,10 +25,19 @@ function selectBox(selection, label) {
   selection.append('select')
       .classed('form-control', true)
       .classed('form-control-sm', true)
+      .classed('col-8', true)
+      .on('input', function () {
+        const valid = box.formValid(selection);
+        selection.call(box.setValidity, valid);
+      });
+  selection.append('div')
+      .classed('col-4', true);
+  selection.append('div')
+      .call(badge.invalidFeedback)
       .classed('col-8', true);
 }
 
-function selectBoxItems(selection, items) {
+function updateSelectBoxOptions(selection, items) {
   const options = selection.select('select')
     .selectAll('option')
       .data(items, d => d.key);
@@ -37,12 +48,10 @@ function selectBoxItems(selection, items) {
       .text(d => d.name);
 }
 
-function updateSelectBox(selection, value) {
-  selection.select('select').property('value', value);
-}
-
-function selectBoxValue(selection) {
-  return selection.select('select').property('value');
+function selectedRecord(selection) {
+  const value = box.formValue(selection);
+  return selection.selectAll('select option').data()
+      .find(e => e.key === value);
 }
 
 
@@ -56,18 +65,20 @@ function checklistBox(selection, label) {
       .classed('form-group', true)
       .classed('form-row', true)
       .classed('align-items-center', true);
-  selection.append('label')
+  const formLabel = selection.append('label')
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
       .classed('col-4', true)
       .text(label);
+  formLabel.append('div')
+      .call(badge.invalidFeedback);
   selection.append('ul')
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('col-8', true);
 }
 
-function checklistBoxItems(selection, items) {
+function updateChecklistItems(selection, items) {
   const listitems = selection.select('ul')
     .selectAll('li')
       .data(items, d => d.key);
@@ -85,20 +96,35 @@ function checklistBoxItems(selection, items) {
       .text(d => d.name);
 }
 
-function updateChecklistBox(selection, values) {
-  if (!values) return;
+function checkRequired(selection) {
+  selection.selectAll('input')
+      .on('change', function () {
+        const valid = anyChecked(selection);
+        selection.call(setChecklistValidity, valid);
+      });
+}
+
+function updateChecklistValues(selection, values) {
   selection.selectAll('input')
     .each(function (d) {
       d3.select(this).property('checked', values.includes(d.key));
     });
+  selection.call(setChecklistValidity, true);  // Clear validity state
 }
 
-function checklistBoxValue(selection) {
+function checklistValues(selection) {
   return selection.selectAll('input:checked').data().map(d => d.key);
 }
 
 function anyChecked(selection) {
-  return checklistBoxValue(selection).length > 0;
+  return checklistValues(selection).length > 0;
+}
+
+function setChecklistValidity(selection, valid) {
+  selection.select('.invalid-feedback')
+      .style('display', valid ? 'none': 'inherit');
+  selection.select('.form-control')
+      .style('background-color', valid ? null : 'LightPink');
 }
 
 
@@ -181,9 +207,9 @@ function colorScaleBoxItem(selection) {
 
 
 export default {
-  selectBox, selectBoxItems, updateSelectBox, selectBoxValue,
-  checklistBox, checklistBoxItems, updateChecklistBox, checklistBoxValue,
-  anyChecked,
+  selectBox, updateSelectBoxOptions, selectedRecord,
+  checklistBox, updateChecklistItems, checkRequired, updateChecklistValues,
+  checklistValues, anyChecked, setChecklistValidity,
   colorScaleBox, colorScaleBoxItems, updateColorScaleBox,
   colorScaleBoxValue, colorScaleBoxItem
 };

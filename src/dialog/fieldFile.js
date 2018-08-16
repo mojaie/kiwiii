@@ -53,8 +53,8 @@ function updateBody(selection, fields) {
   const leftDefault = leftFields
     .find(e => e.format === 'compound_id') || leftFields[0];
   selection.select('.left')
-      .call(lbox.selectBoxItems, leftFields)
-      .call(lbox.updateSelectBox, leftDefault.key);
+      .call(lbox.updateSelectBoxOptions, leftFields)
+      .call(box.updateFormValue, leftDefault.key);
   selection.select('.preview')
       .call(table.update, [], []);
   selection.select('.file')
@@ -68,9 +68,9 @@ function updateBody(selection, fields) {
             const mapping = isCsv ? mapper.csvToMapping(res) : JSON.parse(res);
             const tbl = mapper.mappingToTable(mapping);
             selection.select('.right')
-              .call(lbox.selectBoxItems,
+              .call(lbox.updateSelectBoxOptions,
                     [{key: mapping.key, name: mapping.key}])
-              .call(lbox.updateSelectBox, mapping.key);
+              .call(box.updateFormValue, mapping.key);
             selection.select('.preview')
               .call(table.update, tbl.fields, tbl.records.slice(0, 5));
           });
@@ -85,7 +85,7 @@ function updateBody(selection, fields) {
 
 
 function readFile(selection) {
-  const left = lbox.selectBoxValue(selection.select('.left'));
+  const left = box.formValue(selection.select('.left'));
   const file = box.fileInputBoxValue(selection.select('.file'));
   const isCsv = file.name.split('.').pop() === 'csv';
   return hfile.readFile(file)

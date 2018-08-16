@@ -46,15 +46,15 @@ function updateMainControlBox(selection, state) {
   // Network threshold
   const chunkGroup = selection.select('.panel-group');
   chunkGroup.select('.rowcnt')
-      .call(box.updateNumberBox, state.rowCount);
+      .call(box.formValue, state.rowCount);
   chunkGroup.select('.colcnt')
-      .call(box.updateNumberBox, state.columnCount);
+      .call(box.formValue, state.columnCount);
   chunkGroup.select('.groupby')
-    .call(lbox.selectBoxItems,
+    .call(lbox.updateSelectBoxOptions,
           state.items.fields.filter(e => misc.sortType(e.format) !== 'none'))
-    .call(lbox.updateSelectBox, state.groupField || '');
+    .call(box.updateFormValue, state.groupField || '');
   chunkGroup.select('.crow')
-      .call(box.updateNumberBox, state.chunksPerRow);
+      .call(box.formValue, state.chunksPerRow);
   chunkGroup.select('.showcol')
       .call(box.updateCheckBox, state.showColumnNumber);
   chunkGroup.select('.showrow')
@@ -63,7 +63,7 @@ function updateMainControlBox(selection, state) {
       .on('change', function () {
         state.rowCount = box.numberBoxIntValue(chunkGroup.select('.rowcnt'));
         state.columnCount = box.numberBoxIntValue(chunkGroup.select('.colcnt'));
-        state.groupField = lbox.selectBoxValue(chunkGroup.select('.groupby'));
+        state.groupField = box.formValue(chunkGroup.select('.groupby'));
         state.chunksPerRow = box.numberBoxIntValue(chunkGroup.select('.crow'));
         state.showColumnNumber = box.checkBoxValue(chunkGroup.select('.showcol'));
         state.showRowNumber = box.checkBoxValue(chunkGroup.select('.showrow'));

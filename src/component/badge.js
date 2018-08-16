@@ -91,7 +91,7 @@ function invalidFeedback(selection) {
       .classed('invalid-msg', true);
 }
 
-function invalidMessage(selection, msg) {
+function updateInvalidMessage(selection, msg) {
   selection.select('.invalid-msg')
       .text(msg);
 }
@@ -99,5 +99,5 @@ function invalidMessage(selection, msg) {
 
 export default {
   badge, updateBadge, notify, loadingCircle,
-  alert, updateAlert, invalidFeedback, invalidMessage
+  alert, updateAlert, invalidFeedback, updateInvalidMessage
 };

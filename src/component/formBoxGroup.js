@@ -53,7 +53,7 @@ function colorRangeGroup(selection, colorScales) {
       .classed('rangetype', true)
       .classed('mb-1', true)
       .call(lbox.selectBox, 'Range type')
-      .call(lbox.selectBoxItems, customColorRanges);
+      .call(lbox.updateSelectBoxOptions, customColorRanges);
   collapse.append('div')
       .classed('range', true)
       .classed('mb-1', true)
@@ -68,7 +68,7 @@ function colorRangeGroup(selection, colorScales) {
 function updateColorRangeGroup(selection, cscale, range, unknown) {
   const customRange = () => {
     const cs = lbox.colorScaleBoxValue(selection.select('.colorscale'));
-    const rg = lbox.selectBoxValue(selection.select('.rangetype'));
+    const rg = box.formValue(selection.select('.rangetype'));
     const customScale = cs === 'custom';
     selection.selectAll('.rangetype, .range, .unknown')
         .selectAll('select, input')
@@ -85,7 +85,7 @@ function updateColorRangeGroup(selection, cscale, range, unknown) {
       });
   const rtype = range.length === 2 ? 'continuous' : 'two-piece';
   selection.select('.rangetype')
-      .call(lbox.updateSelectBox, rtype)
+      .call(box.updateFormValue, rtype)
       .on('change', function () {
         customRange();
       })
@@ -106,7 +106,7 @@ function updateColorRangeGroup(selection, cscale, range, unknown) {
 
 function colorRangeGroupValue(selection) {
   const colorScale = lbox.colorScaleBoxItem(selection.select('.colorscale'));
-  const rtype = lbox.selectBoxValue(selection.select('.rangetype'));
+  const rtype = box.formValue(selection.select('.rangetype'));
   const range = rbox.colorRangeBoxValues(selection.select('.range'));
   const unknown = box.colorBoxValue(selection.select('.unknown'));
   return {
@@ -133,7 +133,7 @@ function scaleBoxGroup(selection) {
       .classed('scale', true)
       .classed('mb-1', true)
       .call(lbox.selectBox, 'Scale')
-      .call(lbox.selectBoxItems, scaleOptions);
+      .call(lbox.updateSelectBoxOptions, scaleOptions);
   selection.append('div')
       .classed('domain', true)
       .classed('mb-1', true)
@@ -143,7 +143,7 @@ function scaleBoxGroup(selection) {
 
 function updateScaleBoxGroup(selection, scale, domain) {
   selection.select('.scale')
-      .call(lbox.updateSelectBox, scale);
+      .call(box.updateFormValue, scale);
   selection.select('.domain')
       .call(rbox.updateRangeBox, domain)
       .on('input', function () {
@@ -160,13 +160,13 @@ function updateScaleBoxGroup(selection, scale, domain) {
 
 function scaleBoxGroupValid(selection) {
   if (!rbox.rangeBoxValid(selection.select('.domain'))) return false;
-  if (lbox.selectBoxValue(selection.select('.scale')) === 'linear') return true;
+  if (box.formValue(selection.select('.scale')) === 'linear') return true;
   const values = rbox.rangeBoxValues(selection.select('.domain'));
   selection.select('.domain').select('.min')
       .style('background-color', values[0] > 0 ? '#ffffff' : '#ffcccc');
   selection.select('.domain').select('.max')
       .style('background-color', values[1] > 0 ? '#ffffff' : '#ffcccc');
-  const validScale = lbox.selectBoxValue(selection.select('.scale')) !== '';
+  const validScale = box.formValue(selection.select('.scale')) !== '';
     selection.select('.scale').select('select')
         .style('background-color', validScale ? '#ffffff' : '#ffcccc');
   return values[0] > 0 && values[1] > 0 && validScale;
@@ -174,7 +174,7 @@ function scaleBoxGroupValid(selection) {
 
 
 function scaleBoxGroupValue(selection) {
-  const scale = lbox.selectBoxValue(selection.select('.scale'));
+  const scale = box.formValue(selection.select('.scale'));
   const domain = rbox.rangeBoxValues(selection.select('.domain'));
   return {
     scale: scale || 'linear', 

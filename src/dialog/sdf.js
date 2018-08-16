@@ -6,6 +6,7 @@ import d3 from 'd3';
 import {default as fetcher} from '../common/fetcher.js';
 import {default as hfile} from '../common/file.js';
 
+import {default as badge} from '../component/badge.js';
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as lbox} from '../component/formListBox.js';
@@ -34,12 +35,43 @@ function menuLink(selection) {
 
 function body(selection) {
   const dialog = selection.call(modal.submitDialog, id, title);
+
+  // File input
   dialog.select('.modal-body').append('div')
       .classed('file', true)
-      .call(box.fileInputBox, 'File', '.mol,.sdf');
+      .call(box.fileInputBox, 'File', '.mol,.sdf')
+      .on('change', function () {
+        const valid = box.fileInputValid(d3.select(this));
+        selection.select('.submit').property('disabled', !valid);
+        if (!valid) return;
+        const file = box.fileInputValue(d3.select(this));
+        // Scan only first 100mb of the file due to memory limit.
+        return hfile.readFile(file, 100 * 1024 * 1024, false)
+          .then(data => {
+            const fields = getSDFPropList(data)
+              .map(e => ({key: e, name: e}));
+            selection.select('.field')
+              .call(lbox.updateChecklistItems, fields)
+              .call(lbox.updateChecklistValues, [])
+              .call(lbox.checkRequired);
+            selection.select('.submit').property('disabled', true);
+          });
+      })
+    .select('.invalid-feedback')
+      .call(badge.updateInvalidMessage, 'Please choose a file');
+
+  // Select fields to import
   dialog.select('.modal-body').append('div')
       .classed('field', true)
-      .call(lbox.checklistBox, 'Fields');
+      .call(lbox.checklistBox, 'Fields')
+      .on('input', function () {
+        const fieldChecked = lbox.anyChecked(selection.select('.field'));
+        selection.select('.submit').property('disabled', !fieldChecked);
+      })
+    .select('.invalid-feedback')
+      .call(badge.updateInvalidMessage, 'Please select at least one item');
+
+  // Options
   dialog.select('.modal-body').append('div')
       .classed('implh', true)
       .call(box.checkBox, 'Make hydrogens implicit');
@@ -51,47 +83,26 @@ function body(selection) {
 
 function updateBody(selection) {
   selection.select('.file')
-      .on('change', function () {
-        const file = box.fileInputBoxValue(d3.select(this));
-        d3.select(this).dispatch('validate');
-        // Scan only first 100mb of the file due to memory limit.
-        return hfile.readFile(file, 100 * 1024 * 1024, false)
-          .then(data => {
-            const fields = getSDFPropList(data)
-              .map(e => ({key: e, name: e}));
-            selection.select('.field')
-              .call(lbox.checklistBoxItems, fields);
-          });
-      });
+      .call(box.clearFileInput);
   selection.select('.field')
-      .call(lbox.checklistBoxItems, [])
-      .on('change', function () {
-        d3.select(this).dispatch('validate');
-      });
+      .call(lbox.updateChecklistItems, [])
+      .call(lbox.updateChecklistValues, []);
   selection.select('.implh')
       .call(box.updateCheckBox, true);
   selection.select('.recalc')
       .call(box.updateCheckBox, false);
-  // Input validation
-  selection.selectAll('.field,.file')
-      .on('validate', function () {
-        const fileSelected = box.fileInputBoxValue(selection.select('.file'));
-        const fieldChecked = lbox.anyChecked(selection.select('.field'));
-        selection.select('.submit')
-          .property('disabled', !(fileSelected && fieldChecked));
-      })
-      .dispatch('validate');
+  selection.select('.submit').property('disabled', true);
 }
 
 
 function execute(selection) {
   const params = {
-    fields: lbox.checklistBoxValue(selection.select('.field')),
+    fields: lbox.checklistValues(selection.select('.field')),
     implh: box.checkBoxValue(selection.select('.implh')),
     recalc: box.checkBoxValue(selection.select('.recalc'))
   };
   const formData = new FormData();
-  formData.append('contents', box.fileInputBoxValue(selection.select('.file')));
+  formData.append('contents', box.fileInputValue(selection.select('.file')));
   formData.append('params', JSON.stringify(params));
   return fetcher.post('sdfin', formData)
     .then(fetcher.json);
