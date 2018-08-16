@@ -22,16 +22,22 @@ function menuLink(selection) {
 
 
 function body(selection) {
-  const dialog = selection.call(modal.submitDialog, id, title);
+  const mbody = selection.call(modal.submitDialog, id, title)
+    .select('.modal-body');
+  mbody.append('div')
+      .classed('text-muted', true)
+      .classed('small', true)
+      .classed('text-right', true)
+      .text('Ctrl+F to fill the form with demo queries');
   // Query molecule
-  dialog.select('.modal-body').append('div')
+  mbody.append('div')
       .classed('qmol', true)
       .call(group.queryMolGroup);
-  dialog.select('.modal-body').append('div')
+  mbody.append('div')
       .classed('method', true)
       .call(lbox.selectBox, 'Method');
   // Measure
-  dialog.select('.modal-body').append('div')
+  mbody.append('div')
       .classed('measure', true)
       .call(lbox.selectBox, 'Measure')
       .call(lbox.selectBoxItems, [
@@ -39,15 +45,15 @@ function body(selection) {
               {key: 'edge', name: 'Edge count'}
             ]);
   // Threshold
-  dialog.select('.modal-body').append('div')
+  mbody.append('div')
       .classed('thld', true)
       .call(box.numberBox, 'Threshold', 0.5, 1, 0.01);
   // Similarity search options
-  dialog.select('.modal-body').append('div')
+  mbody.append('div')
       .classed('option', true)
       .call(group.simOptionGroup);
   // Targets
-  dialog.select('.modal-body').append('div')
+  mbody.append('div')
       .classed('target', true)
       .call(lbox.checklistBox, 'Target databases');
 }
@@ -91,7 +97,10 @@ function updateBody(selection, resources, rdk) {
   selection.select('.measure')
       .call(lbox.updateSelectBox, 'sim');
   selection.select('.thld')
-      .call(box.updateNumberBox, 0.5);
+      .call(box.updateNumberBox, 0.5)
+      .on('input', function() {
+        // TODO: setValidity
+      });
   selection.select('.option')
       .call(group.updateSimOptionGroup, 'struct');
   const res = resources.map(d => ({key: d.id, name: d.name}));
@@ -99,17 +108,20 @@ function updateBody(selection, resources, rdk) {
       .call(lbox.checklistBoxItems, res)
       .call(lbox.updateChecklistBox, null)
       .on('change', function() {
+        // TODO: setValidity
         d3.select(this).dispatch('validate');
       });
   // Input validation
   selection.selectAll('.qmol,.target')
       .on('validate', function () {
+        // TODO: thldValid
+        // TODO: simOptionValid
         const qmolValid = group.queryMolGroupValid(selection.select('.qmol'));
         const targetChecked = lbox.anyChecked(selection.select('.target'));
         selection.select('.submit')
           .property('disabled', !(qmolValid && targetChecked));
-      })
-      .dispatch('validate');
+      });
+  selection.select('.submit').property('disabled', true);
 }
 
 
@@ -134,6 +146,21 @@ function execute(selection) {
 }
 
 
+function fill(selection) {
+  selection.select('.format').call(lbox.updateSelectBox, 'dbid')
+      .dispatch('change');
+  selection.select('.source').call(lbox.updateSelectBox, 'drugbankfda')
+      .dispatch('change');
+  selection.select('.textquery').call(box.updateTextBox, 'DB00465');
+  selection.select('.method').call(lbox.updateSelectBox, 'gls')
+      .dispatch('change');
+  selection.select('.measure').call(lbox.updateSelectBox, 'sim');
+  selection.select('.thld').call(box.updateNumberBox, 0.7);
+  selection.select('.target').call(lbox.updateChecklistBox, 'drugbankfda')
+      .dispatch('change');
+}
+
+
 export default {
-  menuLink, body, updateBody, execute
+  menuLink, body, updateBody, execute, fill
 };

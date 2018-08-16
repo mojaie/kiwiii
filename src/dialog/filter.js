@@ -22,11 +22,17 @@ function menuLink(selection) {
 
 
 function body(selection) {
-  const dialog = selection.call(modal.submitDialog, id, title);
-  dialog.select('.modal-body').append('div')
+  const mbody = selection.call(modal.submitDialog, id, title)
+    .select('.modal-body');
+  mbody.append('div')
+      .classed('text-muted', true)
+      .classed('small', true)
+      .classed('text-right', true)
+      .text('Ctrl+F to fill the form with demo queries');
+  mbody.append('div')
       .classed('key', true)
       .call(lbox.selectBox, 'Field');
-  dialog.select('.modal-body').append('div')
+  mbody.append('div')
       .classed('operator', true)
       .call(lbox.selectBox, 'Operator')
       .call(lbox.selectBoxItems, [
@@ -37,11 +43,11 @@ function body(selection) {
               {key: 'le', name: '>='},
               {key: 'lk', name: 'LIKE'}
             ]);
-  dialog.select('.modal-body').append('div')
+  mbody.append('div')
       .classed('value', true)
       .call(box.textBox, 'Value');
   // Targets
-  dialog.select('.modal-body').append('div')
+  mbody.append('div')
       .classed('target', true)
       .call(lbox.checklistBox, 'Target databases');
 }
@@ -56,7 +62,7 @@ function updateBody(selection, resources) {
                  || ['compound_id', 'numeric', 'text'].includes(e.format));
   selection.select('.key')
       .call(lbox.selectBoxItems, fields)
-      .call(lbox.updateSelectBox, fields[0]);
+      .call(lbox.updateSelectBox, fields[0].key);
   selection.select('.operator')
       .call(lbox.updateSelectBox, 'eq');
   selection.select('.value')
@@ -97,6 +103,15 @@ function execute(selection) {
 }
 
 
+function fill(selection) {
+  selection.select('.key').call(lbox.updateSelectBox, '_mw');
+  selection.select('.operator').call(lbox.updateSelectBox, 'gt');
+  selection.select('.value').call(box.updateTextBox, '1500');
+  selection.select('.target').call(lbox.updateChecklistBox, ['drugbankfda'])
+      .dispatch('change');
+}
+
+
 export default {
-  menuLink, body, updateBody, execute
+  menuLink, body, updateBody, execute, fill
 };

@@ -25,15 +25,20 @@ function body(selection) {
   const mbody = selection.call(modal.submitDialog, id, title)
     .select('.modal-body');
   mbody.append('div')
+      .classed('text-muted', true)
+      .classed('small', true)
+      .classed('text-right', true)
+      .text('Ctrl+F to fill the form with demo queries');
+  mbody.append('div')
       .classed('field', true)
       .call(lbox.selectBox, 'Field');
   mbody.append('div')
       .classed('query', true)
-      .call(box.textareaBox, 'Query', 20);
+      .call(box.textareaBox, 'Query', 12);
 }
 
 
-function updateBody(selection, resources, placeholder) {
+function updateBody(selection, resources) {
   const fields = _(resources.map(e => e.fields))
     .flatten()
     .uniqBy('key')
@@ -46,11 +51,14 @@ function updateBody(selection, resources, placeholder) {
       .call(lbox.updateSelectBox, def.key);
   selection.select('.query')
       .call(box.updateTextareaBox, '')
-      .call(box.updateTextareaPlaceholder, placeholder)
-      .on('input', function() {  // Validation
-        const values = box.textareaBoxLines(d3.select(this));
-        selection.select('.submit').property('disabled', !values.length);
+      .on('input', function() {
+        const valid = box.textareaValid(d3.select(this));
+        d3.select(this)
+            .call(box.setInvalidMessage, 'Please provide valid queries')
+            .call(box.setValidity, valid);
+        selection.select('.submit').property('disabled', !valid);
       });
+  selection.select('.submit').property('disabled', true);
 }
 
 
@@ -66,6 +74,13 @@ function execute(selection, resources) {
 }
 
 
+function fill(selection) {
+  selection.select('.field').call(lbox.updateSelectBox, 'compound_id');
+  selection.select('.query')
+      .call(box.updateTextareaBox, "DB00186\nDB00189\nDB00193\nDB00203\nDB00764\nDB00863\nDB00865\nDB00868\nDB01143\nDB01240\nDB01242\nDB01361\nDB01366\nDB02638\nDB02959")
+      .dispatch('input');
+}
+
 export default {
-  menuLink, body, updateBody, execute
+  menuLink, body, updateBody, execute, fill
 };

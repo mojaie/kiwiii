@@ -88,15 +88,16 @@ function invalidFeedback(selection) {
       .style('width', '1rem')
       .style('height', '1rem');
   selection.append('span')
-      .classed('text', true);
+      .classed('invalid-msg', true);
 }
 
-function invalidFeedbackMsg(selection, msg) {
-  selection.select('.text')
+function invalidMessage(selection, msg) {
+  selection.select('.invalid-msg')
       .text(msg);
 }
 
+
 export default {
   badge, updateBadge, notify, loadingCircle,
-  alert, updateAlert, invalidFeedback, invalidFeedbackMsg
+  alert, updateAlert, invalidFeedback, invalidMessage
 };
