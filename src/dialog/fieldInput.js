@@ -21,20 +21,38 @@ function menuLink(selection) {
 
 
 function body(selection) {
-  const dialog = selection.call(modal.submitDialog, id, title);
-  const body = dialog.select('.modal-body');
-  body.append('div')
+  const mbody = selection.call(modal.submitDialog, id, title)
+      .select('.modal-body');
+
+  // Custom field name
+  mbody.append('div')
       .classed('key', true)
-      .call(box.textBox, 'Field key');
+      .call(box.textBox, 'Field key')
+      .on('input', function() {
+        const valid = dialogFormValid(selection);
+        selection.select('.submit').property('disabled', !valid);
+      })
+    .select('.form-control')
+      .attr('required', 'required');
+
+  // Field type
   const options = [
     {key: 'checkbox', name: 'Checkbox', format: 'checkbox'},
     {key: 'text_field', name: 'Text field', format: 'text_field'},
     {key: 'template', name: 'Template', format: 'html'}
   ];
-  body.append('div')
+  mbody.append('div')
       .classed('type', true)
       .call(lbox.selectBox, 'Type')
-      .call(lbox.updateSelectBoxOptions, options);
+      .call(lbox.updateSelectBoxOptions, options)
+      .on('change',  function () {
+        const type = box.formValue(d3.select(this));
+        const custom = type === 'template';
+        selection.selectAll('.tmpbuild .form-control')
+            .property('disabled', !custom);
+            // .style('opacity',  custom ? null : 0.3);
+      });
+
   // Template builder
   const coid = misc.uuidv4().slice(0, 8);
   const tmpBox = body.append('div')
@@ -54,60 +72,46 @@ function body(selection) {
       .classed('collapse', true)
       .attr('id', `${coid}-collapse`)
     .append('div')
+      .classed('tmpbuild', true)
       .classed('card', true)
       .classed('card-body', true);
+
+  // Template field
   collapse.append('div')
       .classed('tmpfield', true)
       .classed('mb-1', true)
-      .call(lbox.selectBox, 'Field');
+      .call(lbox.selectBox, 'Field')
+      .on('change', function () {
+        const rcd = lbox.selectedRecord(d3.select(this));
+        const notation = rcd.d3_format ? `:${rcd.d3_format}` : '';
+        selection.select('.notation')
+            .call(box.updateFormValue, `{${rcd.key}${notation}}`);
+      });
+
+  // Notation
   collapse.append('div')
       .classed('notation', true)
       .call(box.readonlyBox, 'Notation');
+
+  // Template input
   collapse.append('div')
       .classed('contents', true)
-      .call(box.textareaBox, 'Contents', 5);
+      .call(box.textareaBox, 'Contents', 5)
+      .on('input', function () {
+        const valid = dialogFormValid(selection);
+        selection.select('.submit').property('disabled', valid);
+      });
 }
 
 
 function updateBody(selection, fields) {
-  selection.select('.key')
-      .call(box.formValue, '')
-      .on('input', function () {
-        selection.select('.submit')
-            .property('disabled', !valid(selection, fields));
-      });
-  selection.select('.type')
-      .call(box.updateFormValue, 'checkbox')
-      .on('change',  function () {
-        const type = box.formValue(selection.select('.type'));
-        const custom = type === 'template';
-        selection.selectAll('.tmpfield, .notation, .contents')
-            .selectAll('select, input, textarea')
-            .property('disabled', !custom)
-            .style('opacity',  custom ? null : 0.3);
-        selection.select('.submit')
-            .property('disabled', !valid(selection, fields));
-      })
-      .dispatch('change');
+  selection.select('.key').call(box.formValue, '');
+  selection.select('.type').call(box.updateFormValue, 'checkbox');
   const tmpFields = fields.filter(e => misc.sortType(e.format) !== 'none');
   selection.select('.tmpfield')
       .call(lbox.updateSelectBoxOptions, tmpFields)
-      .call(box.updateFormValue, 'index')
-      .on('change', function () {
-        const field = d3.select(this).select('select').property('value');
-        const frcd = d3.select(this).selectAll('option').data()
-          .find(e => e.key === field);
-        const notation = frcd.d3_format ? `:${frcd.d3_format}` : '';
-        selection.select('.notation').select('input')
-              .property('value', `{${frcd.key}${notation}}`);
-      })
-      .dispatch('change');
-  selection.select('.contents')
-      .call(box.updateFormValue, '')
-      .on('input', function () {
-        selection.select('.submit')
-            .property('disabled', !valid(selection, fields));
-      });
+      .call(box.updateFormValue, 'index');
+  selection.select('.contents').call(box.updateFormValue, '');
 }
 
 
@@ -139,14 +143,14 @@ const formatterGen = {
 };
 
 
-function valid(selection, fields) {
-  const key = box.textBoxValue(selection.select('.key'));
-  const keyValid = key !== '' && !fields.map(e => e.key).includes(key);
-  selection.select('.key').select('input')
-    .style('background-color', keyValid ? '#ffffff' : '#ffcccc');
-  const tmpFields = fields.filter(e => misc.sortType(e.format) !== 'none');
-  const cont = box.textareaBoxValue(selection.select('.contents'));
-  const contEmpty = cont === '';
+function dialogFormValid(selection, fields) {
+  const keyValue = box.formValue(selection.select('.key'));
+  const keyValid = box.formValid(selection.select('.key'));
+  const keyUnique = !fields.map(e => e.key).includes(keyValue);
+  const tmpFields = selection.select('.tmpfield').data();
+  // TODO: move to body
+  const cont = box.formValue(selection.select('.contents'));
+  const contValid = box.formValid(selection.select('.contents'));
   const contOuter = cont.split(/\{.+?\}/g);
   const contInner = (cont.match(/\{.+?\}/g) || []).map(e => e.slice(1, -1));
   const contInvalidKey = contInner
