@@ -3,8 +3,7 @@
 
 import d3 from 'd3';
 
-import {default as misc} from '../common/misc.js';
-
+import {default as dropdown} from './dropdown.js';
 import {default as box} from './formBox.js';
 import {default as lbox} from './formListBox.js';
 import {default as rbox} from './formRangeBox.js';
@@ -24,27 +23,11 @@ function colorRangeGroup(selection, colorScales) {
       .call(lbox.colorScaleBoxItems, colorScales);
 
   // Custom colorscale
-  const id = misc.uuidv4().slice(0, 8);
-  selection.append('div')
-      .classed('form-row', true)
-      .classed('justify-content-end', true)
-    .append('button')
-      .classed('btn', true)
-      .classed('btn-sm', true)
-      .classed('btn-outline-primary', true)
-      .classed('dropdown-toggle', true)
-      .attr('data-toggle', 'collapse')
-      .attr('data-target', `#${id}-collapse`)
-      .attr('aria-expanded', 'false')
-      .attr('aria-controls', `${id}-collapse`)
-      .text('Custom colorscale');
   const collapse = selection.append('div')
-      .classed('collapse', true)
-      .attr('id', `${id}-collapse`)
-    .append('div')
-      .classed('card', true)
-      .classed('card-body', true)
+      .call(dropdown.dropdownFormGroup, 'Custom color')
+    .select('.card-body')
       .classed('p-2', true);
+
   const customColorRanges = [
     {key: 'continuous', name: 'Continuous'},
     {key: 'two-piece', name: 'Two-piece'}

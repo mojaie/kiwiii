@@ -4,10 +4,10 @@
 import d3 from 'd3';
 
 import {default as fetcher} from '../common/fetcher.js';
-import {default as misc} from '../common/misc.js';
 
 import {default as badge} from '../component/badge.js';
 import {default as button} from '../component/button.js';
+import {default as dropdown} from '../component/dropdown.js';
 import {default as box} from '../component/formBox.js';
 import {default as lbox} from '../component/formListBox.js';
 
@@ -130,26 +130,9 @@ function queryMolValid(selection) {
 
 
 function simOptionGroup(selection) {
-  const id = misc.uuidv4().slice(0, 8);
-  selection
-      .classed('mb-3', true)
-    .append('p')
-    .append('button')
-      .classed('btn', true)
-      .classed('btn-sm', true)
-      .classed('btn-outline-primary', true)
-      .classed('dropdown-toggle', true)
-      .attr('data-toggle', 'collapse')
-      .attr('data-target', `#${id}-collapse`)
-      .attr('aria-expanded', 'false')
-      .attr('aria-controls', `${id}-collapse`)
-      .text('Optional parameters');
   const collapse = selection.append('div')
-      .classed('collapse', true)
-      .attr('id', `${id}-collapse`)
-    .append('div')
-      .classed('card', true)
-      .classed('card-body', true);
+      .call(dropdown.dropdownFormGroup, 'Optional parameters')
+    .select('.card-body');
 
   // Ignore H flag
   collapse.append('div')

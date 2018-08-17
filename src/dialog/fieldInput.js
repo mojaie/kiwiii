@@ -8,6 +8,7 @@ import {default as scale} from '../common/scale.js';
 
 import {default as badge} from '../component/badge.js';
 import {default as button} from '../component/button.js';
+import {default as dropdown} from '../component/dropdown.js';
 import {default as box} from '../component/formBox.js';
 import {default as lbox} from '../component/formListBox.js';
 import {default as modal} from '../component/modal.js';
@@ -52,27 +53,9 @@ function body(selection) {
       });
 
   // Template builder
-  const coid = misc.uuidv4().slice(0, 8);
-  const tmpBox = mbody.append('div')
-      .classed('mb-3', true);
-  tmpBox.append('p')
-    .append('button')
-      .classed('btn', true)
-      .classed('btn-sm', true)
-      .classed('btn-outline-primary', true)
-      .classed('dropdown-toggle', true)
-      .attr('data-toggle', 'collapse')
-      .attr('data-target', `#${coid}-collapse`)
-      .attr('aria-expanded', 'false')
-      .attr('aria-controls', `${coid}-collapse`)
-      .text('Template builder');
-  const collapse = tmpBox.append('div')
-      .classed('collapse', true)
-      .attr('id', `${coid}-collapse`)
-    .append('div')
-      .classed('tmpbuild', true)
-      .classed('card', true)
-      .classed('card-body', true);
+  const collapse = mbody.append('div')
+      .call(dropdown.dropdownFormGroup, 'Template builder')
+    .select('.card-body');
 
   // Template field
   collapse.append('div')
