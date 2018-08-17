@@ -156,7 +156,7 @@ function execute(selection) {
     params.measure = box.formValue(measure);
   }
   if (!thld.select('input').property('disabled')) {
-    params.threshold = box.numberBoxFloatValue(thld);
+    params.threshold = box.formValue(thld);
   }
   const query = {
     workflow: box.formValue(selection.select('.method')),

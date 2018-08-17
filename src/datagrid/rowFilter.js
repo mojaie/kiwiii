@@ -14,7 +14,7 @@ function setFilter(selection, state) {
   searchBox.select('label').classed('text-right', true);
   searchBox.select('input')
     .on('keyup', function () {
-      state.updateFilterNotifier(box.textBoxValue(searchBox));
+      state.updateFilterNotifier(box.formValue(searchBox));
     });
 }
 

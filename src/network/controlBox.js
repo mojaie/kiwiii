@@ -114,11 +114,11 @@ function updateMainControlBox(selection, state) {
       .call(lbox.updateSelectBoxOptions, thldFields)
       .call(box.updateFormValue, state.connThldField);
   thldGroup.select('.thld')
-      .call(box.formValue, state.currentConnThld);
+      .call(box.updateFormValue, state.currentConnThld);
   thldGroup.selectAll('.field, .thld')
       .on('change', function () {
         const field = box.formValue(thldGroup.select('.field'));
-        const thld = box.numberBoxFloatValue(thldGroup.select('.thld'));
+        const thld = box.formValue(thldGroup.select('.thld'));
         state.connThldField = field;
         state.currentConnThld = thld;
         thldGroup.select('.logd').dispatch('update');
@@ -133,7 +133,7 @@ function updateMainControlBox(selection, state) {
         const n = state.ns.length;
         const combinations = n * (n - 1) / 2;
         const logD = d3.format('.2f')(Math.log10(numEdges / combinations));
-        d3.select(this).call(box.formValue, logD);
+        d3.select(this).call(box.updateReadonlyValue, logD);
       })
       .dispatch('update');
 

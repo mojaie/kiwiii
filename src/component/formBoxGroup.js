@@ -97,7 +97,7 @@ function updateColorRangeGroup(selection, cscale, range, unknown) {
         selection.dispatch('change', {bubbles: true});
       });
   selection.select('.unknown')
-      .call(box.updateColorBox, unknown)
+      .call(box.updateFormValue, unknown)
       .on('focusin', () => {
         selection.dispatch('change', {bubbles: true});
       });
@@ -108,7 +108,7 @@ function colorRangeGroupValue(selection) {
   const colorScale = lbox.colorScaleBoxItem(selection.select('.colorscale'));
   const rtype = box.formValue(selection.select('.rangetype'));
   const range = rbox.colorRangeBoxValues(selection.select('.range'));
-  const unknown = box.colorBoxValue(selection.select('.unknown'));
+  const unknown = box.formValue(selection.select('.unknown'));
   return {
     color: colorScale.key,
     colorScaleType: colorScale.type,
@@ -177,7 +177,7 @@ function scaleBoxGroupValue(selection) {
   const scale = box.formValue(selection.select('.scale'));
   const domain = rbox.rangeBoxValues(selection.select('.domain'));
   return {
-    scale: scale || 'linear', 
+    scale: scale || 'linear',
     domain: domain
   };
 }

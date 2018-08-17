@@ -34,7 +34,7 @@ function updateBody(selection) {
   selection.select('.name')
       .call(box.formValue, null)
       .on('input', function () {  // Validation
-        const keyValid = box.textBoxValue(d3.select(this)) !== '';
+        const keyValid = box.formValue(d3.select(this)) !== '';
         selection.select('.submit').property('disabled', !keyValid);
       })
       .dispatch('input');
@@ -45,7 +45,7 @@ function updateBody(selection) {
 
 function value(selection) {
   return {
-    name: box.textBoxValue(selection.select('.name')),
+    name: box.formValue(selection.select('.name')),
     nulliso: box.checkBoxValue(selection.select('.nulliso'))
   };
 }

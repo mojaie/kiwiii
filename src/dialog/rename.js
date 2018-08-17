@@ -42,7 +42,7 @@ function updateBody(selection, name) {
 
 
 function value(selection) {
-  return box.textBoxValue(selection.select('.rename'));
+  return box.formValue(selection.select('.rename'));
 }
 
 

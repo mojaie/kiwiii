@@ -93,7 +93,7 @@ function updateSizeControlBox(selection, fieldOptions, sizeState) {
   selection.select('.range')
       .call(rbox.updateRangeBox, sizeState.range);
   selection.select('.unknown')
-      .call(box.formValue, sizeState.unknown);
+      .call(box.updateFormValue, sizeState.unknown);
   selection.select('.scale')
       .call(group.updateScaleBoxGroup, sizeState.scale, sizeState.domain);
   selection.selectAll('.range, .unknown')
@@ -111,7 +111,7 @@ function updateSizeControlBox(selection, fieldOptions, sizeState) {
 function sizeRangeValid(selection) {
   if (!rbox.rangeBoxValid(selection.select('.range'))) return false;
   const range = rbox.rangeBoxValues(selection.select('.range'));
-  const unk = box.textBoxValue(selection.select('.unknown'));
+  const unk = box.formValue(selection.select('.unknown'));
   const validUnk = unk !== '' && !isNaN(unk) && unk > 0;
   selection.select('.range').select('.min')
       .style('background-color', range[0] > 0 ? '#ffffff' : '#ffcccc');
@@ -134,7 +134,7 @@ function sizeControlBoxState(selection) {
   return {
     field: box.formValue(selection.select('.field')),
     range: rbox.rangeBoxValues(selection.select('.range')),
-    unknown: box.textBoxValue(selection.select('.unknown')),
+    unknown: box.formValue(selection.select('.unknown')),
     scale: scale.scale,
     domain: scale.domain
   };
@@ -174,9 +174,9 @@ function updateLabelControlBox(selection, fieldOptions,
       .call(box.updateFormValue, labelState.field);
   // nodeLabel.size
   selection.select('.size')
-      .call(box.formValue, labelState.size)
+      .call(box.updateFormValue, labelState.size)
       .on('input', function () {
-        box.numberFloatValid(d3.select(this));
+        box.formValid(d3.select(this));
       });
   // nodeLabelColor
   selection.call(updateColorControlBox, fieldOptions, colorState)
@@ -191,7 +191,7 @@ function updateLabelControlBox(selection, fieldOptions,
 
 
 function labelControlValid(selection) {
-  if (!box.numberFloatValid(selection.select('.size'))) return false;
+  if (!box.formValid(selection.select('.size'))) return false;
   return colorControlValid(selection);
 }
 
@@ -200,7 +200,7 @@ function labelControlBoxState(selection) {
   return {
     label: {
       field: box.formValue(selection.select('.text')),
-      size: box.numberBoxFloatValue(selection.select('.size')),
+      size: box.formValue(selection.select('.size')),
       visible: box.checkBoxValue(selection.select('.visible'))
     },
     labelColor: colorControlBoxState(selection)

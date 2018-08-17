@@ -46,15 +46,15 @@ function updateMainControlBox(selection, state) {
   // Network threshold
   const chunkGroup = selection.select('.panel-group');
   chunkGroup.select('.rowcnt')
-      .call(box.formValue, state.rowCount);
+      .call(box.updateFormValue, state.rowCount);
   chunkGroup.select('.colcnt')
-      .call(box.formValue, state.columnCount);
+      .call(box.updateFormValue, state.columnCount);
   chunkGroup.select('.groupby')
     .call(lbox.updateSelectBoxOptions,
           state.items.fields.filter(e => misc.sortType(e.format) !== 'none'))
     .call(box.updateFormValue, state.groupField || '');
   chunkGroup.select('.crow')
-      .call(box.formValue, state.chunksPerRow);
+      .call(box.updateFormValue, state.chunksPerRow);
   chunkGroup.select('.showcol')
       .call(box.updateCheckBox, state.showColumnNumber);
   chunkGroup.select('.showrow')
