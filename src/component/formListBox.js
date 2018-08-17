@@ -30,11 +30,6 @@ function selectBox(selection, label) {
         const valid = box.formValid(selection);
         selection.call(box.setValidity, valid);
       });
-  selection.append('div')
-      .classed('col-4', true);
-  selection.append('div')
-      .call(badge.invalidFeedback)
-      .classed('col-8', true);
 }
 
 function updateSelectBoxOptions(selection, items) {

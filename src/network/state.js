@@ -208,6 +208,7 @@ export default class NetworkState extends TransformState {
   }
 
   save() {
+    this.coords = this.ns.map(n => ({x: n.x, y: n.y}));
     return idb.updateItem(this.storeID, item => {
       const ni = item.dataset
         .findIndex(e => e.collectionID === this.nodes.collectionID);

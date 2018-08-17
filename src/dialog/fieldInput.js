@@ -49,7 +49,6 @@ function body(selection) {
         const custom = type === 'template';
         selection.selectAll('.tmpbuild .form-control')
             .property('disabled', !custom);
-            // .style('opacity',  custom ? null : 0.3);
       });
 
   // Template builder

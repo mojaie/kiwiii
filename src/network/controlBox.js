@@ -7,6 +7,7 @@ import d3 from 'd3';
 import {default as misc} from '../common/misc.js';
 import {default as cscale} from '../common/scale.js';
 
+import {default as badge} from '../component/badge.js';
 import {default as box} from '../component/formBox.js';
 import {default as cbox} from '../component/controlBox.js';
 import {default as lbox} from '../component/formListBox.js';
@@ -42,7 +43,12 @@ function mainControlBox(selection, state) {
   thldGroup.append('div')
       .classed('thld', true)
       .classed('mb-1', true)
-      .call(box.numberBox, 'Threshold', state.minConnThld, 1.000, 0.01);
+      .call(box.numberBox, 'Threshold')
+      .call(box.updateNumberRange, state.minConnThld, 1, 0.01)
+      .call(badge.updateInvalidMessage,
+            `Please provide a valid range (${state.minConnThld}-1.00)`)
+    .select('.form-control')
+      .attr('required', 'required');
   thldGroup.append('div')
       .classed('logd', true)
       .classed('mb-1', true)
@@ -117,6 +123,7 @@ function updateMainControlBox(selection, state) {
       .call(box.updateFormValue, state.currentConnThld);
   thldGroup.selectAll('.field, .thld')
       .on('change', function () {
+        if(!box.formValid(thldGroup.select('.thld'))) return;
         const field = box.formValue(thldGroup.select('.field'));
         const thld = box.formValue(thldGroup.select('.thld'));
         state.connThldField = field;
@@ -176,15 +183,16 @@ function updateNodeColorControlBox(selection, state) {
   const fieldOptions = state.nodes.fields
     .filter(e => misc.sortType(e.format) !== 'none');
   selection
-    .call(cbox.updateColorControlBox, fieldOptions, state.nodeColor)
-    .on('change', function() {
-      state.nodeColor = cbox.colorControlBoxState(selection);
-      if (state.nodeColor.scale === 'ordinal') {
-        const keys = state.nodes.records().map(e => e[state.nodeColor.field]);
-        state.nodeColor.domain = _.uniq(keys).sort();
-      }
-      state.updateNodeAttrNotifier();
-    });
+      .call(cbox.updateColorControlBox, fieldOptions, state.nodeColor)
+      .on('change', function() {
+        if (!cbox.colorControlValid(selection)) return;
+        state.nodeColor = cbox.colorControlBoxState(selection);
+        if (state.nodeColor.scale === 'ordinal') {
+          const keys = state.nodes.records().map(e => e[state.nodeColor.field]);
+          state.nodeColor.domain = _.uniq(keys).sort();
+        }
+        state.updateNodeAttrNotifier();
+      });
 }
 
 
@@ -195,6 +203,7 @@ function updateEdgeColorControlBox(selection, state) {
   selection
       .call(cbox.updateColorControlBox, fieldOptions, state.edgeColor)
       .on('change', function() {
+        if (!cbox.colorControlValid(selection)) return;
         state.edgeColor = cbox.colorControlBoxState(selection);
         if (state.edgeColor.scale === 'ordinal') {
           const keys = state.edges.records().map(e => e[state.edgeColor.field]);
@@ -211,6 +220,7 @@ function updateNodeSizeControlBox(selection, state) {
   selection
       .call(cbox.updateSizeControlBox, fieldOptions, state.nodeSize)
       .on('change', function() {
+        if (!cbox.sizeControlValid(selection)) return;
         state.nodeSize = cbox.sizeControlBoxState(selection);
         state.updateNodeAttrNotifier();
       });
@@ -224,6 +234,7 @@ function updateEdgeWidthControlBox(selection, state) {
   selection
       .call(cbox.updateSizeControlBox, fieldOptions, state.edgeWidth)
       .on('change', function() {
+        if (!cbox.sizeControlValid(selection)) return;
         state.edgeWidth = cbox.sizeControlBoxState(selection);
         state.updateEdgeAttrNotifier();
       });
@@ -237,6 +248,7 @@ function updateNodeLabelControlBox(selection, state) {
       .call(cbox.updateLabelControlBox, fieldOptions,
             state.nodeLabel, state.nodeLabelColor)
       .on('change', function() {
+        if (!cbox.labelControlValid(selection)) return;
         const values = cbox.labelControlBoxState(selection);
         state.nodeLabel = values.label;
         state.nodeLabelColor = values.labelColor;
@@ -258,6 +270,7 @@ function updateEdgeLabelControlBox(selection, state) {
       .call(cbox.updateLabelControlBox, fieldOptions,
             state.edgeLabel, state.edgeLabelColor)
       .on('change', function() {
+        if (!cbox.labelControlValid(selection)) return;
         const values = cbox.labelControlBoxState(selection);
         state.edgeLabel = values.label;
         state.edgeLabelColor = values.labelColor;

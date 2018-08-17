@@ -3,6 +3,8 @@
 
 import d3 from 'd3';
 
+import {default as badge} from './badge.js';
+
 
 /**
  * Render range box components
@@ -11,76 +13,116 @@ import d3 from 'd3';
 function rangeBox(selection, label) {
   selection
       .classed('form-row', true)
-      .classed('align-items-center', true);
-  selection.append('div')
       .classed('form-group', true)
+      .classed('align-items-center', true)
+    .append('div')
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
-      .classed('col-4', true)
-      .classed('mb-1', true)
       .text(label);
-  const f = selection.append('div')
-      .classed('form-group', true)
-      .classed('col-form-label', true)
-      .classed('col-form-label-sm', true)
-      .classed('col-4', true)
-      .classed('mb-1', true);
-  f.append('label')
-      .classed('col-form-label', true)
-      .classed('col-form-label-sm', true)
-      .classed('py-0', true)
-      .text('min');
-  f.append('input')
-      .classed('form-control', true)
-      .classed('form-control-sm', true)
-      .classed('min', true)
-      .attr('type', 'text');
-  const t = selection.append('div')
+
+  const minBox = selection.append('div');
+  minBox.append('label').text('min');
+  minBox.append('input').classed('min', true);
+
+  const maxBox = selection.append('div');
+  maxBox.append('label').text('max');
+  maxBox.append('input').classed('max', true);
+
+  selection.selectAll('div')
       .classed('form-group', true)
       .classed('col-4', true)
-      .classed('mb-1', true);
-  t.append('label')
+      .classed('mb-0', true);
+
+  selection.selectAll('label')
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
-      .classed('py-0', true)
-      .text('max');
-  t.append('input')
+      .classed('py-0', true);
+
+  selection.selectAll('input')
       .classed('form-control', true)
       .classed('form-control-sm', true)
-      .classed('max', true)
-      .attr('type', 'text');
+      .attr('type', 'number');
+
+  selection.append('div')
+      .classed('col-4', true);
+  selection.append('div')
+      .call(badge.invalidFeedback)
+      .classed('col-8', true);
 }
 
 
-function updateRangeBox(selection, range) {
+function linearRange(selection, min, max, step) {
+  selection.selectAll('.min, .max')
+      .attr('min', min || null)
+      .attr('max', max || null)
+      .attr('step', step || null)
+      .attr('required', 'required')
+      .on('input', function () {
+        const valid = linearValid(this, step);
+        d3.select(this)
+          .style('background-color', valid ? null : '#ffcccc');
+        selection.select('.invalid-feedback')
+          .style('display', linearRangeValid(selection) ? 'none': 'inherit');
+      })
+      .dispatch('input');
+}
+
+
+function logRange(selection) {
+  selection.selectAll('.min, .max')
+      .attr('required', 'required')
+      .on('input', function () {
+        const valid = logValid(this);
+        d3.select(this)
+          .style('background-color', valid ? null : '#ffcccc');
+        selection.select('.invalid-feedback')
+          .style('display', logRangeValid(selection) ? 'none': 'inherit');
+      })
+      .dispatch('input');
+}
+
+
+function updateRangeValues(selection, range) {
   selection.select('.min').property('value', range[0]);
   selection.select('.max').property('value', range[1]);
   selection.selectAll('.min,.max')
-    .on('input', function () {
-      if (!rangeBoxValid(selection)) {
-        d3.event.stopPropagation();
-      }
-    })
-    .dispatch('input', {bubbles: true});
+      .dispatch('input', {bubbles: true});
 }
 
 
-function rangeBoxValid(selection) {
-  const min = selection.select('.min').property('value');
-  const max = selection.select('.max').property('value');
-  const valid = v => v !== '' && !isNaN(v);
-  selection.select('.min')
-      .style('background-color', valid(min) ? '#ffffff' : '#ffcccc');
-  selection.select('.max')
-      .style('background-color', valid(max) ? '#ffffff' : '#ffcccc');
-  return valid(min) && valid(max);
+function linearValid(node, step) {
+  // If step is not specified, accept stepMismatch
+  const stepm = step ? false : node.validity.stepMismatch;
+  return  node.checkValidity() || stepm;
 }
 
 
-function rangeBoxValues(selection) {
+function linearRangeValid(selection) {
+  const step = selection.select('.min').attr('step');
+  const minValid = linearValid(selection.select('.min').node(), step);
+  const maxValid = linearValid(selection.select('.max').node(), step);
+  return minValid && maxValid;
+}
+
+
+function logValid(node) {
+  // Accept stepMismatch
+  const stepm = node.validity.stepMismatch;
+  return (node.checkValidity() || stepm) && node.value > 0;
+}
+
+
+function logRangeValid(selection) {
+  const minPos = logValid(selection.select('.min').node());
+  const maxPos = logValid(selection.select('.max').node());
+  return linearRangeValid(selection) && minPos && maxPos;
+}
+
+
+function rangeValues(selection) {
   return [
-    parseFloat(selection.select('.min').property('value')),
-    parseFloat(selection.select('.max').property('value'))
+    selection.select('.min').property('value'),
+    selection.select('.max').property('value')
   ];
 }
 
@@ -98,14 +140,12 @@ function colorRangeBox(selection, label) {
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
       .classed('col-3', true)
-      .classed('mb-1', true)
       .text(label);
   const f = selection.append('div')
       .classed('form-group', true)
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
-      .classed('col-3', true)
-      .classed('mb-1', true);
+      .classed('col-3', true);
   f.append('label')
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
@@ -120,8 +160,7 @@ function colorRangeBox(selection, label) {
       .classed('form-group', true)
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
-      .classed('col-3', true)
-      .classed('mb-1', true);
+      .classed('col-3', true);
   m.append('label')
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
@@ -136,8 +175,7 @@ function colorRangeBox(selection, label) {
       .classed('form-group', true)
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
-      .classed('col-3', true)
-      .classed('mb-1', true);
+      .classed('col-3', true);
   t.append('label')
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
@@ -156,14 +194,14 @@ function colorRangeBox(selection, label) {
 }
 
 
-function updateColorRangeBox(selection, range) {
+function updateColorRangeValues(selection, range) {
   selection.select('.min').property('value', range[0]);
   selection.select('.mid').property('value', range[1]);
   selection.select('.max').property('value', range[2]);
 }
 
 
-function colorRangeBoxValues(selection) {
+function colorRangeValues(selection) {
   return [
     selection.select('.min').property('value'),
     selection.select('.mid').property('value'),
@@ -173,6 +211,7 @@ function colorRangeBoxValues(selection) {
 
 
 export default {
-  rangeBox, updateRangeBox, rangeBoxValues, rangeBoxValid,
-  colorRangeBox, updateColorRangeBox, colorRangeBoxValues
+  rangeBox, linearRange, logRange, updateRangeValues,
+  rangeValues, linearRangeValid, logRangeValid,
+  colorRangeBox, updateColorRangeValues, colorRangeValues
 };
