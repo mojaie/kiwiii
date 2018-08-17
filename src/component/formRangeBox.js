@@ -134,63 +134,44 @@ function rangeValues(selection) {
 function colorRangeBox(selection, label) {
   selection
       .classed('form-row', true)
+      .classed('form-group', true)
       .classed('align-items-center', true);
   selection.append('div')
-      .classed('form-group', true)
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
-      .classed('col-3', true)
       .text(label);
-  const f = selection.append('div')
+
+  const minBox = selection.append('div');
+  minBox.append('label').text('min');
+  minBox.append('input').classed('min', true);
+
+  const midBox = selection.append('div');
+  midBox.append('label').text('mid');
+  midBox.append('input').classed('mid', true);
+
+  const maxBox = selection.append('div');
+  maxBox.append('label').text('max');
+  maxBox.append('input').classed('max', true);
+
+  selection.on('change', () => {
+    // avoid update by mousemove on the colorpicker
+    d3.event.stopPropagation();
+  });
+
+  selection.selectAll('div')
       .classed('form-group', true)
+      .classed('col-3', true)
+      .classed('mb-0', true);
+
+  selection.selectAll('label')
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
-      .classed('col-3', true);
-  f.append('label')
-      .classed('col-form-label', true)
-      .classed('col-form-label-sm', true)
-      .classed('py-0', true)
-      .text('min');
-  f.append('input')
+      .classed('py-0', true);
+
+  selection.selectAll('input')
       .classed('form-control', true)
       .classed('form-control-sm', true)
-      .classed('min', true)
       .attr('type', 'color');
-  const m = selection.append('div')
-      .classed('form-group', true)
-      .classed('col-form-label', true)
-      .classed('col-form-label-sm', true)
-      .classed('col-3', true);
-  m.append('label')
-      .classed('col-form-label', true)
-      .classed('col-form-label-sm', true)
-      .classed('py-0', true)
-      .text('mid');
-  m.append('input')
-      .classed('form-control', true)
-      .classed('form-control-sm', true)
-      .classed('mid', true)
-      .attr('type', 'color');
-  const t = selection.append('div')
-      .classed('form-group', true)
-      .classed('col-form-label', true)
-      .classed('col-form-label-sm', true)
-      .classed('col-3', true);
-  t.append('label')
-      .classed('col-form-label', true)
-      .classed('col-form-label-sm', true)
-      .classed('py-0', true)
-      .text('max');
-  t.append('input')
-      .classed('form-control', true)
-      .classed('form-control-sm', true)
-      .classed('max', true)
-      .attr('type', 'color');
-  selection
-      .on('change', () => {
-        // avoid update by mousemove on the colorpicker
-        d3.event.stopPropagation();
-      });
 }
 
 

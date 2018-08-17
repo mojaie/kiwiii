@@ -86,7 +86,7 @@ function updateColorRangeGroup(selection, cscale, range, unknown) {
 }
 
 
-function colorRangeGroupValue(selection) {
+function colorGroupValues(selection) {
   const colorScale = lbox.colorScaleBoxItem(selection.select('.colorscale'));
   const rtype = box.formValue(selection.select('.rangetype'));
   const range = rbox.colorRangeValues(selection.select('.range'));
@@ -148,7 +148,7 @@ function scaleBoxGroupValid(selection) {
 }
 
 
-function scaleBoxGroupValue(selection) {
+function scaleGroupValues(selection) {
   const scale = box.formValue(selection.select('.scale'));
   const domain = rbox.rangeValues(selection.select('.domain'));
   return {
@@ -159,6 +159,6 @@ function scaleBoxGroupValue(selection) {
 
 
 export default {
-  colorRangeGroup, updateColorRangeGroup, colorRangeGroupValue,
-  scaleBoxGroup, updateScaleBoxGroup, scaleBoxGroupValue, scaleBoxGroupValid
+  colorRangeGroup, updateColorRangeGroup, colorGroupValues,
+  scaleBoxGroup, updateScaleBoxGroup, scaleGroupValues, scaleBoxGroupValid
 };

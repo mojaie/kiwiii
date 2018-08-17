@@ -42,7 +42,7 @@ function mainControlBox(selection) {
 }
 
 
-function updateMainControlBox(selection, state) {
+function updateMainControl(selection, state) {
   // Network threshold
   const chunkGroup = selection.select('.panel-group');
   chunkGroup.select('.rowcnt')
@@ -76,9 +76,9 @@ function updateTileColorControlBox(selection, state) {
   const fieldOptions = state.items.fields
     .filter(e => misc.sortType(e.format) !== 'none');
   selection
-    .call(cbox.updateColorControlBox, fieldOptions, state.tileColor)
+    .call(cbox.updateColorControl, fieldOptions, state.tileColor)
     .on('change', function() {
-      state.tileColor = cbox.colorControlBoxState(selection);
+      state.tileColor = cbox.colorControlState(selection);
       if (state.tileColor.scale === 'ordinal') {
         const keys = state.items.records().map(e => e[state.tileColor.field]);
         state.tileColor.domain = _.uniq(keys).sort();
@@ -92,10 +92,10 @@ function updateTileValueControlBox(selection, state) {
   const fieldOptions = state.items.fields
     .filter(e => misc.sortType(e.format) !== 'none');
   selection
-      .call(cbox.updateLabelControlBox, fieldOptions,
+      .call(cbox.updateLabelControl, fieldOptions,
             state.tileValue, state.tileValueColor)
       .on('change', function() {
-        const values = cbox.labelControlBoxState(selection);
+        const values = cbox.labelControlState(selection);
         state.tileValue = values.label;
         state.tileValueColor = values.labelColor;
         if (state.tileValueColor.scale === 'ordinal') {
@@ -152,7 +152,7 @@ function controlBox(selection, state) {
 
 function updateControlBox(selection, state) {
   selection.select('.control-main')
-      .call(updateMainControlBox, state);
+      .call(updateMainControl, state);
   selection.select('.control-color')
       .call(updateTileColorControlBox, state);
   selection.select('.control-value')

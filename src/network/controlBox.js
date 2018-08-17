@@ -91,7 +91,7 @@ function mainControlBox(selection, state) {
 }
 
 
-function updateMainControlBox(selection, state) {
+function updateMainControl(selection, state) {
   // Zoom
   selection.select('.fit')
       .on('click', function () { state.fitNotifier(); });
@@ -179,14 +179,14 @@ function updateMainControlBox(selection, state) {
 }
 
 
-function updateNodeColorControlBox(selection, state) {
+function updateNodeColorControl(selection, state) {
   const fieldOptions = state.nodes.fields
     .filter(e => misc.sortType(e.format) !== 'none');
   selection
-      .call(cbox.updateColorControlBox, fieldOptions, state.nodeColor)
+      .call(cbox.updateColorControl, fieldOptions, state.nodeColor)
       .on('change', function() {
         if (!cbox.colorControlValid(selection)) return;
-        state.nodeColor = cbox.colorControlBoxState(selection);
+        state.nodeColor = cbox.colorControlState(selection);
         if (state.nodeColor.scale === 'ordinal') {
           const keys = state.nodes.records().map(e => e[state.nodeColor.field]);
           state.nodeColor.domain = _.uniq(keys).sort();
@@ -196,15 +196,15 @@ function updateNodeColorControlBox(selection, state) {
 }
 
 
-function updateEdgeColorControlBox(selection, state) {
+function updateEdgeColorControl(selection, state) {
   const fieldOptions = state.edges.fields
     .filter(e => misc.sortType(e.format) !== 'none')
     .filter(e => !['source', 'target'].includes(e.key));
   selection
-      .call(cbox.updateColorControlBox, fieldOptions, state.edgeColor)
+      .call(cbox.updateColorControl, fieldOptions, state.edgeColor)
       .on('change', function() {
         if (!cbox.colorControlValid(selection)) return;
-        state.edgeColor = cbox.colorControlBoxState(selection);
+        state.edgeColor = cbox.colorControlState(selection);
         if (state.edgeColor.scale === 'ordinal') {
           const keys = state.edges.records().map(e => e[state.edgeColor.field]);
           state.edgeColor.domain = _.uniq(keys).sort();
@@ -214,42 +214,42 @@ function updateEdgeColorControlBox(selection, state) {
 }
 
 
-function updateNodeSizeControlBox(selection, state) {
+function updateNodeSizeControl(selection, state) {
   const fieldOptions = state.nodes.fields
     .filter(e => misc.sortType(e.format) !== 'none');
   selection
-      .call(cbox.updateSizeControlBox, fieldOptions, state.nodeSize)
+      .call(cbox.updateSizeControl, fieldOptions, state.nodeSize)
       .on('change', function() {
         if (!cbox.sizeControlValid(selection)) return;
-        state.nodeSize = cbox.sizeControlBoxState(selection);
+        state.nodeSize = cbox.sizeControlState(selection);
         state.updateNodeAttrNotifier();
       });
 }
 
 
-function updateEdgeWidthControlBox(selection, state) {
+function updateEdgeWidthControl(selection, state) {
   const fieldOptions = state.edges.fields
     .filter(e => misc.sortType(e.format) !== 'none')
     .filter(e => !['source', 'target'].includes(e.key));
   selection
-      .call(cbox.updateSizeControlBox, fieldOptions, state.edgeWidth)
+      .call(cbox.updateSizeControl, fieldOptions, state.edgeWidth)
       .on('change', function() {
         if (!cbox.sizeControlValid(selection)) return;
-        state.edgeWidth = cbox.sizeControlBoxState(selection);
+        state.edgeWidth = cbox.sizeControlState(selection);
         state.updateEdgeAttrNotifier();
       });
 }
 
 
-function updateNodeLabelControlBox(selection, state) {
+function updateNodeLabelControl(selection, state) {
   const fieldOptions = state.nodes.fields
     .filter(e => misc.sortType(e.format) !== 'none');
   selection
-      .call(cbox.updateLabelControlBox, fieldOptions,
+      .call(cbox.updateLabelControl, fieldOptions,
             state.nodeLabel, state.nodeLabelColor)
       .on('change', function() {
         if (!cbox.labelControlValid(selection)) return;
-        const values = cbox.labelControlBoxState(selection);
+        const values = cbox.labelControlState(selection);
         state.nodeLabel = values.label;
         state.nodeLabelColor = values.labelColor;
         if (state.nodeLabelColor.scale === 'ordinal') {
@@ -262,16 +262,16 @@ function updateNodeLabelControlBox(selection, state) {
 }
 
 
-function updateEdgeLabelControlBox(selection, state) {
+function updateEdgeLabelControl(selection, state) {
   const fieldOptions = state.edges.fields
     .filter(e => misc.sortType(e.format) !== 'none')
     .filter(e => !['source', 'target'].includes(e.key));
   selection
-      .call(cbox.updateLabelControlBox, fieldOptions,
+      .call(cbox.updateLabelControl, fieldOptions,
             state.edgeLabel, state.edgeLabelColor)
       .on('change', function() {
         if (!cbox.labelControlValid(selection)) return;
-        const values = cbox.labelControlBoxState(selection);
+        const values = cbox.labelControlState(selection);
         state.edgeLabel = values.label;
         state.edgeLabelColor = values.labelColor;
         if (state.edgeLabelColor.scale === 'ordinal') {
@@ -362,19 +362,19 @@ function controlBox(selection, state) {
 
 function updateControlBox(selection, state) {
   selection.select('.control-main')
-      .call(updateMainControlBox, state);
+      .call(updateMainControl, state);
   selection.select('.control-color')
-      .call(updateNodeColorControlBox, state);
+      .call(updateNodeColorControl, state);
   selection.select('.control-size')
-      .call(updateNodeSizeControlBox, state);
+      .call(updateNodeSizeControl, state);
   selection.select('.control-label')
-      .call(updateNodeLabelControlBox, state);
+      .call(updateNodeLabelControl, state);
   selection.select('.control-edgecolor')
-      .call(updateEdgeColorControlBox, state);
+      .call(updateEdgeColorControl, state);
   selection.select('.control-edgewidth')
-      .call(updateEdgeWidthControlBox, state);
+      .call(updateEdgeWidthControl, state);
   selection.select('.control-edgelabel')
-      .call(updateEdgeLabelControlBox, state);
+      .call(updateEdgeLabelControl, state);
 }
 
 
