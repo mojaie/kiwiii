@@ -4,7 +4,9 @@
 import d3 from 'd3';
 
 import {default as misc} from '../common/misc.js';
+import {default as scale} from '../common/scale.js';
 
+import {default as badge} from '../component/badge.js';
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as lbox} from '../component/formListBox.js';
@@ -28,10 +30,6 @@ function body(selection) {
   mbody.append('div')
       .classed('key', true)
       .call(box.textBox, 'Field key')
-      .on('input', function() {
-        const valid = dialogFormValid(selection);
-        selection.select('.submit').property('disabled', !valid);
-      })
     .select('.form-control')
       .attr('required', 'required');
 
@@ -55,7 +53,7 @@ function body(selection) {
 
   // Template builder
   const coid = misc.uuidv4().slice(0, 8);
-  const tmpBox = body.append('div')
+  const tmpBox = mbody.append('div')
       .classed('mb-3', true);
   tmpBox.append('p')
     .append('button')
@@ -85,7 +83,7 @@ function body(selection) {
         const rcd = lbox.selectedRecord(d3.select(this));
         const notation = rcd.d3_format ? `:${rcd.d3_format}` : '';
         selection.select('.notation')
-            .call(box.updateFormValue, `{${rcd.key}${notation}}`);
+            .call(box.updateReadonlyValue, `{${rcd.key}${notation}}`);
       });
 
   // Notation
@@ -96,22 +94,41 @@ function body(selection) {
   // Template input
   collapse.append('div')
       .classed('contents', true)
-      .call(box.textareaBox, 'Contents', 5)
-      .on('input', function () {
-        const valid = dialogFormValid(selection);
-        selection.select('.submit').property('disabled', valid);
-      });
+      .call(box.textareaBox, 'Contents', 5);
 }
 
 
 function updateBody(selection, fields) {
-  selection.select('.key').call(box.formValue, '');
-  selection.select('.type').call(box.updateFormValue, 'checkbox');
+  selection.select('.key')
+      .call(box.updateFormValue, '')
+      .on('input', function() {
+        const value = box.formValue(d3.select(this));
+        const noDup = keyNoDup(d3.select(this), fields);
+        if (!noDup) box.setValidity(d3.select(this), false);
+        const invmsg = noDup ? 'Please provide valid field name'
+          : `Key '${value}' already exsists`;
+        d3.select(this).call(badge.updateInvalidMessage, invmsg);
+        const valid = dialogFormValid(selection, fields);
+        selection.select('.submit').property('disabled', !valid);
+      });
+  selection.select('.type')
+      .call(box.updateFormValue, 'checkbox')
+      .on('change', function () {
+        const valid = dialogFormValid(selection, fields);
+        selection.select('.submit').property('disabled', !valid);
+      });
   const tmpFields = fields.filter(e => misc.sortType(e.format) !== 'none');
   selection.select('.tmpfield')
       .call(lbox.updateSelectBoxOptions, tmpFields)
-      .call(box.updateFormValue, 'index');
-  selection.select('.contents').call(box.updateFormValue, '');
+      .call(box.updateFormValue, 'index')
+      .dispatch('change');
+  selection.select('.contents')
+      .call(box.updateFormValue, '')
+      .on('input', function () {
+        const valid = dialogFormValid(selection, fields);
+        selection.select('.submit').property('disabled', !valid);
+      });
+  selection.select('.submit').property('disabled', true);
 }
 
 
@@ -143,51 +160,46 @@ const formatterGen = {
 };
 
 
+function keyNoDup(selection, fields) {
+  const value = box.formValue(selection);
+  return !fields.map(e => e.key).includes(value);
+}
+
+
+function contentsValid(selection, tmpFields) {
+  const value = box.formValue(selection);
+  const valid = box.formValid(selection);
+  const outer = value.split(/\{.+?\}/g);
+  const inner = (value.match(/\{.+?\}/g) || []).map(e => e.slice(1, -1));
+  const validKey = inner.some(n => {
+    const ns = n.split(':');
+    if (!tmpFields.map(e => e.key).includes(ns[0])) return false;
+    if (ns.length > 2) return false;
+    if (ns.length === 1) return true;
+    return scale.isD3Format(ns[1]);
+  });
+  const validFormat = outer.concat(inner)
+    .every(n => !n.includes('{') && !n.includes('}'));
+  return valid && validKey && validFormat;
+}
+
 function dialogFormValid(selection, fields) {
-  const keyValue = box.formValue(selection.select('.key'));
-  const keyValid = box.formValid(selection.select('.key'));
-  const keyUnique = !fields.map(e => e.key).includes(keyValue);
-  const tmpFields = selection.select('.tmpfield').data();
-  // TODO: move to body
-  const cont = box.formValue(selection.select('.contents'));
-  const contValid = box.formValid(selection.select('.contents'));
-  const contOuter = cont.split(/\{.+?\}/g);
-  const contInner = (cont.match(/\{.+?\}/g) || []).map(e => e.slice(1, -1));
-  const contInvalidKey = contInner
-    .some(n => {
-      const ns = n.split(':');
-      if (!tmpFields.map(e => e.key).includes(ns[0])) return true;
-      if (ns.length > 2) return true;
-      if (ns.length === 1) return false;
-      try {
-        d3.format(ns[1]);
-      } catch(err) {
-        return true;
-      }
-      return false;
-    });
-  const contInvalidFormat = contOuter.concat(contInner)
-    .some(n => n.includes('{') || n.includes('}'));
-  const contValid = !(contEmpty || contInvalidKey || contInvalidFormat);
-  selection.select('.contents').select('textarea')
-    .style('background-color', contValid ? '#ffffff' : '#ffcccc');
-  if (!keyValid) return false;
-  if (box.formValue(selection.select('.type')) !== 'template') {
-    return true;
-  }
-  return contValid;
+  const isTmp = box.formValue(selection.select('.type')) === 'template';
+  const keyv = box.formValid(selection.select('.key'));
+  const noDup = keyNoDup(selection.select('.key'), fields);
+  const tmpFields = fields.filter(e => misc.sortType(e.format) !== 'none');
+  const contv = contentsValid(selection.select('.contents'), tmpFields);
+  return keyv && noDup && (!isTmp || contv);
 }
 
 
 function value(selection) {
-  const key = box.textBoxValue(selection.select('.key'));
-  const type = box.formValue(selection.select('.type'));
-  const format = selection.select('.type').selectAll('option').data()
-    .find(e => e.key === type).format;
-  const cont = box.textareaBoxValue(selection.select('.contents'));
+  const key = box.formValue(selection.select('.key'));
+  const typeField = lbox.selectedRecord(selection.select('.type'));
+  const cont = box.formValue(selection.select('.contents'));
   return {
-    field: {key: key, name: key, format: format},
-    converter: formatterGen[type](cont)
+    field: {key: key, name: key, format: typeField.format},
+    converter: formatterGen[typeField.key](cont)
   };
 }
 

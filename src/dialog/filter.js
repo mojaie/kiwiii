@@ -109,13 +109,14 @@ function updateBody(selection, resources) {
       .call(box.updateFormValue, fields[0].key)
       .dispatch('change');
   selection.select('.operator').call(box.updateFormValue, 'eq');
-  selection.select('.textvalue').call(box.formValue, null);
-  selection.select('.numvalue').call(box.formValue, null);
+  selection.select('.textvalue').call(box.updateFormValue, null);
+  selection.select('.numvalue').call(box.updateFormValue, null);
   const res = resources.map(d => ({key: d.id, name: d.name}));
   selection.select('.target')
       .call(lbox.updateChecklistItems, res)
       .call(lbox.checkRequired)
       .call(lbox.updateChecklistValues, []);
+  selection.select('.submit').property('disabled', true);
 }
 
 

@@ -56,9 +56,7 @@ function body(selection) {
               .call(lbox.checkRequired);
             selection.select('.submit').property('disabled', true);
           });
-      })
-    .select('.invalid-feedback')
-      .call(badge.updateInvalidMessage, 'Please choose a file');
+      });
 
   // Select fields to import
   dialog.select('.modal-body').append('div')
@@ -83,7 +81,9 @@ function body(selection) {
 
 function updateBody(selection) {
   selection.select('.file')
-      .call(box.clearFileInput);
+      .call(box.clearFileInput)
+    .select('.invalid-feedback')
+      .call(badge.updateInvalidMessage, 'Please choose a file');
   selection.select('.field')
       .call(lbox.updateChecklistItems, [])
       .call(lbox.updateChecklistValues, []);

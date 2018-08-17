@@ -43,7 +43,7 @@ function body(selection) {
   const thldBox = mbody.append('div')
       .classed('thld', true)
       .call(box.numberBox, 'Threshold')
-      .call(box.updateNumberRange, 0.4, 1, 0.01)
+      .call(box.updateNumberRange, 0.01, 1, 0.01)
       .on('input', function() {
         const valid = dialogFormValid(selection);
         selection.select('.submit').property('disabled', !valid);
@@ -52,7 +52,7 @@ function body(selection) {
       .attr('required', 'required');
   thldBox.select('.invalid-feedback')
       .call(badge.updateInvalidMessage,
-            'Please provide a valid number (0.40 to 1.00)');
+            'Please provide a valid number (0.01 to 1.00)');
 
   // Similarity search options
   mbody.append('div')
@@ -77,7 +77,7 @@ function updateBody(selection, rdk) {
   selection.select('.measure')
       .call(lbox.updateSelectBoxOptions, measures)
       .call(box.updateFormValue, 'gls');
-  selection.select('.thld').call(box.formValue, 0.5);
+  selection.select('.thld').call(box.updateFormValue, 0.5);
   selection.select('.option')
       .call(group.updateSimOptionValues,
             {ignoreHs: true, timeout: 2, diameter: 8});

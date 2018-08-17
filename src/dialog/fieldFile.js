@@ -8,6 +8,7 @@ import {default as misc} from '../common/misc.js';
 import {default as hfile} from '../common/file.js';
 import {default as himg} from '../common/image.js';
 
+import {default as badge} from '../component/badge.js';
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as lbox} from '../component/formListBox.js';
@@ -26,23 +27,49 @@ function menuLink(selection) {
 
 
 function body(selection) {
-  const dialog = selection.call(modal.submitDialog, id, title);
-  const body = dialog.select('.modal-body');
-  body.append('div')
+  const mbody = selection.call(modal.submitDialog, id, title)
+      .select('.modal-body');
+
+  // File input
+  mbody.append('div')
       .classed('file', true)
-      .call(box.fileInputBox, 'File', '.json,.csv');
-  body.append('div')
+      .call(box.fileInputBox, 'File', '.json,.csv')
+      .on('change', function () {
+        const valid = box.fileInputValid(d3.select(this));
+        selection.select('.submit').property('disabled', !valid);
+        if (!valid) return;
+        const file = box.fileInputValue(d3.select(this));
+        return hfile.readFile(file)
+          .then(res => {
+            const isCsv = file.name.split('.').pop() === 'csv';
+            const mapping = isCsv ? mapper.csvToMapping(res) : JSON.parse(res);
+            const tbl = mapper.mappingToTable(mapping);
+            selection.select('.right')
+              .call(lbox.updateSelectBoxOptions,
+                    [{key: mapping.key, name: mapping.key}])
+              .call(box.updateFormValue, mapping.key);
+            selection.select('.preview')
+              .call(table.update, tbl.fields, tbl.records.slice(0, 5));
+          });
+      });
+
+  // Left join key
+  mbody.append('div')
       .classed('left', true)
       .call(lbox.selectBox, 'Datagrid ID');
-  body.append('div')
+
+  // Right join key
+  mbody.append('div')
       .classed('right', true)
       .call(lbox.selectBox, 'File ID')
     .select('select')
       .property('disabled', true);
-  body.append('h5')
+
+  // Preview
+  mbody.append('h5')
       .classed('mt-2', true)
       .text('Preview');
-  body.append('div')
+  mbody.append('div')
       .classed('preview', true)
       .call(table.table, [], [], null, 210);
 }
@@ -59,28 +86,9 @@ function updateBody(selection, fields) {
       .call(table.update, [], []);
   selection.select('.file')
       .call(box.clearFileInput)
-      .on('change', function () {
-        const file = box.fileInputBoxValue(d3.select(this));
-        d3.select(this).dispatch('validate');
-        const isCsv = file.name.split('.').pop() === 'csv';
-        hfile.readFile(file)
-          .then(res => {
-            const mapping = isCsv ? mapper.csvToMapping(res) : JSON.parse(res);
-            const tbl = mapper.mappingToTable(mapping);
-            selection.select('.right')
-              .call(lbox.updateSelectBoxOptions,
-                    [{key: mapping.key, name: mapping.key}])
-              .call(box.updateFormValue, mapping.key);
-            selection.select('.preview')
-              .call(table.update, tbl.fields, tbl.records.slice(0, 5));
-          });
-      })
-      .on('validate', function () { // Input validation
-        const fileSelected = box.fileInputBoxValue(d3.select(this));
-        selection.select('.submit')
-          .property('disabled', !fileSelected);
-      })
-      .dispatch('validate');
+    .select('.invalid-feedback')
+      .call(badge.updateInvalidMessage, 'Please choose a file');
+  selection.select('.submit').property('disabled', true);
 }
 
 

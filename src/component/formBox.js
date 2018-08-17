@@ -73,6 +73,14 @@ function readonlyBox(selection, label) {
       .attr('readonly', 'readonly');
 }
 
+function updateReadonlyValue(selection, value) {
+  selection.select('.form-control-plaintext').property('value', value);
+}
+
+function readonlyValue(selection) {
+  return selection.select('.form-control-plaintext').property('value');
+}
+
 
 function textareaBox(selection, label, rows, placeholder) {
   selection
@@ -247,7 +255,7 @@ function fileInputValid(selection) {
 
 export default {
   updateFormValue, formValue, formValid, setValidity,
-  textBox, readonlyBox,
+  textBox, readonlyBox, updateReadonlyValue, readonlyValue,
   textareaBox, textareaBoxLines, textareaValid,
   numberBox, updateNumberRange,
   checkBox, updateCheckBox, checkBoxValue,
