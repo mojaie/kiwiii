@@ -32,7 +32,7 @@ function compatibility() {
 
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
-    if (!debug) {
+    if (!isDebugBuild) {  // Grobal isDebugBuild (see rollup.js)
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('../sw.js');  // TODO: root path option
       });
