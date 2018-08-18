@@ -195,6 +195,7 @@ function app() {
       });
   // Delete all
   menubar.append('a')
+      .classed('reset', true)
       .call(button.menuModalLink, 'reset-dialog',
             'Reset local datastore', 'warning', 'delete-gray');
   // Status
@@ -365,9 +366,11 @@ function updateApp() {
     // update stored package tree
     return idb.getAllItems().then(items => {
       const treeNodes = [{storeID: 'root'}];
+      const ogs = [];
       items.forEach(pkg => {
         pkg.parent = 'root';
         pkg.ongoing = specs.isRunning(pkg);
+        ogs.push(pkg.ongoing);
         treeNodes.push(pkg);
         pkg.views.forEach(view => {
           view.parent = pkg.storeID;
@@ -390,8 +393,10 @@ function updateApp() {
           treeNodes.push(view);
         });
       });
-      d3.select('#contents').select('.stored')
-        .call(tree.treeItems, treeNodes, d => d.storeID, nodeFactory);
+      d3.select('.reset')
+          .classed('disabled', ogs.some(e => e));
+      d3.select('.stored')
+          .call(tree.treeItems, treeNodes, d => d.storeID, nodeFactory);
       onLoading.style('display', 'none');
     });
   });
@@ -410,6 +415,7 @@ function run() {
   // TODO: offline mode flags
   const localFile = document.location.protocol !== "file:";  // TODO
   const offLine = 'onLine' in navigator && !navigator.onLine;  // TODO
+  console.info(`Kiwiii version ${kwVersion}`)
   client.registerServiceWorker();
   app();
 }

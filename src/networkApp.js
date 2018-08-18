@@ -186,7 +186,7 @@ function updateApp(state) {
 
   // Community detection dialog
   dialogs.select('.communityd')
-      .call(communityDialog.updateBody)
+      .call(communityDialog.updateBody, state.nodes.fields)
       .on('submit', function () {
         onLoading.style('display', 'inline-block');
         const value = communityDialog.value(d3.select(this));

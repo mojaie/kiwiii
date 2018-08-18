@@ -33,7 +33,7 @@ function body(selection) {
   // File input
   mbody.append('div')
       .classed('file', true)
-      .call(box.fileInputBox, 'File', '.json,.csv')
+      .call(box.fileInputBox, 'File (JSON mapping or CSV)', '.json,.csv')
       .on('change', function () {
         const valid = box.fileInputValid(d3.select(this));
         selection.select('.submit').property('disabled', !valid);
@@ -86,8 +86,7 @@ function updateBody(selection, fields) {
       .call(table.update, [], []);
   selection.select('.file')
       .call(box.clearFileInput)
-    .select('.invalid-feedback')
-      .call(badge.updateInvalidMessage, 'Please choose a file');
+      .call(badge.updateInvalidMessage, 'Please choose a valid file');
   selection.select('.submit').property('disabled', true);
 }
 

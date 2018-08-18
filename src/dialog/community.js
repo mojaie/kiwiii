@@ -3,6 +3,7 @@
 
 import d3 from 'd3';
 
+import {default as badge} from '../component/badge.js';
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as modal} from '../component/modal.js';
@@ -18,28 +19,40 @@ function menuLink(selection) {
 
 
 function body(selection) {
-  const dialog = selection.call(modal.submitDialog, id, title);
+  const mbody = selection.call(modal.submitDialog, id, title)
+      .select('.modal-body');
+
   // Name
-  dialog.select('.modal-body').append('div')
+  mbody.append('div')
       .classed('name', true)
-      .call(box.textBox, 'New name');
+      .call(box.textBox, 'New name')
+    .select('.form-control')
+      .attr('required', 'required');
+
   // Assign null to isolated nodes
-  dialog.select('.modal-body').append('div')
+  mbody.append('div')
       .classed('nulliso', true)
       .call(box.checkBox, 'Assign null to isolated nodes');
 }
 
 
-function updateBody(selection) {
+function updateBody(selection, fields) {
   selection.select('.name')
       .call(box.formValue, null)
-      .on('input', function () {  // Validation
-        const keyValid = box.formValue(d3.select(this)) !== '';
-        selection.select('.submit').property('disabled', !keyValid);
-      })
-      .dispatch('input');
+      .on('input', function() {
+        const value = box.formValue(d3.select(this));
+        const noDup = !fields.map(e => e.key).includes(value);
+        if (!noDup) box.setValidity(d3.select(this), false);
+        const invmsg = noDup ? 'Please provide valid field name'
+          : `Key '${value}' already exsists`;
+        d3.select(this).call(badge.updateInvalidMessage, invmsg);
+        const valid = noDup && box.formValid(d3.select(this));
+        selection.select('.submit').property('disabled', !valid);
+      });
+
   selection.select('.nulliso')
       .call(box.updateCheckBox, true);
+  selection.select('.submit').property('disabled', true);
 }
 
 
