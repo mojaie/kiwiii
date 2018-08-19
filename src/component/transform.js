@@ -1,6 +1,8 @@
 
 /** @module component/transform */
 
+import {default as legend} from '../component/legend.js';
+
 
 function transform(selection, tx, ty, tk) {
   selection.select('.field')
@@ -62,6 +64,13 @@ function view(selection, state) {
     .transition()
       .duration(1000)
       .style('opacity', 1);
+
+  const legendGroup = selection.append('g')
+      .classed('legendg', true);
+  legendGroup.append('g')
+      .call(legend.colorBarLegend)
+      .call(legend.updateColorBarLegend, state.nodeColor);
+  legendGroup.call(legend.updateLegendGroup, state.viewBox, 'top-left');
 }
 
 

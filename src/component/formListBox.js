@@ -171,6 +171,8 @@ function colorScaleBoxItems(selection, items) {
     .append('svg')
       .each(function (d) {
         d3.select(this)
+          .attr('viewBox', '0 0 100 10')
+          .attr('preserveAspectRatio', 'none')
           .call(shape.colorBar[d.type], d.colors, d.text)
           .call(shape.setSize, 100, 10);
       });
@@ -181,6 +183,8 @@ function setSelectedColorScale(selection, item) {
   selected.selectAll('svg').remove();
   selected.datum(item);  // Bind selected item record
   selected.append('svg')
+      .attr('viewBox', '0 0 100 10')
+      .attr('preserveAspectRatio', 'none')
       .call(shape.colorBar[item.type], item.colors, item.text)
       .call(shape.setSize, 100, 10);
 }

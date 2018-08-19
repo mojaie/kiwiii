@@ -5,8 +5,6 @@ import {default as misc} from '../common/misc.js';
 
 
 function monocolorBar(selection, colors, text) {
-  selection.attr('viewBox', '0 0 100 10')
-      .attr('preserveAspectRatio', 'none');
   const group = selection.append('g');
   group.append('rect')
       .attr('x', 0).attr('y', 0)
@@ -50,8 +48,6 @@ function tricolorBar(selection, colors, text) {
 }
 
 function categoricalBar(selection, colors, text) {
-  selection.attr('viewBox', '0 0 100 10')
-      .attr('preserveAspectRatio', 'none');
   const sw = 100 / colors.length;
   const group = selection.append('g');
   colors.forEach((e, i) => {
