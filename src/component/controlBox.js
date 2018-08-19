@@ -32,6 +32,11 @@ function colorControlBox(selection, colorScales, fieldName) {
   selection.append('div')
       .classed('scale', true)
       .call(group.scaleBoxGroup);
+
+  // Legend
+  selection.append('div')
+      .classed('legend', true)
+      .call(box.checkBox, 'Show legend');
 }
 
 
@@ -45,6 +50,8 @@ function updateColorControl(selection, fieldOptions, colorState) {
   selection.select('.scale')
       .call(group.updateScaleBoxGroup, colorState.scale, colorState.domain)
       .dispatch('change');
+  selection.select('.legend')
+      .call(box.updateCheckBox, colorState.legend);
 }
 
 
@@ -62,7 +69,8 @@ function colorControlState(selection) {
     range: range.range,
     unknown: range.unknown,
     scale: range.colorScaleType === 'categorical' ? 'ordinal': scale.scale,
-    domain: scale.domain
+    domain: scale.domain,
+    legend: box.checkBoxValue(selection.select('.legend'))
   };
 }
 

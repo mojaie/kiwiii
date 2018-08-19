@@ -24,6 +24,9 @@ export default class NetworkState extends TransformState {
     this.enableOverlookView = true;
     this.overlookView = false;
 
+    // Legend orientation
+    this.legendOrient = 'top-left';
+
     /* Attributes */
 
     this.viewID = view.viewID || null;
@@ -40,13 +43,14 @@ export default class NetworkState extends TransformState {
     this.nodeColor = {
       field: defaultNodeField, color: 'nodeDefault',
       scale: 'linear', domain: [0, 1],
-      range: ['#7fffd4', '#7fffd4'], unknown: '#7fffd4'
+      range: ['#7fffd4', '#7fffd4'], unknown: '#7fffd4',
+      legend: true
     };
     Object.assign(this.nodeColor, view.nodeColor || {});
 
     this.nodeSize = {
       field: defaultNodeField, scale: 'linear', domain: [1, 1],
-      range: [40, 40], unknown: 40
+      range: [40, 40], unknown: 40, legend: false
     };
     Object.assign(this.nodeSize, view.nodeSize || {});
 
@@ -58,7 +62,8 @@ export default class NetworkState extends TransformState {
     this.nodeLabelColor = {
       field: defaultNodeField, color: 'monoblack',
       scale: 'linear', domain: [1, 1],
-      range: ['#333333', '#333333'], unknown: '#cccccc'
+      range: ['#333333', '#333333'], unknown: '#cccccc',
+      legend: false
     };
     Object.assign(this.nodeLabelColor, view.nodeLabelColor || {});
 
@@ -108,6 +113,7 @@ export default class NetworkState extends TransformState {
     this.updateEdgeNotifier = null;
     this.updateNodeAttrNotifier = null;
     this.updateEdgeAttrNotifier = null;
+    this.updateLegendNotifier = null;
     this.updateControlBoxNotifier = () => {};
     this.updateInteractionNotifier = () => {};
     this.fitNotifier = () => {};

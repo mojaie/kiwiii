@@ -6,6 +6,7 @@ import d3 from 'd3';
 import {default as scale} from '../common/scale.js';
 import {default as misc} from '../common/misc.js';
 
+import {default as legend} from '../component/legend.js';
 import {default as transform} from '../component/transform.js';
 
 
@@ -196,7 +197,9 @@ function networkView(selection, state) {
   const field = selection.select('.field');
   const edges = field.append('g').classed('nw-edges', true);
   const nodes = field.append('g').classed('nw-nodes', true);
-
+  const legendGroup = selection.append('g').classed('legends', true);
+  legendGroup.append('g').classed('nodecolor', true)
+      .call(legend.colorBarLegend);
   // Apply changes in datasets
   state.updateAllNotifier = () => {
     state.updateWorkingCopy();
@@ -206,6 +209,7 @@ function networkView(selection, state) {
   };
   // Apply changes in nodes and edges displayed
   state.updateComponentNotifier = () => {
+    state.updateLegendNotifier();
     const coords = state.ns.map(e => ({x: e.x, y: e.y}));
     state.setAllCoords(coords);
     selection.call(updateComponents, state);
@@ -213,15 +217,24 @@ function networkView(selection, state) {
   };
   state.updateNodeNotifier = () => {
     nodes.call(updateNodes, state.nodesToRender());
+    state.updateLegendNotifier();
   };
   state.updateEdgeNotifier = () => {
     edges.call(updateEdges, state.edgesToRender());
   };
   state.updateNodeAttrNotifier = () => {
     nodes.call(updateNodeAttrs, state);
+    state.updateLegendNotifier();
   };
   state.updateEdgeAttrNotifier = () => {
     edges.call(updateEdgeAttrs, state);
+  };
+  state.updateLegendNotifier = () => {
+    legendGroup.call(legend.updateLegendGroup,
+                     state.viewBox, state.legendOrient);
+    legendGroup.select('.nodecolor')
+        .attr('visibility', state.nodeColor.legend ? 'inherit' : 'hidden')
+        .call(legend.updateColorBarLegend, state.nodeColor);
   };
 }
 

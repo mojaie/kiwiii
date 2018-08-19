@@ -53,13 +53,13 @@ function categoricalBar(selection, colors, text) {
   colors.forEach((e, i) => {
     group.append('rect')
         .attr('x', sw * i).attr('y', 0)
-        .attr('width', sw).attr('height', 20)
+        .attr('width', sw).attr('height', 10)
         .attr('fill', colors[i]);
   });
   group.append('text')
       .attr('text-anchor', 'middle')
-      .attr('x', 50).attr('y', 20)
-      .attr('font-size', 20)
+      .attr('x', 50).attr('y', 10)
+      .attr('font-size', 12)
       .text(text);
 }
 

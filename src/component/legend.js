@@ -19,9 +19,10 @@ function colorBarLegend(selection) {
       .attr('x', 60).attr('y', 15)
       .style('font-size', 12);
   selection.append('g')
-      .classed('label', true)
+      .classed('colorbar', true)
       .attr('transform', 'translate(10, 20)');
   const domains = selection.append('g')
+      .classed('label', true)
       .attr('transform', 'translate(10, 40)')
       .style('font-size', 12);
   domains.append('text')
@@ -38,14 +39,18 @@ function colorBarLegend(selection) {
 function updateColorBarLegend(selection, colorState) {
   const field = scale.colorScales.find(e => e.key === colorState.color);
   const colorBar = shape.colorBar[field.type];
-  selection.select('.title')
-      .text(colorState.field);
-  selection.select('.label')
-      .call(colorBar, colorState.range);
+  const range = field.key === 'custom' ? colorState.range : field.colors;
+  selection.select('.title').text(colorState.field);
+  selection.select('.colorbar').selectAll('g,defs').remove();
+  selection.select('.colorbar').call(colorBar, range);
   selection.select('.min')
-      .text(colorState.domain[0]);
+    .attr('visibility',
+          ['bicolor', 'tricolor'].includes(field.type) ? 'inherit' : 'hidden')
+    .text(colorState.domain[0]);
   selection.select('.max')
-      .text(colorState.domain.slice(-1)[0]);
+    .attr('visibility',
+          ['bicolor', 'tricolor'].includes(field.type) ? 'inherit' : 'hidden')
+    .text(colorState.domain[1]);
 }
 
 

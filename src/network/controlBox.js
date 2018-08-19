@@ -32,6 +32,24 @@ function mainControlBox(selection, state) {
       .classed('overlook', true)
       .classed('mb-1', true)
       .call(box.checkBox, 'Enable overlook view');
+
+  // Legend
+  const legendOptions = [
+    {key: 'top-left', name: 'Top-left'},
+    {key: 'top-right', name: 'Top-right'},
+    {key: 'bottom-left', name: 'Bottom-left'},
+    {key: 'bottom-right', name: 'Bottom-right'},
+  ];
+  selection.append('div')
+      .classed('legend', true)
+      .classed('mb-3', true)
+      .call(lbox.selectBox, 'Legend')
+      .call(lbox.updateSelectBoxOptions, legendOptions)
+      .on('change', function () {
+        state.legendOrient = box.formValue(d3.select(this));
+        state.updateLegendNotifier();
+      });
+
   // Network threshold
   const thldGroup = selection.append('div')
       .classed('thld-group', true)
@@ -211,6 +229,9 @@ function updateEdgeColorControl(selection, state) {
         }
         state.updateEdgeAttrNotifier();
       });
+
+  // Legend is not available yet
+  selection.select('.legend input').property('disabled', true);
 }
 
 
