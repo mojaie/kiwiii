@@ -32,7 +32,7 @@ function body(selection) {
 
 function updateBody(selection, name) {
   selection.select('.rename')
-      .call(box.formValue, name)
+      .call(box.updateFormValue, name)
       .on('input', function () {
         const valid = box.formValid(d3.select(this));
         selection.select('.submit').property('disabled', !valid);

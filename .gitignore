@@ -2,5 +2,5 @@
 
 .DS_Store
 
-_build
 node_modules
+docs/_build
