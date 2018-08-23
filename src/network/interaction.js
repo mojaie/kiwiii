@@ -7,6 +7,7 @@ import {default as transform} from '../component/transform.js';
 
 import {default as component} from './component.js';
 
+
 function dragListener(selection, state) {
   return d3.drag()
     .on('drag', function () {
@@ -14,6 +15,45 @@ function dragListener(selection, state) {
     })
     .on('end', function (d) {
       state.setCoords(d.index, d3.event.x, d3.event.y);
+    });
+}
+
+
+function multiDragListener(selection, state) {
+  const origin = {x: 0, y: 0};
+  return d3.drag()
+    .on('start', function () {
+      origin.x = d3.event.x;
+      origin.y = d3.event.y;
+    })
+    .on('drag', function () {
+      const dx = d3.event.x - origin.x;
+      const dy = d3.event.y - origin.y;
+      d3.select(this).attr('transform', `translate(${dx}, ${dy})`);
+      selection.selectAll('.selected-nodes .node')
+        .each(function (n) {
+          selection.selectAll('.edge-layer .link')
+            .filter(d => n.adjacency.map(e => e[1]).includes(d.num))
+            .each(function (d) {
+              if (n.index === d.source.index) {
+                d3.select(this).call(component.moveEdge, n.x + dx, n.y + dy, d.tx, d.ty);
+              } else if (n.index === d.target.index) {
+                d3.select(this).call(component.moveEdge, d.sx, d.sy, n.x + dx, n.y + dy);
+              }
+            });
+        });
+    })
+    .on('end', function () {
+      selection.selectAll('.selected-nodes .node')
+        .each(function (n) {
+          const newX = n.x + d3.event.x - origin.x;
+          const newY = n.y + d3.event.y - origin.y;
+          state.setCoords(n.index, newX, newY);
+          d3.select(this).attr('transform', `translate(${newX}, ${newY})`);
+        });
+      selection.selectAll('.selected-edges .link')
+          .attr('transform', d => `translate(${d.sx}, ${d.sy})`);
+      d3.select(this).attr('transform', `translate(0, 0)`);
     });
 }
 
@@ -54,6 +94,7 @@ function selectListener(selection, state) {
           const n = d3.select(this).datum().index;
           const isSel = state.ns[n].selected;
           state.ns.forEach(e => { e.selected = false; });
+          state.es.forEach(e => { e.selected = false; });
           state.ns[n].selected = !isSel;
           state.updateComponentNotifier();
         });
@@ -67,8 +108,14 @@ function multiSelectListener(selection, state) {
         .on('touchmove', function () { d3.event.preventDefault(); })
         .on('click.select', function () {
           d3.event.stopPropagation();
-          const n = d3.select(this).datum().index;
+          const data = d3.select(this).datum();
+          const n = data.index;
           state.ns[n].selected = !state.ns[n].selected;
+          // Selection should be an induced subgraph of the network
+          data.adjacency.forEach(adj => {
+            state.es[adj[1]].selected = (
+              state.ns[n].selected && state.ns[adj[0]].selected);
+          });
           state.updateComponentNotifier();
         });
   };
@@ -87,8 +134,10 @@ function resume(selection, tf) {
 
 function setInteraction(selection, state) {
   // Object selection layer
-  selection.select('.field')
+  const selectedObj = selection.select('.field')
     .append('g').classed('selected-obj', true);
+  selectedObj.append('g').classed('selected-edges', true);
+  selectedObj.append('g').classed('selected-nodes', true);
 
   selection
       .on('touchstart', function () { d3.event.preventDefault(); })
@@ -97,6 +146,7 @@ function setInteraction(selection, state) {
         // Background click to clear selection
         if (event.shiftKey) d3.event.preventDefault();
         state.ns.forEach(e => { e.selected = false; });
+        state.es.forEach(e => { e.selected = false; });
         state.updateComponentNotifier();
       });
 
@@ -131,6 +181,8 @@ function setInteraction(selection, state) {
         .call(state.selectListener);
     selection.selectAll('.node-layer .node')
         .call(state.dragListener);
+    selection.selectAll('.selected-obj')
+        .call(multiDragListener(selection, state));
     selection.call(resume, state.transform);
   };
 
@@ -165,18 +217,22 @@ function updateComponents(selection, state) {
     state.overlookView = numNodes > state.overlookViewThreshold;
   }
   const edgesToRender = state.overlookView ? [] : state.edgesToRender();
+  const edgesSelected = edgesToRender.filter(d => d.selected);
+  const edgesNotSelected = edgesToRender.filter(d => !d.selected);
   selection.select('.node-layer')
       .call(component.updateNodes, nodesNotSelected, state.focusedView)
     .selectAll('.node .node-symbol')
       .attr('stroke-opacity', 0);
-  selection.select('.selected-obj')
+  selection.select('.edge-layer')
+      .call(component.updateEdges, edgesNotSelected);
+  selection.select('.selected-nodes')
       .call(component.updateNodes, nodesSelected, state.focusedView)
     .selectAll('.node .node-symbol')
       .attr('stroke', 'red')
       .attr('stroke-width', 10)
       .attr('stroke-opacity', 0.5);
-  selection.select('.edge-layer')
-    .call(component.updateEdges, edgesToRender);
+  selection.select('.selected-edges')
+      .call(component.updateEdges, edgesSelected);
   selection.call(component.updateAttrs, state);
 }
 

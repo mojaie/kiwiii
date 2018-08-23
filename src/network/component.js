@@ -45,7 +45,7 @@ function updateNodes(selection, records, showStruct) {
 
 function updateEdges(selection, records) {
   const edges = selection.selectAll('.link')
-    .data(records, d => `${d.source}_${d.target}`);
+    .data(records, d => `${d.source.index}_${d.target.index}`);
   edges.exit().remove();
   const entered = edges.enter()
     .append('g')
@@ -245,5 +245,5 @@ function networkView(selection, state) {
 export default {
   updateNodes, updateEdges, updateNodeCoords, updateEdgeCoords,
   updateNodeAttrs, updateEdgeAttrs, updateAttrs, updateComponents,
-  move, networkView
+  move, moveEdge, networkView
 };
