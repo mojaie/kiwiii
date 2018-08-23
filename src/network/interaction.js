@@ -57,13 +57,56 @@ function resume(selection, tf) {
 
 
 function setInteraction(selection, state) {
+  selection.select('.field')
+    .append('g').classed('selected-obj', true);
+
+  // Background click to clear selection
+  selection
+      .on('touchstart', function () { d3.event.preventDefault(); })
+      .on('touchmove', function () { d3.event.preventDefault(); })
+      .on('click', function () {
+        if (event.shiftKey) d3.event.preventDefault();
+        selection.selectAll('.selected-obj .node')
+          .each(function () {
+            const sel = d3.select(this);
+            selection.select('.node-layer')
+                .append(function() { return sel.remove().node(); })
+              .select('.node-symbol')
+                .attr('stroke-opacity', 0);
+          });
+      });
+
+
   state.zoomListener = zoomListener(selection, state);
   state.dragListener = dragListener(selection, state);
   state.updateInteractionNotifier = () => {
-    selection.call(state.zoomListener);
-    selection.select('.nw-nodes')
-      .selectAll('.node')
+    selection.call(state.zoomListener)
+        .on("dblclick.zoom", null);  // disable double-click zoom;
+    selection.selectAll('.node-layer .node')
         .call(state.dragListener);
+    selection.selectAll('.node')
+        .on('touchstart', function () { d3.event.preventDefault(); })
+        .on('touchmove', function () { d3.event.preventDefault(); })
+        .on('click', function () {
+          d3.event.stopPropagation();
+          // Select a node
+          const isSel = d3.select(this.parentNode).classed('selected-obj');
+          const node = d3.select(this).remove();
+          selection.selectAll('.selected-obj .node')
+            .each(function () {
+              const sel = d3.select(this);
+              selection.select('.node-layer')
+                  .append(function() { return sel.remove().node(); })
+                .select('.node-symbol')
+                  .attr('stroke-opacity', 0);
+            });
+          selection.select(isSel ? '.node-layer' : '.selected-obj')
+              .append(function() { return node.node();})
+            .select('.node-symbol')
+              .attr('stroke', 'red')
+              .attr('stroke-width', 10)
+              .attr('stroke-opacity', isSel ? 0 : 0.5);
+        });
     selection.call(resume, state.transform);
   };
   state.fitNotifier = () => {

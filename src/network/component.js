@@ -136,8 +136,8 @@ function updateEdgeCoords(selection) {
 
 
 function updateAttrs(selection, state) {
-  selection.select('.nw-nodes').call(updateNodeAttrs, state);
-  selection.select('.nw-edges').call(updateEdgeAttrs, state);
+  selection.call(updateNodeAttrs, state);
+  selection.call(updateEdgeAttrs, state);
 }
 
 
@@ -151,9 +151,9 @@ function updateComponents(selection, state) {
     state.overlookView = numNodes > state.overlookViewThreshold;
   }
   const edgesToRender = state.overlookView ? [] : state.edgesToRender();
-  selection.select('.nw-nodes')
+  selection.select('.node-layer')
     .call(updateNodes, nodesToRender, state.focusedView);
-  selection.select('.nw-edges')
+  selection.select('.edge-layer')
     .call(updateEdges, edgesToRender);
   selection.call(updateAttrs, state);
 }
@@ -179,13 +179,13 @@ function moveEdge(selection, sx, sy, tx, ty) {
 
 function move(selection, node, x, y) {
   const n = d3.select(node).call(moveNode, x, y).datum();
-  selection.select('.nw-edges')
+  selection.select('.edge-layer')
     .selectAll(".link")
     .filter(d => n.adjacency.map(e => e[1]).includes(d.num))
     .each(function (d) {
-      if (n.index === d.source.index || n.index === d.source) {
+      if (n.index === d.source.index) {
         d3.select(this).call(moveEdge, x, y, d.tx, d.ty);
-      } else if (n.index === d.target.index || n.index === d.target) {
+      } else if (n.index === d.target.index) {
         d3.select(this).call(moveEdge, d.sx, d.sy, x, y);
       }
     });
@@ -195,11 +195,14 @@ function move(selection, node, x, y) {
 function networkView(selection, state) {
   selection.call(transform.view, state);
   const field = selection.select('.field');
-  const edges = field.append('g').classed('nw-edges', true);
-  const nodes = field.append('g').classed('nw-nodes', true);
-  const legendGroup = selection.append('g').classed('legends', true);
-  legendGroup.append('g').classed('nodecolor', true)
+  const edges = field.append('g').classed('edge-layer', true);
+  const nodes = field.append('g').classed('node-layer', true);
+  const legendGroup = selection.append('g')
+      .classed('legends', true);
+  legendGroup.append('g')
+      .classed('nodecolor', true)
       .call(legend.colorBarLegend);
+
   // Apply changes in datasets
   state.updateAllNotifier = () => {
     state.updateWorkingCopy();

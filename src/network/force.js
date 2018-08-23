@@ -51,7 +51,7 @@ function forceDragListener(selection, simulation, state) {
 
 function stick(selection, simulation, state) {
   simulation.alpha(0).stop();
-  selection.select('.nw-nodes').selectAll('.node')
+  selection.select('.node-layer').selectAll('.node')
     .each(d => {
       d.fx = d.x;
       d.fy = d.y;
@@ -62,7 +62,7 @@ function stick(selection, simulation, state) {
 
 
 function unstick(selection, simulation, state) {
-  selection.select('.nw-nodes').selectAll('.node')
+  selection.select('.node-layer').selectAll('.node')
     .each(d => {
       d.fx = null;
       d.fy = null;
@@ -77,9 +77,9 @@ function activate(selection, simulation, state) {
     .on('tick', () => {
       const coords = state.ns.map(e => ({x: e.x, y: e.y}));
       state.setAllCoords(coords);
-      selection.select('.nw-nodes').selectAll(".node")
+      selection.select('.node-layer').selectAll(".node")
         .call(component.updateNodeCoords);
-      selection.select('.nw-edges').selectAll(".link")
+      selection.select('.edge-layer').selectAll(".link")
         .call(component.updateEdgeCoords);
       state.tickCallback(simulation);
     })
