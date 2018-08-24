@@ -32,22 +32,28 @@ function multiDragListener(selection, state) {
       d3.select(this).attr('transform', `translate(${dx}, ${dy})`);
       selection.selectAll('.selected-nodes .node')
         .each(function (n) {
+          const newX = n.x + dx;
+          const newY = n.y + dy;
           selection.selectAll('.edge-layer .link')
             .filter(d => n.adjacency.map(e => e[1]).includes(d.num))
             .each(function (d) {
               if (n.index === d.source.index) {
-                d3.select(this).call(component.moveEdge, n.x + dx, n.y + dy, d.tx, d.ty);
+                d3.select(this)
+                    .call(component.moveEdge, newX, newY, d.tx, d.ty);
               } else if (n.index === d.target.index) {
-                d3.select(this).call(component.moveEdge, d.sx, d.sy, n.x + dx, n.y + dy);
+                d3.select(this)
+                    .call(component.moveEdge, d.sx, d.sy, newX, newY);
               }
             });
         });
     })
     .on('end', function () {
+      const dx = d3.event.x - origin.x;
+      const dy = d3.event.y - origin.y;
       selection.selectAll('.selected-nodes .node')
         .each(function (n) {
-          const newX = n.x + d3.event.x - origin.x;
-          const newY = n.y + d3.event.y - origin.y;
+          const newX = n.x + dx;
+          const newY = n.y + dy;
           state.setCoords(n.index, newX, newY);
           d3.select(this).attr('transform', `translate(${newX}, ${newY})`);
         });
@@ -59,6 +65,9 @@ function multiDragListener(selection, state) {
 
 
 function zoomListener(selection, state) {
+  selection
+      .on("dblclick.zoom", null)  // disable double-click zoom
+      .on('.drag', null);  // disable rectSelect
   return d3.zoom()
     .on('zoom', function() {
       const t = d3.event.transform;
@@ -81,6 +90,73 @@ function zoomListener(selection, state) {
       state.setTransform(t.x, t.y, t.k);
       state.prevTransform = {x: t.x, y: t.y, k: t.k};
       state.updateComponentNotifier();
+    });
+}
+
+
+function rectSelectListener(selection, state) {
+  selection.on('.zoom', null);  // disable zoom
+  const rect = selection.select('.interactions .rect-select');
+  const origin = {x: 0, y: 0};
+  let initSel = [];
+  return d3.drag()
+    .on('start', function () {
+      origin.x = d3.event.x;
+      origin.y = d3.event.y;
+      initSel = state.ns.map(e => e.selected);
+      rect.attr('visibility', 'visible')
+          .attr('x', origin.x).attr('y', origin.y);
+    })
+    .on('drag', function () {
+      const left = Math.min(origin.x, d3.event.x);
+      const width = Math.abs(origin.x - d3.event.x);
+      const top = Math.min(origin.y, d3.event.y);
+      const height = Math.abs(origin.y - d3.event.y);
+      const tx = state.transform.x;
+      const ty = state.transform.y;
+      const tk = state.transform.k;
+      const xConv = x => (x - tx) / tk;
+      const yConv = y => (y - ty) / tk;
+      selection.selectAll('.node')
+        .each(function(d) {
+          const selected = d3.select(this.parentNode).classed('selected-nodes');
+          const inside = d.x > xConv(left) && d.y > yConv(top)
+              && d.x < xConv(left + width) && d.y < yConv(top + height);
+          const sel = selected !== inside;
+          d3.select(this)
+            .select('.node-symbol')
+              .attr('stroke', sel ? 'red' : null)
+              .attr('stroke-width', sel ? 10 : null)
+              .attr('stroke-opacity', sel ? 0.5 : 0);
+        rect.attr('x', left).attr('y', top)
+            .attr('width', width).attr('height', height);
+
+      });
+    })
+    .on('end', function () {
+      const left = Math.min(origin.x, d3.event.x);
+      const width = Math.abs(origin.x - d3.event.x);
+      const top = Math.min(origin.y, d3.event.y);
+      const height = Math.abs(origin.y - d3.event.y);
+      const tx = state.transform.x;
+      const ty = state.transform.y;
+      const tk = state.transform.k;
+      const xConv = x => (x - tx) / tk;
+      const yConv = y => (y - ty) / tk;
+      state.ns.filter(
+        n => n.x > xConv(left) && n.y > yConv(top)
+          && n.x < xConv(left + width) && n.y < yConv(top + height)
+      ).forEach(n => {
+        n.selected = !initSel[n.index];
+        // Selection should be an induced subgraph of the network
+        n.adjacency.forEach(adj => {
+          state.es[adj[1]].selected = (
+            state.ns[n.index].selected && state.ns[adj[0]].selected);
+        });
+      });
+      state.updateComponentNotifier();
+      rect.attr('visibility', 'hidden')
+          .attr('width', 0).attr('height', 0);
     });
 }
 
@@ -139,11 +215,22 @@ function setInteraction(selection, state) {
   selectedObj.append('g').classed('selected-edges', true);
   selectedObj.append('g').classed('selected-nodes', true);
 
+  // Rectangle selection layer
+  selection.append('g')
+      .classed('interactions', true)
+    .append('rect')
+      .classed('rect-select', true)
+      .attr('fill', 'none')
+      .attr('stroke', 'black')
+      .attr('stroke-width', 1)
+      .attr('stroke-dasharray', '5,5')
+      .attr('visibility', 'hidden');
+
+  // Background click to clear selection
   selection
       .on('touchstart', function () { d3.event.preventDefault(); })
       .on('touchmove', function () { d3.event.preventDefault(); })
       .on('click', function () {
-        // Background click to clear selection
         if (event.shiftKey) d3.event.preventDefault();
         state.ns.forEach(e => { e.selected = false; });
         state.es.forEach(e => { e.selected = false; });
@@ -154,18 +241,18 @@ function setInteraction(selection, state) {
   document.addEventListener('keydown', event => {
     if (event.key !== 'Shift') return;
     selection.style("cursor", "crosshair");
+    state.zoomListener = rectSelectListener(selection, state);
     state.selectListener = multiSelectListener(selection, state);
-    selection.selectAll('.node')
-        .call(state.selectListener);
+    state.updateInteractionNotifier();
   });
 
   // Exit multiple select mode
   document.addEventListener('keyup', event => {
     if (event.key !== 'Shift') return;
     selection.style("cursor", "auto");
+    state.zoomListener = zoomListener(selection, state);
     state.selectListener = selectListener(selection, state);
-    selection.selectAll('.node')
-        .call(state.selectListener);
+    state.updateInteractionNotifier();
   });
 
   // Event listeners
@@ -175,8 +262,7 @@ function setInteraction(selection, state) {
 
   // Update interaction events
   state.updateInteractionNotifier = () => {
-    selection.call(state.zoomListener)
-        .on("dblclick.zoom", null);  // disable double-click zoom
+    selection.call(state.zoomListener);
     selection.selectAll('.node')
         .call(state.selectListener);
     selection.selectAll('.node-layer .node')
