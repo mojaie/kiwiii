@@ -1,6 +1,7 @@
 
 /** @module network/interaction */
 
+import _ from 'lodash';
 import d3 from 'd3';
 
 import {default as transform} from '../component/transform.js';
@@ -65,6 +66,7 @@ function multiDragListener(selection, state) {
 
 
 function zoomListener(selection, state) {
+  let prevTransform = {x: 0, y: 0, k: 1};
   selection
       .on("dblclick.zoom", null)  // disable double-click zoom
       .on('.drag', null);  // disable rectSelect
@@ -74,13 +76,13 @@ function zoomListener(selection, state) {
       selection.call(transform.transform, t.x, t.y, t.k);
       // Smooth transition
       if (!state.focusedView) {
-        const p = state.prevTransform;
+        const p = prevTransform;
         const xMoved = t.x > p.x + 20 || t.x < p.x - 20;
         const yMoved = t.y > p.y + 20 || t.y < p.y - 20;
         const zoomIn = t.k > p.k;
         if (xMoved || yMoved && !zoomIn) {
           state.setTransform(t.x, t.y, t.k);
-          state.prevTransform = {x: t.x, y: t.y, k: t.k};
+          prevTransform = {x: t.x, y: t.y, k: t.k};
           state.updateComponentNotifier();
         }
       }
@@ -88,7 +90,7 @@ function zoomListener(selection, state) {
     .on('end', function() {
       const t = d3.event.transform;
       state.setTransform(t.x, t.y, t.k);
-      state.prevTransform = {x: t.x, y: t.y, k: t.k};
+      prevTransform = {x: t.x, y: t.y, k: t.k};
       state.updateComponentNotifier();
     });
 }
@@ -112,11 +114,9 @@ function rectSelectListener(selection, state) {
       const width = Math.abs(origin.x - d3.event.x);
       const top = Math.min(origin.y, d3.event.y);
       const height = Math.abs(origin.y - d3.event.y);
-      const tx = state.transform.x;
-      const ty = state.transform.y;
-      const tk = state.transform.k;
-      const xConv = x => (x - tx) / tk;
-      const yConv = y => (y - ty) / tk;
+      const tf = state.transform;
+      const xConv = x => (x - tf.x) / tf.k;
+      const yConv = y => (y - tf.y) / tf.k;
       selection.selectAll('.node')
         .each(function(d) {
           const selected = d3.select(this.parentNode).classed('selected-nodes');
@@ -138,11 +138,9 @@ function rectSelectListener(selection, state) {
       const width = Math.abs(origin.x - d3.event.x);
       const top = Math.min(origin.y, d3.event.y);
       const height = Math.abs(origin.y - d3.event.y);
-      const tx = state.transform.x;
-      const ty = state.transform.y;
-      const tk = state.transform.k;
-      const xConv = x => (x - tx) / tk;
-      const yConv = y => (y - ty) / tk;
+      const tf = state.transform;
+      const xConv = x => (x - tf.x) / tf.k;
+      const yConv = y => (y - tf.y) / tf.k;
       state.ns.filter(
         n => n.x > xConv(left) && n.y > yConv(top)
           && n.x < xConv(left + width) && n.y < yConv(top + height)
@@ -205,6 +203,40 @@ function resume(selection, tf) {
         d3.zoom().transform,
         d3.zoomIdentity.translate(tf.x, tf.y).scale(tf.k)
       );
+}
+
+
+// TODO: refactor
+// Custom updater for interactive mode
+function updateComponents(selection, state) {
+  const nodesToRender = state.nodesToRender();
+  const [nodesSelected, nodesNotSelected] = _.partition(
+    nodesToRender, d => d.selected);
+  const numNodes = nodesToRender.length;
+  if (state.enableFocusedView) {
+    state.focusedView = numNodes < state.focusedViewThreshold;
+  }
+  if (state.enableOverlookView) {
+    state.overlookView = numNodes > state.overlookViewThreshold;
+  }
+  const edgesToRender = state.overlookView ? [] : state.edgesToRender();
+  const [edgesSelected, edgesNotSelected] = _.partition(
+      edgesToRender, d => d.selected);
+  selection.select('.node-layer')
+      .call(component.updateNodes, nodesNotSelected, state.focusedView)
+    .selectAll('.node .node-symbol')
+      .attr('stroke-opacity', 0);
+  selection.select('.edge-layer')
+      .call(component.updateEdges, edgesNotSelected);
+  selection.select('.selected-nodes')
+      .call(component.updateNodes, nodesSelected, state.focusedView)
+    .selectAll('.node .node-symbol')
+      .attr('stroke', 'red')
+      .attr('stroke-width', 10)
+      .attr('stroke-opacity', 0.5);
+  selection.select('.selected-edges')
+      .call(component.updateEdges, edgesSelected);
+  selection.call(component.updateAttrs, state);
 }
 
 
@@ -287,39 +319,6 @@ function setInteraction(selection, state) {
     state.updateComponentNotifier();
     selection.call(resume, state.transform);
   };
-}
-
-
-// TODO: refactor
-function updateComponents(selection, state) {
-  const nodesToRender = state.nodesToRender();
-  const nodesSelected = nodesToRender.filter(d => d.selected);
-  const nodesNotSelected = nodesToRender.filter(d => !d.selected);
-  const numNodes = nodesToRender.length;
-  if (state.enableFocusedView) {
-    state.focusedView = numNodes < state.focusedViewThreshold;
-  }
-  if (state.enableOverlookView) {
-    state.overlookView = numNodes > state.overlookViewThreshold;
-  }
-  const edgesToRender = state.overlookView ? [] : state.edgesToRender();
-  const edgesSelected = edgesToRender.filter(d => d.selected);
-  const edgesNotSelected = edgesToRender.filter(d => !d.selected);
-  selection.select('.node-layer')
-      .call(component.updateNodes, nodesNotSelected, state.focusedView)
-    .selectAll('.node .node-symbol')
-      .attr('stroke-opacity', 0);
-  selection.select('.edge-layer')
-      .call(component.updateEdges, edgesNotSelected);
-  selection.select('.selected-nodes')
-      .call(component.updateNodes, nodesSelected, state.focusedView)
-    .selectAll('.node .node-symbol')
-      .attr('stroke', 'red')
-      .attr('stroke-width', 10)
-      .attr('stroke-opacity', 0.5);
-  selection.select('.selected-edges')
-      .call(component.updateEdges, edgesSelected);
-  selection.call(component.updateAttrs, state);
 }
 
 

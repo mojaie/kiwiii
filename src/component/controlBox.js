@@ -167,6 +167,8 @@ function labelControlBox(selection, colorScales) {
 
   // nodeLabelColor
   selection.call(colorControlBox, colorScales, 'Color field');
+  // TODO: not implemented yet
+  selection.select('.legend input').property('disabled', true);
 }
 
 

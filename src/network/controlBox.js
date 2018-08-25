@@ -230,7 +230,7 @@ function updateEdgeColorControl(selection, state) {
         state.updateEdgeAttrNotifier();
       });
 
-  // Legend is not available yet
+  // TODO: not implemented yet
   selection.select('.legend input').property('disabled', true);
 }
 
