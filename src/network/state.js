@@ -30,7 +30,7 @@ export default class NetworkState extends TransformState {
     /* Attributes */
 
     this.viewID = view.viewID || null;
-    this.storeID = view.storeID || null;
+    this.instance = view.instance || null;
     this.name = view.name;
 
     this.nodes = new Collection(nodes);
@@ -215,7 +215,7 @@ export default class NetworkState extends TransformState {
 
   save() {
     this.coords = this.ns.map(n => ({x: n.x, y: n.y}));
-    return idb.updateItem(this.storeID, item => {
+    return idb.updateItem(this.instance, item => {
       const ni = item.dataset
         .findIndex(e => e.collectionID === this.nodes.collectionID);
       item.dataset[ni] = this.nodes.export();

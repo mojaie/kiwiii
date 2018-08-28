@@ -93,7 +93,7 @@ function updateBody(selection, fields) {
 
 function readFile(selection) {
   const left = box.formValue(selection.select('.left'));
-  const file = box.fileInputBoxValue(selection.select('.file'));
+  const file = box.fileInputValue(selection.select('.file'));
   const isCsv = file.name.split('.').pop() === 'csv';
   return hfile.readFile(file)
     .then(res => {

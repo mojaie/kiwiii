@@ -2,116 +2,182 @@
 /** @module common/idb */
 
 import _ from 'lodash';
-import Dexie from 'Dexie';
 
 import {default as misc} from './misc.js';
 import {default as legacy} from './legacySchema.js';
 
-// TODO: need package, view and dataset tables?
-const schema = {
-  items: 'storeID, sessionStarted'
-};
 
-let idb = new Dexie('Store');
-idb.version(1).stores(schema);
+// Increment versions if IDB schema has updated.
+const pkgStoreVersion = 2;
+const assetStoreVersion = 1;
+
+
+function connect(name, version, createObj) {
+  return new Promise((resolve, reject) => {
+    const request = window.indexedDB.open(name, version);
+    request.onsuccess = function () {
+      resolve(this.result);
+    };
+    request.onerror = event => reject(event);
+    request.onupgradeneeded = event => {
+      createObj(event.currentTarget.result);
+    };
+  });
+}
+
+
+const instance = {
+  pkgs: connect("Packages", pkgStoreVersion, db => {
+    db.createObjectStore("Packages", {keyPath: 'id'});
+  }),
+  assets: connect("Assets", assetStoreVersion, db => {
+    db.createObjectStore("Assets", {keyPath: 'id'});
+  })
+};
 
 
 /**
- * Delete all data store
- * Try this before dealing with local db issues
+ * Clear database
+ * @param {string} dbid - database ID
  */
-function reset() {
-  return idb.delete().then(() => {
-    idb = new Dexie('Store');
-    idb.version(1).stores(schema);
+function clear(dbid) {
+  return new Promise((resolve, reject) => {
+    return instance[dbid].then(db => {
+      const req = db.transaction(db.name, 'readwrite')
+          .objectStore(db.name).clear();
+        req.onsuccess = () => resolve();
+        req.onerror = event => reject(event);
+    });
   });
 }
 
 
 /**
- * Returns all data store items
- * @return {array} data store objects
+ * Delete all data in the local storage
+ */
+function clearAll() {
+  return Promise.all([clear('pkgs'), clear('assets')]);
+}
+
+
+/**
+ * Returns all packages
+ * @return {Promise} Promise of list of packages
  */
 function getAllItems() {
-  return idb.items
-    .orderBy('sessionStarted')
-    .reverse()
-    .toArray();
+  return new Promise(resolve => {
+    const res = [];
+    return instance.pkgs.then(db => {
+      db.transaction(db.name)
+        .objectStore(db.name).openCursor()
+        .onsuccess = event => {
+          const cursor = event.target.result;
+          if (cursor) {
+            res.push(cursor.value);
+            cursor.continue();
+          } else {
+            resolve(res);
+          }
+        };
+    });
+  });
 }
 
 
 /**
- * Get data store items by store ID
- * @param {string} storeID - store ID
+ * Get packages by instance ID
+ * @param {string} id - Package instance ID
  * @return {array} data store object
  */
-function getItem(storeID) {
-  return idb.items
-    .where('storeID')
-    .equals(storeID)
-    .first()
-    .catch(err => {
-      console.error(`IDBError: Unexpected table ID: ${storeID}`, err);
+function getItem(id) {
+  return new Promise((resolve, reject) => {
+    return instance.pkgs.then(db => {
+      const req = db.transaction(db.name)
+        .objectStore(db.name).get(id);
+      req.onsuccess = event => resolve(event.target.result);
+      req.onerror = event => reject(event);
     });
+  });
 }
 
 
 /**
- * Update data object in the store
- * @param {string} storeID - store ID
- * @param {function} updateFunc - update function
- * @return {integer} - number of updated items
+ * Put data object in the store
+ * @param {string} value - value to store
  */
-function updateItem(storeID, updateFunc) {
-  return idb.items
-    .where('storeID')
-    .equals(storeID)
-    .modify(updateFunc)
-    .catch(err => {
-      console.error('IDBError: Update failed', err);
+function putItem(value) {
+  return new Promise((resolve, reject) => {
+    return instance.pkgs.then(db => {
+      const obj = db.transaction(db.name, 'readwrite')
+        .objectStore(db.name);
+      const req = obj.put(value);
+      req.onerror = event => reject(event);
+      req.onsuccess = () => resolve();
     });
+  });
 }
 
 
 /**
- * Delete a data object from the store
- * @param {string} storeID - store ID
- * @return {integer} - number of deleted items
+ * Update package in the store
+ * @param {string} id - Package instance ID
+ * @param {function} updater - update function
  */
-function deleteItem(storeID) {
-  return idb.items
-    .where('storeID')
-    .equals(storeID)
-    .delete();
+function updateItem(id, updater) {
+  return new Promise((resolve, reject) => {
+    return instance.pkgs.then(db => {
+      const obj = db.transaction(db.name, 'readwrite')
+        .objectStore(db.name);
+      const req = obj.get(id);
+      req.onerror = event => reject(event);
+      req.onsuccess = event => {
+        const res = event.target.result;
+        updater(res);
+        const upd = obj.put(res);
+        upd.onsuccess = () => resolve();
+        upd.onerror = event => reject(event);
+      };
+    });
+  });
+}
+
+
+/**
+ * Delete a package
+ * @param {string} id - Package instance ID
+ */
+function deleteItem(id) {
+  return new Promise((resolve, reject) => {
+    return instance.pkgs.then(db => {
+      const req = db.transaction(db.name, 'readwrite')
+        .objectStore(db.name).delete(id);
+      req.onerror = event => reject(event);
+      req.onsuccess = () => resolve();
+    });
+  });
 }
 
 
 /**
  * Returns a view
- * @param {string} storeID - store ID
+ * @param {string} id - Package instance ID
  * @param {string} viewID - view ID
  * @return {array} view objects
  */
-function getView(storeID, viewID) {
-  return getAllItems()
-    .then(items => items.find(e => e.storeID === storeID).views)
-    .then(views => {
-      const view = views.find(e => e.viewID === viewID);
-      if (!view) return;
-      view.storeID = storeID;
-      return view;
-    });
+function getView(id, viewID) {
+  return getItem(id)
+    .then(pkg => pkg.views.find(e => e.viewID === viewID));
 }
 
 
 /**
  * Append a view next to a specific view
- * @param {string} storeID - store ID
+ * @param {string} id - Package instance ID
  * @param {string} viewID - view ID
  * @param {object} viewObj - view object
  */
-function appendView(storeID, viewID, viewObj) {
-  return updateItem(storeID, item => {
+function appendView(id, viewID, viewObj) {
+  return updateItem(id, item => {
     const pos = item.views.findIndex(e => e.viewID === viewID);
     item.views.splice(pos + 1, 0, viewObj);
   });
@@ -120,12 +186,12 @@ function appendView(storeID, viewID, viewObj) {
 
 /**
  * Update view
- * @param {string} storeID - store ID
+ * @param {string} id - Package instance ID
  * @param {string} viewID - view ID
  * @param {object} viewObj - view object or update function
  */
-function updateView(storeID, viewID, viewObj) {
-  return updateItem(storeID, item => {
+function updateView(id, viewID, viewObj) {
+  return updateItem(id, item => {
     const pos = item.views.findIndex(e => e.viewID === viewID);
     if (_.isFunction(viewObj)) {
       viewObj(item.views[pos]);
@@ -138,11 +204,11 @@ function updateView(storeID, viewID, viewObj) {
 
 /**
  * Delete a data object from the store
- * @param {string} storeID - store ID
+ * @param {string} id - Package instance ID
  * @return {integer} - number of deleted items
  */
-function deleteView(storeID, viewID) {
-  return updateItem(storeID, item => {
+function deleteView(id, viewID) {
+  return updateItem(id, item => {
     const pos = item.views.findIndex(e => e.viewID === viewID);
     item.views.splice(pos, 1);
     // prune orphaned collections
@@ -172,7 +238,7 @@ function getAllCollections() {
     .then(items => _.flatten(
       items.map(item => {
         return item.dataset.map(coll => {
-          coll.storeID = item.storeID;
+          coll.instance = item.id;
           return coll;
         });
       })
@@ -182,30 +248,24 @@ function getAllCollections() {
 
 /**
  * Returns a collection
- * @param {string} storeID - store ID
+ * @param {string} id - Package instance ID
  * @param {string} collID - Collection ID
  * @return {array} Collection objects
  */
-function getCollection(storeID, collID) {
-  return getAllItems()
-    .then(items => items.find(e => e.storeID === storeID).dataset)
-    .then(colls => {
-      const coll = colls.find(e => e.collectionID === collID);
-      if (!coll) return;
-      coll.storeID = storeID;
-      return coll;
-    });
+function getCollection(id, collID) {
+  return getItem(id)
+    .then(pkg => pkg.dataset.find(e => e.collectionID === collID));
 }
 
 
 /**
  * Update collection
- * @param {string} storeID - store ID
+ * @param {string} id - Package instance ID
  * @param {string} collID - Collection ID
  * @param {object} collObj - Collection object or update function
  */
-function updateCollection(storeID, collID, collObj) {
-  return updateItem(storeID, item => {
+function updateCollection(id, collID, collObj) {
+  return updateItem(id, item => {
     const pos = item.dataset.findIndex(e => e.collectionID === collID);
     if (_.isFunction(collObj)) {
       collObj(item.dataset[pos]);
@@ -219,16 +279,16 @@ function updateCollection(storeID, collID, collObj) {
 /**
  * Insert a data object to the store
  * @param {object} data - data
- * @return {string} - storeID if sucessfully added
+ * @return {string} - id if sucessfully added
  */
 function importItem(data) {
   // Legacy format converter
   data = legacy.convertPackage(data);
 
   const now = new Date();
-  data.storeID = misc.uuidv4().slice(0, 8);
+  data.id = misc.uuidv4().slice(0, 8);
   data.sessionStarted = now.toString();
-  return idb.items.put(data);
+  return putItem(data);
 }
 
 
@@ -240,12 +300,12 @@ function importItem(data) {
 function newDatagrid(response) {
   const now = new Date();
   const date = now.toLocaleString('en-GB', { timeZone: 'Asia/Tokyo'});
-  const storeID = misc.uuidv4().slice(0, 8);
+  const instance = misc.uuidv4().slice(0, 8);
   const viewID = misc.uuidv4().slice(0, 8);
   const collectionID = response.workflowID.slice(0, 8);
   const data = {
     $schema: "https://mojaie.github.io/kiwiii/specs/package_v1.0.json",
-    storeID: storeID,
+    id: instance,
     name: response.name,
     views: [
       {
@@ -269,22 +329,22 @@ function newDatagrid(response) {
     ],
     sessionStarted: date
   };
-  return idb.items.put(data)
-    .then(() => ({storeID: storeID, viewID:viewID}));
+  return putItem(data)
+    .then(() => ({instance: instance, viewID:viewID}));
 }
 
 
 /**
  * Store new network view
- * @param {string} storeID - Store ID
+ * @param {string} instance - Package instance ID
  * @param {string} nodesID - ID of nodes collection
  * @param {string} nodesName - Name of nodes collection
  * @param {object} response - Response object
  */
-function newNetwork(storeID, nodesID, nodesName, response) {
+function newNetwork(instance, nodesID, nodesName, response) {
   const viewID = misc.uuidv4().slice(0, 8);
   const edgesID = response.workflowID.slice(0, 8);
-  return updateItem(storeID, item => {
+  return updateItem(instance, item => {
     item.views.push({
       $schema: "https://mojaie.github.io/kiwiii/specs/network_v1.0.json",
       viewID: viewID,
@@ -305,7 +365,7 @@ function newNetwork(storeID, nodesID, nodesName, response) {
 
 
 export default {
-  reset, getAllItems, getItem, updateItem, deleteItem,
+  clear, clearAll, getAllItems, getItem, updateItem, deleteItem,
   getView, appendView, updateView, deleteView,
   getAllCollections, getCollection, updateCollection,
   importItem, newDatagrid, newNetwork

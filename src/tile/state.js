@@ -24,7 +24,7 @@ export default class TileState extends TransformState {
     /* Attributes */
 
     this.viewID = view.viewID || null;
-    this.storeID = view.storeID || null;
+    this.instance = view.instance || null;
     this.name = view.name;
 
     this.items = new Collection(items);
@@ -175,7 +175,7 @@ export default class TileState extends TransformState {
   }
 
   save() {
-    return idb.updateItem(this.storeID, item => {
+    return idb.updateItem(this.instance, item => {
       const i = item.items
         .findIndex(e => e.collectionID === this.items.collectionID);
       item.items[i] = this.items.export();

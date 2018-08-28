@@ -252,15 +252,15 @@ function run() {
   const localFile = document.location.protocol !== "file:";  // TODO
   const offLine = 'onLine' in navigator && !navigator.onLine;  // TODO
   client.registerServiceWorker();
-  const storeID = client.URLQuery().store || null;
+  const instance = client.URLQuery().instance || null;
   const viewID = client.URLQuery().view || null;
-  return idb.getView(storeID, viewID)
+  return idb.getView(instance, viewID)
     .then(view => {
       if (!view) throw('ERROR: invalid URL');
-      view.storeID = storeID;
+      view.instance = instance;
       return Promise.all([
-        idb.getCollection(storeID, view.nodes),
-        idb.getCollection(storeID, view.edges)
+        idb.getCollection(instance, view.nodes),
+        idb.getCollection(instance, view.edges)
       ])
       .then(colls => app(view, colls[0], colls[1]));
     })

@@ -50,7 +50,7 @@ function app(view, coll) {
       .on('click', function () {
         d3.select('#menubar .loading-circle').style('display', 'inline-block');
         const viewID = misc.uuidv4().slice(0, 8);
-        return idb.appendView(state.storeID, state.viewID, {
+        return idb.appendView(state.instance, state.viewID, {
           $schema: "https://mojaie.github.io/kiwiii/specs/tile_v1.0.json",
           viewID: viewID,
           name: `${state.name}_tiles`,
@@ -62,7 +62,7 @@ function app(view, coll) {
         }).then(() => {
           d3.select('#menubar .loading-circle').style('display', 'none');
           window.open(
-            `tile.html?store=${state.storeID}&view=${viewID}`, '_blank');
+            `tile.html?instance=${state.instance}&view=${viewID}`, '_blank');
         });
       });
   menu.append('a')
@@ -291,13 +291,13 @@ function updateApp(state) {
             .execute(d3.select(this), state.rows.records())
             .then(data => {
               return idb.newNetwork(
-                state.storeID, state.rows.collectionID, state.name, data
+                state.instance, state.rows.collectionID, state.name, data
               );
             })
             .then(viewID => {
               onLoading.style('display', 'none');
               window.open(
-                `network.html?store=${state.storeID}&view=${viewID}`, '_blank');
+                `network.html?instance=${state.instance}&view=${viewID}`, '_blank');
             });
         });
 
@@ -343,13 +343,13 @@ function run() {
   const localFile = document.location.protocol !== "file:";  // TODO
   const offLine = 'onLine' in navigator && !navigator.onLine;  // TODO
   client.registerServiceWorker();
-  const storeID = client.URLQuery().store || null;
+  const instance = client.URLQuery().instance || null;
   const viewID = client.URLQuery().view || null;
-  return idb.getView(storeID, viewID)
+  return idb.getView(instance, viewID)
     .then(view => {
       if (!view) throw('ERROR: invalid URL');
-      view.storeID = storeID;
-      return idb.getCollection(storeID, view.rows)
+      view.instance = instance;
+      return idb.getCollection(instance, view.rows)
         .then(coll => app(view, coll));
     })
     .catch(err => {

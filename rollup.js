@@ -54,7 +54,6 @@ const bundles = appBundles.concat(isDebugBuild ? debugBundles : deployBundles);
 // External JS libraries
 const external = {
   d3: 'd3',
-  Dexie: 'Dexie',
   jLouvain: 'jLouvain',
   pako: 'pako',
   vega: 'vega',

@@ -19,7 +19,7 @@ export default class Collection {
     this.autoIndex = 'index';  // enumerate records
 
     this.collectionID = coll.collectionID || null;
-    this.storeID = coll.storeID || null;
+    this.instance = coll.instance || null;
     this.name = coll.name || null;
     if (coll.records) {
       this.contents = [coll];
@@ -99,7 +99,7 @@ export default class Collection {
         return fetcher.get('progress', query)
           .then(fetcher.json)
           .then(data => {
-            return idb.updateCollection(this.storeID, this.collectionID, coll => {
+            return idb.updateCollection(this.instance, this.collectionID, coll => {
               const i = coll.contents
                 .findIndex(e => e.workflowID === query.id);
               if (data.status === 'failure') {  // No data found on server
@@ -111,7 +111,7 @@ export default class Collection {
           });
       });
     return Promise.all(fs)
-      .then(() => idb.getCollection(this.storeID, this.collectionID))
+      .then(() => idb.getCollection(this.instance, this.collectionID))
       .then(coll => {
         this.contents = coll.contents;
       });

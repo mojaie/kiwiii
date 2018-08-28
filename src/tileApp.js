@@ -155,13 +155,13 @@ function run() {
   const localFile = document.location.protocol !== "file:";  // TODO
   const offLine = 'onLine' in navigator && !navigator.onLine;  // TODO
   client.registerServiceWorker();
-  const storeID = client.URLQuery().store || null;
+  const instance = client.URLQuery().instance || null;
   const viewID = client.URLQuery().view || null;
-  return idb.getView(storeID, viewID)
+  return idb.getView(instance, viewID)
     .then(view => {
       if (!view) throw('ERROR: invalid URL');
-      view.storeID = storeID;
-      return idb.getCollection(storeID, view.items)
+      view.instance = instance;
+      return idb.getCollection(instance, view.items)
         .then(coll => app(view, coll));
     })
     .catch(err => {

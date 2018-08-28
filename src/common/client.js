@@ -12,6 +12,9 @@ function URLQuery() {
 
 
 function compatibility() {
+  if (!window.indexedDB) {
+    return 'Client compatibility error: IndexedDB not supported';
+  }
   try {
     () => {};
   } catch (err) {

@@ -30,12 +30,12 @@ function nodeFactory(selection, record) {
     'tile': 'tiles-yellowgreen'
   };
   const icon = record.viewID ? iconv[record.viewType] : 'file-seagreen';
-  const storeID = record.storeID || record.parent;
+  const instance = record.instance || record.parent;
   const node = record.viewID
     ? selection.append('a')
       .attr(
         'href',
-        `${record.viewType}.html?store=${storeID}&view=${record.viewID}`
+        `${record.viewType}.html?instance=${instance}&view=${record.viewID}`
       )
       .attr('target', '_blank')
     : selection;
@@ -94,7 +94,7 @@ function nodeFactory(selection, record) {
     action.append('a').call(actionIcon, 'menu-export')
         .on('click', () => {
           const data = JSON.parse(JSON.stringify(record));
-          delete data.storeID;
+          delete data.instance;
           delete data.sessionStarted;
           hfile.downloadJSON(data, data.name);
         });
@@ -114,7 +114,7 @@ function nodeFactory(selection, record) {
                 view.name = renameDialog.value(d3.select(this));
               }).then(updateApp);
             } else {
-              idb.updateItem(record.storeID, item => {
+              idb.updateItem(record.instance, item => {
                 item.name = renameDialog.value(d3.select(this));
               }).then(updateApp);
             }
@@ -141,7 +141,7 @@ function nodeFactory(selection, record) {
                 idb.deleteView(record.parent, record.viewID)
                   .then(updateApp);
               } else {
-                idb.deleteItem(record.storeID || record.parent)
+                idb.deleteItem(record.instance || record.parent)
                   .then(updateApp);
               }
             });
@@ -261,7 +261,7 @@ function app() {
             'Are you sure you want to delete all local tables and reset the datastore ?')
       .on('submit', () => {
         d3.select('#menubar .loading-circle').style('display', 'inline-block');
-        return idb.reset().then(updateApp);
+        return idb.clearAll().then(updateApp);
       });
   dialogs.append('div')
       .call(modal.confirmDialog, 'delete-dialog');
@@ -296,7 +296,7 @@ function updateApp() {
             .then(r => {
               onLoading.style('display', 'none');
               window.open(
-                `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
+                `datagrid.html?instance=${r.instance}&view=${r.viewID}`, '_blank');
             });
         });
     dialogs.select('.structd')
@@ -307,7 +307,7 @@ function updateApp() {
             .then(r => {
               onLoading.style('display', 'none');
               window.open(
-                `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
+                `datagrid.html?instance=${r.instance}&view=${r.viewID}`, '_blank');
             });
         });
     dialogs.select('.filterd')
@@ -318,7 +318,7 @@ function updateApp() {
             .then(r => {
               onLoading.style('display', 'none');
               window.open(
-                `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
+                `datagrid.html?instance=${r.instance}&view=${r.viewID}`, '_blank');
             });
         });
     dialogs.select('.sdfd')
@@ -329,7 +329,7 @@ function updateApp() {
             .then(r => {
               onLoading.style('display', 'none');
               window.open(
-                `datagrid.html?store=${r.storeID}&view=${r.viewID}`, '_blank');
+                `datagrid.html?instance=${r.instance}&view=${r.viewID}`, '_blank');
             });
         });
 
@@ -365,7 +365,7 @@ function updateApp() {
   .finally(() => {
     // update stored package tree
     return idb.getAllItems().then(items => {
-      const treeNodes = [{storeID: 'root'}];
+      const treeNodes = [{id: 'root'}];
       const ogs = [];
       items.forEach(pkg => {
         pkg.parent = 'root';
@@ -373,7 +373,7 @@ function updateApp() {
         ogs.push(pkg.ongoing);
         treeNodes.push(pkg);
         pkg.views.forEach(view => {
-          view.parent = pkg.storeID;
+          view.parent = pkg.id;
           view.ongoing = pkg.ongoing;
           view.alone = pkg.views.length <= 1;
           view.parentName = pkg.name;
@@ -396,7 +396,7 @@ function updateApp() {
       d3.select('.reset')
           .classed('disabled', ogs.some(e => e));
       d3.select('.stored')
-          .call(tree.treeItems, treeNodes, d => d.storeID, nodeFactory);
+          .call(tree.treeItems, treeNodes, d => d.id, nodeFactory);
       onLoading.style('display', 'none');
     });
   });

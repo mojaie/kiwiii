@@ -13,7 +13,7 @@ import {default as factory} from './rowFactory.js';
 
 export default class DatagridState {
   constructor(view, coll) {
-    this.storeID = view.storeID || null;
+    this.instance = view.instance || null;
     this.viewID = view.viewID || null;
     this.name = view.name || null;
     this.sortOrder = view.sortOrder || [];
@@ -167,7 +167,7 @@ export default class DatagridState {
   }
 
   save() {
-    return idb.updateItem(this.storeID, item => {
+    return idb.updateItem(this.instance, item => {
       const ci = item.dataset
         .findIndex(e => e.collectionID === this.rows.collectionID);
       item.dataset[ci] = this.rows.export();
