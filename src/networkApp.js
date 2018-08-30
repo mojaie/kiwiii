@@ -262,7 +262,11 @@ function run() {
         idb.getCollection(instance, view.nodes),
         idb.getCollection(instance, view.edges)
       ])
-      .then(colls => app(view, colls[0], colls[1]));
+      .then(colls => {
+        colls[0].instance = instance;
+        colls[1].instance = instance;
+        app(view, colls[0], colls[1]);
+      });
     })
     .catch(err => {
       console.error(err);

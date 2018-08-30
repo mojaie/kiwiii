@@ -160,8 +160,8 @@ function execute(selection) {
   }
   const query = {
     workflow: box.formValue(selection.select('.method')),
-    targets: lbox.checklistBoxValue(selection.select('.target')),
-    queryMol: group.queryMolGroupValue(selection.select('.qmol')),
+    targets: lbox.checklistValues(selection.select('.target')),
+    queryMol: group.queryMolValues(selection.select('.qmol')),
     params: params
   };
   return fetcher.get(query.workflow, query)
@@ -172,17 +172,17 @@ function execute(selection) {
 function fill(selection) {
   selection.select('.qmol')
       .call(group.updateQueryMolValues,
-            {format: 'dbid', source: 'drugbankfda', value: 'DB00465'})
-      .dispatch('change');
+            {format: 'dbid', source: 'drugbankfda', value: 'DB00465'});
   selection.select('.method').call(box.updateFormValue, 'gls')
       .dispatch('change');
-  selection.select('.measure').call(box.updateFormValue, 'sim');
+  selection.select('.measure').call(box.updateFormValue, 'sim')
+      .dispatch('change');
   selection.select('.thld').call(box.updateFormValue, 0.7);
   selection.select('.option')
     .call(group.updateSimOptionValues,
           {ignoreHs: true, timeout: 2, diameter: 8});
   selection.select('.target').call(lbox.updateChecklistValues, 'drugbankfda')
-      .dispatch('change');
+      .dispatch('input');
 }
 
 

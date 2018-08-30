@@ -131,11 +131,15 @@ function dialogFormValid(selection) {
 
 
 function execute(selection) {
+  const fmt = lbox.selectedRecord(selection.select('.key')).format;
+  const type = misc.sortType(fmt);
+  const value = box.formValue(
+    selection.select(type === 'text' ? '.textvalue' : '.numvalue'));
   const query = {
     workflow: 'filter',
-    targets: lbox.checklistBoxValue(selection.select('.target')),
+    targets: lbox.checklistValues(selection.select('.target')),
     key: box.formValue(selection.select('.key')),
-    value: box.formValue(selection.select('.value')),
+    value: value,
     operator: box.formValue(selection.select('.operator'))
   };
   return fetcher.get(query.workflow, query)
@@ -144,9 +148,10 @@ function execute(selection) {
 
 
 function fill(selection) {
-  selection.select('.key').call(box.updateFormValue, '_mw');
+  selection.select('.key').call(box.updateFormValue, '_mw')
+      .dispatch('change');
   selection.select('.operator').call(box.updateFormValue, 'gt');
-  selection.select('.value').call(box.formValue, '1500');
+  selection.select('.numvalue').call(box.updateFormValue, 1500);
   selection.select('.target').call(lbox.updateChecklistValues, ['drugbankfda'])
       .dispatch('change');
 }

@@ -162,7 +162,10 @@ function run() {
       if (!view) throw('ERROR: invalid URL');
       view.instance = instance;
       return idb.getCollection(instance, view.items)
-        .then(coll => app(view, coll));
+        .then(coll => {
+          coll.instance = instance;
+          app(view, coll);
+        });
     })
     .catch(err => {
       console.error(err);

@@ -320,13 +320,6 @@ function updateApp(state) {
       .on('click', null);
   })
   .finally(() => {
-    // disable commands when no records are found
-    if (!state.rows.size()) {
-      d3.select('#menubar').selectAll('.online-command')
-        .attr('data-target', null)
-        .classed('disabled', true)
-        .on('click', null);
-    }
     onLoading.style('display', 'none');
   });
 }
@@ -350,7 +343,10 @@ function run() {
       if (!view) throw('ERROR: invalid URL');
       view.instance = instance;
       return idb.getCollection(instance, view.rows)
-        .then(coll => app(view, coll));
+        .then(coll => {
+          coll.instance = instance;
+          app(view, coll);
+        });
     })
     .catch(err => {
       console.error(err);
