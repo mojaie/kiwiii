@@ -282,7 +282,11 @@ function updateApp() {
       .call(table.updateRecords, response.server.calc.records);
     const serverRecords = Object.entries(response.server)
       .filter(e => e[0] !== 'calc')
-      .map(e => ({key: e[0], value: e[1]}));
+      .map(e => {
+        const v = e[0] === 'externalModules'
+          ? JSON.stringify(e[1].map(e => e.name)) : e[1];
+        return {key: e[0], value: v};
+      });
     d3.select('#contents').select('.server')
       .call(table.updateRecords, serverRecords);
 
