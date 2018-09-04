@@ -24,13 +24,9 @@ import {default as renameDialog} from './dialog/rename.js';
 import {default as table} from './datagrid/table.js';
 
 
-function nodeFactory(selection, record) {
-  const iconv = {
-    'datagrid': 'table-darkorange', 'network': 'network-turquoise',
-    'tile': 'tiles-yellowgreen'
-  };
-  const icon = record.viewID ? iconv[record.viewType] : 'file-seagreen';
+function viewNode(selection, record) {
   const instance = record.instance || record.parent;
+  selection.append('span').classed('arrow', true);
   const node = record.viewID
     ? selection.append('a')
       .attr(
@@ -40,12 +36,33 @@ function nodeFactory(selection, record) {
       .attr('target', '_blank')
     : selection;
   node.append('img')
-      .attr('src', icon ? `${button.iconBaseURL}${icon}.svg` : null)
+      .classed('icon', true)
       .classed('mr-1', true)
       .style('width', '2rem')
       .style('height', '2rem');
   node.append('span')
-      .classed('mr-1', true)
+      .classed('title', true)
+      .classed('mr-1', true);
+  selection.append('span')
+      .classed('status', true)
+      .classed('mr-1', true);
+  selection.append('span')
+      .classed('action', true)
+      .classed('p-1', true)
+      .style('border', '1px solid #999999')
+      .style('border-radius', '5px');
+}
+
+
+function updateViewNode(selection, record) {
+  const iconv = {
+    'datagrid': 'table-darkorange', 'network': 'network-turquoise',
+    'tile': 'tiles-yellowgreen'
+  };
+  const icon = record.viewID ? iconv[record.viewType] : 'file-seagreen';
+  selection.select('.icon')
+      .attr('src', icon ? `${button.iconBaseURL}${icon}.svg` : null);
+  selection.select('.title')
       .text(record.name);
   const colors = {
     done: 'green', running: 'darkorange',
@@ -62,29 +79,31 @@ function nodeFactory(selection, record) {
     rows: 'table-gray', items: 'tiles-gray',
     nodes: 'nodes-gray', edges: 'edges-gray'
   };
-    if (record.viewID) {
+
+  // View status
+  const status = selection.select('.status');
+  status.selectAll('*').remove();
+  if (record.viewID) {
     record.stats.forEach(stat => {
-      selection.append('img')
+      status.append('img')
           .attr('src', `${button.iconBaseURL}${icons[stat[0]]}.svg`)
           .style('width', '1rem')
           .style('height', '1rem');
-      selection.append('span')
-          .classed('pr-1', true)
+      status.append('span')
           .style('font-size', '0.8rem')
           .style('color', colors[stat[0]])
           .text(stat[1]);
     });
   } else {
-    selection.append('span')
-        .classed('pr-1', true)
+    status.append('span')
         .style('font-size', '0.7rem')
         .style('color', '#999999')
         .text(record.sessionStarted);
   }
-  const action = selection.append('span')
-      .classed('p-1', true)
-      .style('border', '1px solid #999999')
-      .style('border-radius', '5px');
+
+  // Actions
+  const action = selection.select('.action');
+  action.selectAll('*').remove();
   const actionIcon = (sel, icon) => sel.append('img')
       .attr('src', `${button.iconBaseURL}${icon}.svg`)
       .classed('mx-1', true)
@@ -212,9 +231,7 @@ function app() {
   contents.append('h5').classed('mt-5', true).text('Packages on local storage');
   contents.append('div').classed('mb-5', true)
       .classed('stored', true)
-      .style('border', '1px solid #333333')
-      .call(tree.tree)
-      .call(tree.setHeight, 300);
+      .style('border', '1px solid #333333');
 
   // Server calc jobs
   // TODO: only for admin
@@ -396,7 +413,11 @@ function updateApp() {
       d3.select('.reset')
           .classed('disabled', ogs.some(e => e));
       d3.select('.stored')
-          .call(tree.treeItems, treeNodes, d => d.id, nodeFactory);
+          .call(tree.tree()
+            .bodyHeight(300)
+            .nodeEnterFactory(viewNode)
+            .nodeMergeFactory(updateViewNode), treeNodes
+          );
       onLoading.style('display', 'none');
     });
   });
