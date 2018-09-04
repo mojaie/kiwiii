@@ -160,7 +160,7 @@ function updateViewNode(selection, record) {
                 idb.deleteView(record.parent, record.viewID)
                   .then(updateApp);
               } else {
-                idb.deleteItem(record.instance || record.parent)
+                idb.deleteItem(record.id || record.parent)
                   .then(updateApp);
               }
             });
