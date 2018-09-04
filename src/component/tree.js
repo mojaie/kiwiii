@@ -4,92 +4,128 @@
 import d3 from 'd3';
 
 
-function nextLevel(selection, node, nodeFactory) {
-  node.children.forEach(child => {
-    const item = selection.append('li').datum(child.data);  // Bind data record
-    const content = item.append('span')
-      .style('display', 'inline-block');
-    const arrow = child.hasOwnProperty('children') ? '▼ ' : '';
-    content.append('span')
-        .classed('arrow', true)
-        .text(arrow);
-    content.call(nodeFactory, child.data);
+/**
+ * Generate collapsible tree
+ * @param {d3.selection} selection - selection of node content
+ */
+function tree() {
+  let bodyHeight = 400;
+  let keyDef = d => d.id;
+  let parentDef = d => d.parent;
+  let nodeEnterFactory = () => {};
+  let nodeMergeFactory = () => {};
 
-    // Collapse on click
-    content.select('.arrow')
-      .on('click', function () {
-        const childList = item.select('ul');
-        if (!childList.size()) return;
-        const expanded = childList.style('display') !== 'none';
-        content.select('.arrow').text(expanded ? '▶ ' : '▼ ');
-        childList.style('display', expanded ? 'none' : 'inherit');
-      });
+  // Recursively append child nodes
+  function nextLevel(selection, data) {
+    if (!selection.select('.childlist').size()) {
+      selection.append('ul')
+        .classed('childlist', true)
+        .style('list-style-type', 'none');
+    }
+    const items = selection.select('.childlist')
+      .selectAll('li')
+        .data(data, keyDef);
+    items.exit().remove();
+    items.enter()
+      .append('li')
+        .each(function (d) {
+          d3.select(this).call(nodeEnterFactory, d.data);
+        })
+      .merge(items)
+        .each(function (d) {
+          const node = d3.select(this);
+          node.call(nodeMergeFactory, d.data);
+          if (d.hasOwnProperty('children')) {
+            node.call(nextLevel, d.children)
+              .select('.arrow')
+                .text('▼ ')
+                .on('click', function () {  // Collapse on click
+                  const childList = node.select('.childlist');
+                  const expanded = childList.style('display') !== 'none';
+                  d3.select(this).text(expanded ? '▶ ' : '▼ ');
+                  childList.style('display', expanded ? 'none' : 'inherit');
+                });
+          } else {
+            node.select('.childlist').remove();
+          }
+        });
+  }
 
-    // Search next level
-    if (!child.hasOwnProperty('children')) return;
-    item.append('ul')
-        .style('list-style-type', 'none')
-        .call(nextLevel, child, nodeFactory);
-  });
-}
+  function _tree(selection, records) {
+    const root = d3.stratify()
+        .id(keyDef)
+        .parentId(parentDef)(records);
+    selection
+        .style('overflow-y', 'scroll')
+        .style('height', `${bodyHeight}px`);
+    if (!selection.select('.body').size()) {
+      selection.append('div').classed('body', true);
+    }
+    selection.select('.body')
+        .call(nextLevel, root.children || []);
+    selection.selectAll('.body > ul')
+        .style('padding-left', 0);
+    selection.selectAll('.body > ul > li')
+        .classed('my-2', true);
+  }
 
+  _tree.bodyHeight = function (h) {
+    bodyHeight = h;
+    return _tree;
+  };
 
- // Generate tree view
-function tree(selection) {
-  selection
-      .classed('viewport', true)
-      .style('overflow-y', 'scroll')
-      .style('height', '400px')
-    .append('div')
-      .classed('body', true);
-}
+  _tree.keyDef = function (f) {
+    keyDef = f;
+    return _tree;
+  };
 
+  _tree.nodeEnterFactory = function (f) {
+    nodeEnterFactory = f;
+    return _tree;
+  };
 
-// Generate tree view
-function setHeight(selection, height) {
-  selection.style('height', `${height}px`);
-}
+  _tree.nodeMergeFactory = function (f) {
+    nodeMergeFactory = f;
+    return _tree;
+  };
 
-
-// Update tree data
-function treeItems(selection, items, keyFunc, nodeFactory) {
-  const root = d3.stratify()
-      .id(keyFunc)
-      .parentId(d => d.parent)(items);
-  selection.select('ul').remove();
-  if (!root.hasOwnProperty('children')) return;
-  selection.select('.body').append('ul')
-      .classed('root', true)
-      .style('padding-left', 0)
-      .style('list-style-type', 'none')
-      .call(nextLevel, root, nodeFactory);
-  selection.selectAll('ul.root > li')
-      .classed('my-2', true);
+  return _tree;
 }
 
 
 /**
-* Node content
-* @param {d3.selection} selection - selection of node content (span element)
+* Checkbox node (A basic implementation of nodeEnterFactory)
+* @param {d3.selection} selection - selection of node content (li element)
 */
-function checkboxNode(selection, item) {
+function checkboxNode(selection) {
+  selection.append('span').classed('arrow', true);
   selection.append('input')
       .attr('type', 'checkbox');
   selection.append('span')
-      .text(item.id);
+      .classed('label', true);
 }
 
 
 /**
- * Return list of checkbox values
- * @param {d3.selection} selection - selection of node content (span element)
+* Update checkbox node content (A basic implementation of nodeMergeFactory)
+* @param {d3.selection} selection - selection of node content (li element)
+*/
+function updateCheckbox(selection, record) {
+  selection.select('.label')
+      .text(record.id);
+}
+
+
+/**
+ * Return an array of ids that are checked
+ * @param {d3.selection} selection - selection of node content
  */
 function checkboxValues(selection) {
   return selection.select('.body')
-    .selectAll('input:checked').data().map(d => d.id);
+     .selectAll('input:checked').data().map(d => d.id);
 }
 
 
 export default {
-  tree, treeItems, setHeight, checkboxNode, checkboxValues
+  tree, checkboxNode, updateCheckbox, checkboxValues
 };
