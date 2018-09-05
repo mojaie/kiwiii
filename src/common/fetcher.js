@@ -69,6 +69,32 @@ function serverStatus() {
 }
 
 
+function batchRequest(reqs, interval) {
+  const ress = reqs.map((req, i) => {
+    return new Promise(resolve => {
+      setTimeout(() => resolve(req()), i * interval * 1000);
+    });
+  });
+  return Promise.all(ress);
+}
+
+
+function sequentialBatchRequest(reqs, interval) {
+  const ress = [];
+  const batch = reqs.reduce((a, b) => {
+    return a
+      .then(res => {
+        if (res) ress.push(res);
+        return new Promise(resolve => {
+          setTimeout(() => resolve(b()), interval * 1000);
+        });
+      });
+  }, Promise.resolve());
+  return batch.then(() => ress);
+}
+
+
+
 export default {
-  get, json, text, blob, post, error, serverStatus
+  get, json, text, blob, post, error, serverStatus, batchRequest
 };

@@ -29,14 +29,27 @@ function body(selection) {
 }
 
 
-function updateBody(selection) {
+function updateBody(selection, screenerURL) {
   const mbody = selection.select('.modal-body');
-  const q = JSON.stringify({});
-  return fetch(`../screener/qcsession?query=${q}`, { credentials: 'include' })
-    .then(fetcher.json)
-    .then(res => {
+  return fetch(`${screenerURL}qcSessions?limit=0`, { credentials: 'include' })
+    .then(res => res.json())
+    .then(res => res.meta.totalHitCount)
+    .then(cnt => {
+      const reqs = [];
+      const chunks = Math.ceil(cnt / 250);
+      for (let i = 0; i < chunks; i++) {
+        const q = JSON.stringify({limit: 250, offset: i * 250});
+        const url = `../screener/qcsession?query=${q}`;
+        const op = {credentials: 'include'};
+        reqs.push(() => fetch(url, op).then(res => res.json()));
+      }
+      return reqs;
+    })
+    .then(reqs => fetcher.batchRequest(reqs, 0.5))
+    .then(ress => _.flatten(ress.map(e => e.records)))
+    .then(rcds => {
       const treeNodes = [{id: 'root'}];
-      res.records.forEach(rcd => {
+      rcds.forEach(rcd => {
         const dirs = rcd.experiment.folderName.split('/');
         dirs.shift();
         dirs.forEach((dir, i) => {

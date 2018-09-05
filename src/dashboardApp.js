@@ -348,6 +348,18 @@ function updateApp() {
                 `datagrid.html?instance=${r.instance}&view=${r.viewID}`, '_blank');
             });
         });
+
+    // screener extention
+    const mod = response.server.externalModules
+      .find(e => e.module === 'contrib.screenerapi');
+    if (mod) {
+      dialogs.select('.screenerd')
+          .call(screenerDialog.updateBody, mod.base_url)
+          .on('submit', function () {
+            // TODO:
+          });
+    }
+
     dialogs.select('.sdfd')
         .call(sdfDialog.updateBody, chemrsrc)
         .on('submit', function () {
@@ -390,13 +402,6 @@ function updateApp() {
     d3.select('#contents').select('.server').text('Off-line');
   })
   .finally(() => {
-    // screener extention
-    dialogs.select('.screenerd')
-        .call(screenerDialog.updateBody)
-        .on('submit', function () {
-          // TODO:
-        });
-
     // update stored package tree
     return idb.getAllItems().then(items => {
       const treeNodes = [{id: 'root'}];
