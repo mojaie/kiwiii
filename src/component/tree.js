@@ -12,6 +12,7 @@ function tree() {
   let bodyHeight = 400;
   let keyDef = d => d.id;
   let parentDef = d => d.parent;
+  let defaultLevel = 99999;
   let nodeEnterFactory = () => {};
   let nodeMergeFactory = () => {};
 
@@ -38,13 +39,16 @@ function tree() {
           if (d.hasOwnProperty('children')) {
             node.call(nextLevel, d.children)
               .select('.arrow')
-                .text('▼ ')
+                .text(d => d.depth - 1 >= defaultLevel ? '▶ ' : '▼ ')
                 .on('click', function () {  // Collapse on click
                   const childList = node.select('.childlist');
                   const expanded = childList.style('display') !== 'none';
                   d3.select(this).text(expanded ? '▶ ' : '▼ ');
                   childList.style('display', expanded ? 'none' : 'inherit');
                 });
+            node.select('.childlist')
+                .style('display',
+                  d => d.depth - 1 >= defaultLevel ? 'none' : 'inherit');
           } else {
             node.select('.childlist').remove();
           }
@@ -76,6 +80,11 @@ function tree() {
 
   _tree.keyDef = function (f) {
     keyDef = f;
+    return _tree;
+  };
+
+  _tree.defaultLevel = function (lv) {
+    defaultLevel = lv;
     return _tree;
   };
 

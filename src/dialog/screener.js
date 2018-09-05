@@ -30,34 +30,37 @@ function body(selection) {
 
 
 function updateBody(selection) {
-  // TODO: QCSession tree
-  // no checkboxes
-  // select only leaf nodes (QCSession)
   const mbody = selection.select('.modal-body');
-  return fetch(`../screener/qcsession`, { credentials: 'include' })
+  const q = JSON.stringify({});
+  return fetch(`../screener/qcsession?query=${q}`, { credentials: 'include' })
     .then(fetcher.json)
     .then(res => {
-      const treeNodes = [];
+      const treeNodes = [{id: 'root'}];
       res.records.forEach(rcd => {
-        const dirs = rcd.path.split('/');
-        dirs.unshift();
+        const dirs = rcd.experiment.folderName.split('/');
+        dirs.shift();
         dirs.forEach((dir, i) => {
           if (!treeNodes.find(e => dir === e.id)) {
-            const n = {id: dir, parent: dirs[i - 1] || 'root'};
-            if (i === dirs.length - 1) {
-              n.concat(rcd);
-            }
-            treeNodes.push(n);
+            treeNodes.push({
+              id: dir, parent: i === 0 ? 'root' : dirs[i - 1]});
           }
         });
+        treeNodes.push({
+          id: rcd.qcsRefId, parent: dirs[dirs.length - 1], content: rcd});
       });
       mbody.select('.qcsession')
           .call(tree.tree()
             .bodyHeight(300)
+            .defaultLevel(1)
             .nodeEnterFactory(qcsNode)
             .nodeMergeFactory(updateQcsNode), treeNodes
           );
     });
+}
+
+
+function dialogFormValid(selection) {
+
 }
 
 
@@ -71,17 +74,38 @@ function execute(selection) {
 
 function qcsNode(selection, record) {
   selection.append('span').classed('arrow', true);
+  selection.append('img')
+      .classed('icon', true)
+      .classed('mr-1', true)
+      .style('width', '1.3rem')
+      .style('height', '1.3rem');
   selection.append('span')
       .classed('label', true);
-  if (record.QCSRefID) {
-    // TODO: toggle selection state
+  if (record.content) {
+    selection.append('input')
+      .classed('qcsvalue', true)
+      .attr('type', 'radio')
+      .attr('name', 'qcsvalue')
+      .style('display', 'none');
+    selection.select('.label')
+      .on('click', function () {
+        selection.select('.qcsvalue').property('checked', true);
+        d3.select('.modal-body .qcsession')
+          .selectAll('li')
+            .style('background-color', null);
+        selection.style('background-color', '#ffff00');
+        console.log(tree.checkboxValues(d3.select('.modal-body .qcsession')))
+      });
   }
 }
 
 
 function updateQcsNode(selection, record) {
+  const iconType = record.content ? 'table-darkorange' : 'file-seagreen';
+  selection.select('.icon')
+      .attr('src', `${button.iconBaseURL}${iconType}.svg`);
   selection.select('.label')
-      .text(record.id);
+      .text(record.content ? record.content.name : record.id);
 }
 
 export default {

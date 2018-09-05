@@ -18,6 +18,7 @@ import {default as tree} from './component/tree.js';
 import {default as searchDialog} from './dialog/search.js';
 import {default as structDialog} from './dialog/struct.js';
 import {default as filterDialog} from './dialog/filter.js';
+import {default as screenerDialog} from './dialog/screener.js';
 import {default as sdfDialog} from './dialog/sdf.js';
 import {default as renameDialog} from './dialog/rename.js';
 
@@ -191,6 +192,8 @@ function app() {
   startMenu.append('a').classed('online-command', true)
       .call(filterDialog.menuLink);
   startMenu.append('a').classed('online-command', true)
+      .call(screenerDialog.menuLink);
+  startMenu.append('a').classed('online-command', true)
       .call(sdfDialog.menuLink);
   startMenu.append('a')
       .call(button.dropdownMenuFile, 'Open file',
@@ -266,6 +269,9 @@ function app() {
   dialogs.append('div')
       .classed('filterd', true)
       .call(filterDialog.body);
+  dialogs.append('div')
+      .classed('screenerd', true)
+      .call(screenerDialog.body);
   dialogs.append('div')
       .classed('sdfd', true)
       .call(sdfDialog.body);
@@ -384,6 +390,13 @@ function updateApp() {
     d3.select('#contents').select('.server').text('Off-line');
   })
   .finally(() => {
+    // screener extention
+    dialogs.select('.screenerd')
+        .call(screenerDialog.updateBody)
+        .on('submit', function () {
+          // TODO:
+        });
+
     // update stored package tree
     return idb.getAllItems().then(items => {
       const treeNodes = [{id: 'root'}];
