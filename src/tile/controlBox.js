@@ -6,6 +6,7 @@ import _ from 'lodash';
 import {default as misc} from '../common/misc.js';
 import {default as cscale} from '../common/scale.js';
 
+import {default as badge} from '../component/badge.js';
 import {default as box} from '../component/formBox.js';
 import {default as cbox} from '../component/controlBox.js';
 import {default as lbox} from '../component/formListBox.js';
@@ -18,11 +19,21 @@ function mainControlBox(selection) {
   chunkGroup.append('div')
       .classed('rowcnt', true)
       .classed('mb-1', true)
-      .call(box.numberBox, 'Rows', 1, 9999, 1);
+      .call(box.numberBox, 'Rows')
+      .call(box.updateNumberRange, 1, 9999, 1)
+      .call(badge.updateInvalidMessage,
+            `Please provide a valid range (1-9999)`)
+    .select('.form-control')
+      .attr('required', 'required');
   chunkGroup.append('div')
       .classed('colcnt', true)
       .classed('mb-1', true)
-      .call(box.numberBox, 'Columns', 1, 9999, 1);
+      .call(box.numberBox, 'Columns')
+      .call(box.updateNumberRange, 1, 9999, 1)
+      .call(badge.updateInvalidMessage,
+            `Please provide a valid range (1-9999)`)
+    .select('.form-control')
+      .attr('required', 'required');
   chunkGroup.append('div')
       .classed('groupby', true)
       .classed('mb-1', true)
@@ -30,7 +41,12 @@ function mainControlBox(selection) {
   chunkGroup.append('div')
       .classed('crow', true)
       .classed('mb-1', true)
-      .call(box.numberBox, 'ChunksPerRow', 1, 999, 1);
+      .call(box.numberBox, 'ChunksPerRow')
+      .call(box.updateNumberRange, 1, 999, 1)
+      .call(badge.updateInvalidMessage,
+            `Please provide a valid range (1-999)`)
+    .select('.form-control')
+      .attr('required', 'required');
   chunkGroup.append('div')
       .classed('showcol', true)
       .classed('mb-1', true)
@@ -59,16 +75,25 @@ function updateMainControl(selection, state) {
       .call(box.updateCheckBox, state.showColumnNumber);
   chunkGroup.select('.showrow')
       .call(box.updateCheckBox, state.showRowNumber);
-  chunkGroup.selectAll('.rowcnt, .colcnt, .groupby, .crow, .showcol, .showrow')
+  chunkGroup.selectAll('input')
       .on('change', function () {
-        state.rowCount = box.numberBoxIntValue(chunkGroup.select('.rowcnt'));
-        state.columnCount = box.numberBoxIntValue(chunkGroup.select('.colcnt'));
+        if (!panelGroupValid(chunkGroup)) return;
+        state.rowCount = box.formValue(chunkGroup.select('.rowcnt'));
+        state.columnCount = box.formValue(chunkGroup.select('.colcnt'));
         state.groupField = box.formValue(chunkGroup.select('.groupby'));
-        state.chunksPerRow = box.numberBoxIntValue(chunkGroup.select('.crow'));
+        state.chunksPerRow = box.formValue(chunkGroup.select('.crow'));
         state.showColumnNumber = box.checkBoxValue(chunkGroup.select('.showcol'));
         state.showRowNumber = box.checkBoxValue(chunkGroup.select('.showrow'));
         state.updateFieldNotifier();
       });
+}
+
+
+function panelGroupValid(selection) {
+  const rowValid = box.formValid(selection.select('.rowcnt'));
+  const colValid = box.formValid(selection.select('.colcnt'));
+  const crowValid = box.formValid(selection.select('.crow'));
+  return rowValid && colValid && crowValid;
 }
 
 
