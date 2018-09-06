@@ -258,6 +258,12 @@ function getCollection(id, collID) {
 }
 
 
+function addCollection(id, collID, collObj) {
+  return updateItem(id, item => {
+    item.dataset.push(collObj);
+  });
+}
+
 /**
  * Update collection
  * @param {string} id - Package instance ID
@@ -334,6 +340,86 @@ function newDatagrid(response) {
 }
 
 
+function addDatagrid(instance, response) {
+  const viewID = misc.uuidv4().slice(0, 8);
+  const collectionID = response.workflowID.slice(0, 8);
+  return updateItem(instance, item => {
+    item.views.push({
+      $schema: "https://mojaie.github.io/kiwiii/specs/datagrid_v1.0.json",
+      viewID: viewID,
+      name: response.name,
+      viewType: "datagrid",
+      rows: collectionID,
+    });
+    item.dataset.push({
+      $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
+      collectionID: collectionID,
+      name: response.name,
+      contents: [response]
+    });
+  }).then(() => viewID);
+}
+
+
+function new384Tiles(response) {
+  const now = new Date();
+  const date = now.toLocaleString('en-GB', { timeZone: 'Asia/Tokyo'});
+  const instance = misc.uuidv4().slice(0, 8);
+  const viewID = misc.uuidv4().slice(0, 8);
+  const collectionID = response.workflowID.slice(0, 8);
+  const data = {
+    $schema: "https://mojaie.github.io/kiwiii/specs/package_v1.0.json",
+    id: instance,
+    name: response.name,
+    views: [
+      {
+        $schema: "https://mojaie.github.io/kiwiii/specs/tile_v1.0.json",
+        viewID: viewID,
+        name: `${response.name}_tiles`,
+        viewType: 'tile',
+        items: collectionID,
+        rowCount: 16,
+        columnCount: 24
+      }
+    ],
+    dataset: [
+      {
+        $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
+        collectionID: collectionID,
+        name: response.name,
+        contents: [response]
+      }
+    ],
+    sessionStarted: date
+  };
+  return putItem(data)
+    .then(() => ({instance: instance, viewID:viewID}));
+}
+
+
+function add384Tiles(instance, response) {
+  const viewID = misc.uuidv4().slice(0, 8);
+  const collectionID = response.workflowID.slice(0, 8);
+  return updateItem(instance, item => {
+    item.views.push({
+      $schema: "https://mojaie.github.io/kiwiii/specs/tile_v1.0.json",
+      viewID: viewID,
+      name: `${response.name}_tiles`,
+      viewType: 'tile',
+      items: collectionID,
+      rowCount: 16,
+      columnCount: 24
+    });
+    item.dataset.push({
+      $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
+      collectionID: collectionID,
+      name: response.name,
+      contents: [response]
+    });
+  }).then(() => viewID);
+}
+
+
 /**
  * Store new network view
  * @param {string} instance - Package instance ID
@@ -367,6 +453,6 @@ function newNetwork(instance, nodesID, nodesName, response) {
 export default {
   clear, clearAll, getAllItems, getItem, updateItem, deleteItem,
   getView, appendView, updateView, deleteView,
-  getAllCollections, getCollection, updateCollection,
-  importItem, newDatagrid, newNetwork
+  getAllCollections, getCollection, addCollection, updateCollection,
+  importItem, newDatagrid, addDatagrid, add384Tiles, newNetwork
 };

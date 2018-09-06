@@ -42,6 +42,19 @@ function image(selection, record, field) {
       .attr('src', record[field.key]);
 }
 
+
+function asyncImage(selection, record, field) {
+  // TODO:
+  // retrieve image from IndexedDB
+  // if not found, fetch from server and save binary
+  // render binary
+  selection.append('img')
+      .attr('width', 180)
+      .attr('height', 180)
+      .attr('src', record[field.key]);
+}
+
+
 function checkbox(selection, record, field) {
   selection.append('input')
       .attr('type', 'checkbox')
@@ -82,7 +95,8 @@ const cellFunc = {
   text_field: textField,
   control: call,
   svg: html,
-  html: html
+  html: html,
+  async_image: asyncImage
 };
 
 

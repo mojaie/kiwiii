@@ -356,7 +356,11 @@ function updateApp() {
       dialogs.select('.screenerd')
           .call(screenerDialog.updateBody, mod.base_url)
           .on('submit', function () {
-            // TODO:
+            screenerDialog.execute(d3.select(this))
+              .then(() => {
+                onLoading.style('display', 'none');
+                return updateApp();
+              });
           });
     }
 
