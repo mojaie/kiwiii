@@ -408,7 +408,8 @@ function add384Tiles(instance, response) {
       viewType: 'tile',
       items: collectionID,
       rowCount: 16,
-      columnCount: 24
+      columnCount: 24,
+      chunksPerRow: 10
     });
     item.dataset.push({
       $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",

@@ -45,54 +45,31 @@ export default class TileState extends TransformState {
 
     /* Appearance */
     const defaultTileField = this.items.fields[0].key || null;
-    const fillIfNull = (obj, updater) => {
-      Object.entries(updater).forEach(e => {
-        if (!obj.hasOwnProperty(e[0])) {
-          obj[e[0]] = e[1];
-        }
-      });
-    };
 
-    this.tileContent = {};
-    const defaultTileContent = {
+    this.tileContent = {
       field: null, visible: false
     };
-    if (view.hasOwnProperty('tileContent')) {
-      this.tileContent = view.tileContent;
-    }
-    fillIfNull(this.tileContent, defaultTileContent);
+    Object.assign(this.tileContent, view.tileContent || {});
 
-    this.tileColor = {};
-    const defaultTileColor = {
+    this.tileColor = {
       field: defaultTileField, color: 'monogray',
       scale: 'linear', domain: [0, 1],
       range: ['#7fffd4', '#7fffd4'], unknown: '#7fffd4'
     };
-    if (view.hasOwnProperty('tileColor')) {
-      this.tileColor = view.tileColor;
-    }
-    fillIfNull(this.tileColor, defaultTileColor);
+    Object.assign(this.tileColor, view.tileColor || {});
 
-    this.tileValue = {};
-    const defaultTileValue = {
+    this.tileValue = {
       field: null, size: 12, visible: false,
       halign: 2, valign: 2
     };
-    if (view.hasOwnProperty('tileValue')) {
-      this.tileValue = view.tileValue;
-    }
-    fillIfNull(this.tileValue, defaultTileValue);
+    Object.assign(this.tileValue, view.tileValue || {});
 
-    this.tileValueColor = {};
-    const defaultTileValueColor = {
+    this.tileValueColor = {
       field: defaultTileField, color: 'monoblack',
       scale: 'linear', domain: [0, 1],
       range: ['#7fffd4', '#7fffd4'], unknown: '#7fffd4'
     };
-    if (view.hasOwnProperty('tileValueColor')) {
-      this.tileValueColor = view.tileValueColor;
-    }
-    fillIfNull(this.tileValueColor, defaultTileValueColor);
+    Object.assign(this.tileValueColor, view.tileValueColor || {});
 
 
     // Drawing
@@ -176,9 +153,9 @@ export default class TileState extends TransformState {
 
   save() {
     return idb.updateItem(this.instance, item => {
-      const i = item.items
+      const i = item.dataset
         .findIndex(e => e.collectionID === this.items.collectionID);
-      item.items[i] = this.items.export();
+      item.dataset[i] = this.items.export();
       const vi = item.views.findIndex(e => e.viewID === this.viewID);
       item.views[vi] = this.export();
     });

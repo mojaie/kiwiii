@@ -7,6 +7,9 @@ import {default as misc} from '../common/misc.js';
 import {default as transform} from '../component/transform.js';
 
 
+const strokeWidthFactor = 0.02;
+
+
 function updateItems(selection, state) {
   const itemsToRender = state.itemsToRender();
   const items = selection.selectAll('.item')
@@ -19,7 +22,6 @@ function updateItems(selection, state) {
       .attr('class', 'tile')
       .attr('x', 0)
       .attr('y', 0)
-      .style('stroke-width', 1)
       .style('stroke', '#cccccc');
   entered.append('g')
       .attr('class', 'tile-content');
@@ -28,7 +30,8 @@ function updateItems(selection, state) {
   const merged = entered.merge(items);
   merged.select('.tile')
       .attr('width', state.columnWidth)
-      .attr('height', state.rowHeight);
+      .attr('height', state.rowHeight)
+      .style('stroke-width', state.columnWidth * strokeWidthFactor);
   if (state.enableFocusedView) {
     state.focusedView = itemsToRender.length < state.focusedViewThreshold;
   }
