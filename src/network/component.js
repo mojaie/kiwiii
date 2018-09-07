@@ -9,6 +9,7 @@ import {default as misc} from '../common/misc.js';
 import {default as legend} from '../component/legend.js';
 import {default as transform} from '../component/transform.js';
 
+import {default as expnet} from './explorativeNetwork.js';
 
 const svgWidth = 180;  //TODO
 const svgHeight = 180;  //TODO
@@ -106,6 +107,12 @@ function updateEdgeAttrs(selection, state) {
   const colorConv = scale.scaleFunction(state.edgeColor);
   const widthConv = scale.scaleFunction(state.edgeWidth);
   const labelColorConv = scale.scaleFunction(state.edgeLabelColor);
+  const field = state.edges.fields
+    .find(e => e.key === state.edgeLabel.field);
+  const textConv = value => {
+    return field.format === 'd3_format'
+      ? misc.formatNum(value, field.d3_format) : value;
+  };
   selection.selectAll('.link').select('.edge-line')
     .style('stroke', d => colorConv(d[state.edgeColor.field]))
     .style('stroke-width', d => widthConv(d[state.edgeWidth.field]));
@@ -113,7 +120,7 @@ function updateEdgeAttrs(selection, state) {
     .attr('font-size', state.edgeLabel.size)
     .attr('visibility', state.edgeLabel.visible ? 'inherit' : 'hidden')
     .style('fill', d => labelColorConv(d[state.edgeLabelColor.field]))
-    .text(d => d[state.edgeLabel.field]);
+    .text(d => textConv(d[state.edgeLabel.field]));
 }
 
 
@@ -206,6 +213,31 @@ function networkView(selection, state) {
   // Apply changes in datasets
   state.updateAllNotifier = () => {
     state.updateWorkingCopy();
+    // Explorative network
+    if (!state.nodes.fields.includes('elevation')) {
+      const expn = expnet.explorativeNetwork(state.ns, state.es)
+        .baseFactor(state.minConnThld)();
+      const elevmap = {
+        key: 'index',
+        field: {key: 'elevation', name: 'Elevation', d3_format: '.3f'},
+        mapping: expn.elevations
+      };
+      state.nodes.joinFields(elevmap);
+      const pathmap = {
+        key: 'index',
+        field: {key: 'pweight', name: 'Path weight', d3_format: '.3f'},
+        mapping: expn.pathWeights
+      };
+      // TODO:
+      state.edges.contents[0].records.forEach((e, i) => {
+        e.pweight = expn.pathWeights[i];
+      });
+      if (!state.edges.contents[0].fields.find(e => e.key === 'pweight')) {
+        state.edges.contents[0].fields.push(pathmap.field);
+      }
+      state.edges.addField(pathmap.field);
+      state.updateWorkingCopy();
+    }
     state.updateControlBoxNotifier();  // Update selectBox options
     state.setForceNotifier();
     state.updateComponentNotifier();

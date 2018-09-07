@@ -21,6 +21,13 @@ const forcePresets = {
       d3.forceManyBody().strength(-6000).distanceMin(15).distanceMax(720))
     .force('collide', d3.forceCollide().radius(90))
     .force('x', d3.forceX().strength(0.0002))
+    .force('y', d3.forceY().strength(0.0002)),
+  sparse: d3.forceSimulation()
+    .force('link', d3.forceLink().id(d => d.index).distance(60).strength(2))
+    .force('charge',
+      d3.forceManyBody().strength(-6000).distanceMin(15).distanceMax(3600))
+    .force('collide', d3.forceCollide().radius(90))
+    .force('x', d3.forceX().strength(0.0002))
     .force('y', d3.forceY().strength(0.0002))
 };
 
