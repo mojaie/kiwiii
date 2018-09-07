@@ -31,7 +31,7 @@ const instance = {
     db.createObjectStore("Packages", {keyPath: 'id'});
   }),
   assets: connect("Assets", assetStoreVersion, db => {
-    db.createObjectStore("Assets", {keyPath: 'id'});
+    db.createObjectStore("Assets", {keyPath: 'key'});
   })
 };
 
@@ -451,9 +451,48 @@ function newNetwork(instance, nodesID, nodesName, response) {
 }
 
 
+/**
+ * Get asset by a key
+ * @param {string} key - key
+ * @return {array} asset object (if not found, resolve with undefined)
+ */
+function getAsset(key) {
+  return new Promise((resolve, reject) => {
+    return instance.assets.then(db => {
+      const req = db.transaction(db.name)
+        .objectStore(db.name).get(key);
+      req.onsuccess = event => {
+        const undef = event.target.result === undefined;
+        const value = undef ? undefined : event.target.result.value;
+        resolve(value);
+      };
+      req.onerror = event => reject(event);
+    });
+  });
+}
+
+/**
+ * Put asset object with a key
+ * @param {string} key - key
+ * @param {string} content - asset to store
+ */
+function putAsset(key, content) {
+  return new Promise((resolve, reject) => {
+    return instance.assets.then(db => {
+      const obj = db.transaction(db.name, 'readwrite')
+        .objectStore(db.name);
+      const req = obj.put({key: key, value: content});
+      req.onerror = event => reject(event);
+      req.onsuccess = () => resolve();
+    });
+  });
+}
+
+
 export default {
   clear, clearAll, getAllItems, getItem, updateItem, deleteItem,
   getView, appendView, updateView, deleteView,
   getAllCollections, getCollection, addCollection, updateCollection,
-  importItem, newDatagrid, addDatagrid, add384Tiles, newNetwork
+  importItem, newDatagrid, addDatagrid, add384Tiles, newNetwork,
+  getAsset, putAsset
 };

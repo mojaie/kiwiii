@@ -2,6 +2,7 @@
 /** @module datagrid/rowFactory */
 
 import {default as misc} from '../common/misc.js';
+import {default as idb} from '../common/idb.js';
 import {default as img} from '../common/image.js';
 
 
@@ -27,7 +28,7 @@ function html(selection, record, field) {
 }
 
 
-function compound_id(selection, record, field) {
+function compoundID(selection, record, field) {
   selection.append('a')
       .attr('href',`profile.html?compound=${record[field.key]}`)
       .attr('target', '_blank')
@@ -36,18 +37,6 @@ function compound_id(selection, record, field) {
 
 
 function image(selection, record, field) {
-  selection.append('img')
-      .attr('width', 180)
-      .attr('height', 180)
-      .attr('src', record[field.key]);
-}
-
-
-function asyncImage(selection, record, field) {
-  // TODO:
-  // retrieve image from IndexedDB
-  // if not found, fetch from server and save binary
-  // render binary
   selection.append('img')
       .attr('width', 180)
       .attr('height', 180)
@@ -65,6 +54,7 @@ function checkbox(selection, record, field) {
       });
 }
 
+
 function textField(selection, record, field) {
   selection.append('input')
       .attr('type', 'text')
@@ -75,8 +65,42 @@ function textField(selection, record, field) {
       });
 }
 
+
 function call(selection, value) {
   selection.call(value);
+}
+
+
+function asyncImage(selection, record, field) {
+  const req = `${field.request}${record[field.key]}`;
+  idb.getAsset(req)
+    .then(res => {
+      if (res !== undefined) return res;
+      return fetch(req, { credentials: 'include' })
+        .then(res => res.blob())
+        .then(res => idb.putAsset(req, res).then(() => res));
+    })
+    .then(obj => {
+      selection.append('img')
+          .attr('width', 180)
+          .attr('height', 180)
+          .attr('src', URL.createObjectURL(obj));
+    });
+}
+
+
+function asyncHtml(selection, record, field) {
+  const req = `${field.request}${record[field.key]}`;
+  idb.getAsset(req)
+    .then(res => {
+      if (res !== undefined) return res;
+      return fetch(req, { credentials: 'include' })
+        .then(res => res.text())
+        .then(res => idb.putAsset(req, res).then(() => res));
+    })
+    .then(txt => {
+      selection.html(txt);
+    });
 }
 
 
@@ -86,7 +110,7 @@ const cellFunc = {
   date: date,
   raw: text,
   d3_format: d3Format,
-  compound_id: compound_id,
+  compound_id: compoundID,
   assay_id: text,
   list: text,
   plot: img.plotCell,
@@ -96,7 +120,8 @@ const cellFunc = {
   control: call,
   svg: html,
   html: html,
-  async_image: asyncImage
+  async_image: asyncImage,
+  async_html: asyncHtml
 };
 
 
@@ -122,6 +147,7 @@ function rowFactory(fields) {
 
 
 export default {
-  d3Format, text, html, compound_id, image, checkbox, textField, call,
+  d3Format, text, html, compoundID, image, checkbox, textField, call,
+  asyncImage, asyncHtml,
   rowCell, rowFactory
 };
