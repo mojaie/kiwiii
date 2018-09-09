@@ -13,6 +13,8 @@ import {default as cbox} from '../component/controlBox.js';
 import {default as lbox} from '../component/formListBox.js';
 import {default as button} from '../component/button.js';
 
+import {default as force} from './force.js';
+
 
 function mainControlBox(selection, state) {
   // Zoom
@@ -75,6 +77,18 @@ function mainControlBox(selection, state) {
   const forceBox = selection.append('div')
       .classed('form-group', true)
       .classed('form-row', true);
+  forceBox.append('div')
+      .classed('col-12', true)
+    .append('div')
+      .classed('forcetype', true)
+      .classed('mb-1', true)
+      .call(lbox.selectBox, 'Force')
+      .call(lbox.updateSelectBoxOptions, force.forceType)
+      .on('change', function () {
+        const value = box.formValue(d3.select(this));
+        state.forceType = value;
+        state.setForceNotifier();
+      });
   forceBox.append('div')
       .classed('col-6', true)
     .append('span')
@@ -147,6 +161,7 @@ function updateMainControl(selection, state) {
         state.connThldField = field;
         state.currentConnThld = thld;
         thldGroup.select('.logd').dispatch('update');
+        state.setForceNotifier();
         state.updateComponentNotifier();
       });
   thldGroup.select('.logd')

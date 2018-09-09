@@ -100,7 +100,7 @@ export default class NetworkState extends TransformState {
     // Force
     this.coords = view.coords;
     this.forceActive = !this.coords;
-    this.forcePreset = view.forcePreset || 'aggregate';
+    this.forceType = view.forceType || 'aggregate';
 
     // Event listeners
     this.zoomListener = null;

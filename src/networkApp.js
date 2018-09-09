@@ -109,15 +109,12 @@ function app(view, nodes, edges) {
       .classed('abortd', true)
       .call(modal.confirmDialog, 'abort-dialog');
 
-  // Force simulation
-  const simulation = force.forceSimulation(
-    state.forcePreset, state.fieldWidth, state.fieldHeight);
   // Contents
   const frame = d3.select('#nw-frame')
       .call(transform.viewFrame, state);
   frame.select('.view')
       .call(component.networkView, state)
-      .call(force.activate, simulation, state)
+      .call(force.activate, state)
       .call(interaction.setInteraction, state);
   d3.select('#nw-control')
       .call(control.controlBox, state);
