@@ -256,13 +256,43 @@ const screenerTestCases = () => fetcher.serverStatus().then(response => {
   return cases;
 });
 
+
+/*
+  KEGG API tests (testAPI.html?type=kegg)
+*/
+
+const keggTestCases = [];
+
+keggTestCases.push(() => {
+  const q = JSON.stringify({query: "C7H10O5", option: "formula"});
+  return fetch(`../kegg/findcompounds?query=${q}`, {})
+    .then(res => {
+      if (res.status !== 200) {
+        return Promise.reject(new Error(res.statusText));
+      }
+      return Promise.resolve(res);
+    })
+    .then(fetcher.json)
+    .then(res => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          const query = {id: res.workflowID, command: 'abort'};
+          fetcher.get('progress', query)
+            .then(fetcher.json).then(rows => resolve([res, rows]));
+        }, 10000);
+      });
+    }).then(res => ({output: res, test: 'findcompounds', pass: true}))
+      .catch(err => ({output: err, test: 'findcompounds', pass: false}));
+});
+
 /*
   Run
 */
 const testType = client.URLQuery().type || 'flashflood';
 const tests = {
   flashflood: () => Promise.resolve(testCases),
-  screener: screenerTestCases
+  screener: screenerTestCases,
+  kegg: () => Promise.resolve(keggTestCases)
 }[testType];
 if (!tests) { throw `Invalid test "${testType}"`; }
 
