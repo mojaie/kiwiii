@@ -279,11 +279,45 @@ keggTestCases.push(() => {
           const query = {id: res.workflowID, command: 'abort'};
           fetcher.get('progress', query)
             .then(fetcher.json).then(rows => resolve([res, rows]));
-        }, 10000);
+        }, 3000);
       });
     }).then(res => ({output: res, test: 'findcompounds', pass: true}))
       .catch(err => ({output: err, test: 'findcompounds', pass: false}));
 });
+
+
+/*
+  PubChem API tests (testAPI.html?type=pubchem)
+*/
+
+const pubchemTestCases = [];
+
+pubchemTestCases.push(() => {
+  return fetch('../pubchem/exact/smiles/C1CCCCCC1', {})
+    .then(res => {
+      if (res.status !== 200) {
+        return Promise.reject(new Error(res.statusText));
+      }
+      return Promise.resolve(res);
+    })
+    .then(fetcher.json)
+    .then(res => ({output: res, test: 'exactsmiles', pass: true}))
+    .catch(err => ({output: err, test: 'exactsmiles', pass: false}));
+});
+
+pubchemTestCases.push(() => {
+  return fetch('../pubchem/exact/id/DB00186', {})
+    .then(res => {
+      if (res.status !== 200) {
+        return Promise.reject(new Error(res.statusText));
+      }
+      return Promise.resolve(res);
+    })
+    .then(fetcher.json)
+    .then(res => ({output: res, test: 'exactid', pass: true}))
+    .catch(err => ({output: err, test: 'exactid', pass: false}));
+});
+
 
 /*
   Run
@@ -292,7 +326,8 @@ const testType = client.URLQuery().type || 'flashflood';
 const tests = {
   flashflood: () => Promise.resolve(testCases),
   screener: screenerTestCases,
-  kegg: () => Promise.resolve(keggTestCases)
+  kegg: () => Promise.resolve(keggTestCases),
+  pubchem: () => Promise.resolve(pubchemTestCases)
 }[testType];
 if (!tests) { throw `Invalid test "${testType}"`; }
 
