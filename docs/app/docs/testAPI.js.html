@@ -31,8 +31,14 @@
 
 import d3 from 'd3';
 
+import {default as client} from './common/client.js';
 import {default as fetcher} from './common/fetcher.js';
+import {default as image} from './common/image.js';
 
+
+/*
+  Flashflood server tests
+*/
 
 const testCases = [];
 
@@ -42,11 +48,13 @@ testCases.push(() =>
     .catch(err => ({output: err, test: 'server', pass: false}))
 );
 
+
 testCases.push(() =>
   fetcher.get('schema').then(fetcher.json)
     .then(res => ({output: res, test: 'schema', pass: true}))
     .catch(err => ({output: err, test: 'schema', pass: false}))
 );
+
 
 testCases.push(() =>
   fetcher.get('search', {
@@ -58,6 +66,7 @@ testCases.push(() =>
     .catch(err => ({output: err, test: 'chemsearch', pass: false}))
 );
 
+
 testCases.push(() =>
   fetcher.get('profile', {
     targets: ['exp_results'],
@@ -66,6 +75,7 @@ testCases.push(() =>
     .then(res => ({output: res, test: 'profile', pass: true}))
     .catch(err => ({output: err, test: 'profile', pass: false}))
 );
+
 
 testCases.push(() =>
   fetcher.get('activity', {
@@ -80,6 +90,7 @@ testCases.push(() =>
     .catch(err => ({output: err, test: 'activity', pass: false}))
 );
 
+
 testCases.push(() =>
   fetcher.get('strprev', {
     format: 'dbid',
@@ -92,6 +103,7 @@ testCases.push(() =>
     }))
     .catch(err => ({output: err, test: 'strprev', pass: false}))
 );
+
 
 testCases.push(() =>
   new Promise(r => {
@@ -116,6 +128,7 @@ testCases.push(() =>
     .catch(err => ({output: err, test: 'substr', pass: false}))
 );
 
+
 testCases.push(() =>
   new Promise(r => {
     fetcher.get('filter', {
@@ -133,6 +146,7 @@ testCases.push(() =>
   }).then(res => ({output: res, test: 'chemprop', pass: true}))
     .catch(err => ({output: err, test: 'chemprop', pass: false}))
 );
+
 
 testCases.push(() =>
   fetcher.get('search', {
@@ -163,25 +177,209 @@ testCases.push(() =>
     )
 );
 
+
+
+
+/*
+  Screener API tests (testAPI.html?type=screener)
+*/
+
+const screenerTestCases = () => fetcher.serverStatus().then(response => {
+  const cases = [];
+  const mod = response.server.externalModules
+    .find(e => e.module === 'contrib.screenerapi');
+  if (!mod) throw 'Invalid test "screener"';
+  const baseURL = mod.base_url;
+
+  cases.push(() => {
+    const q = JSON.stringify({ qcsRefIds: "QCS-1504" });
+    const header = { credentials: 'include' };
+    return fetch(`../screener/compound?query=${q}`, header)
+      .then(res => {
+        if (res.status !== 200) {
+          return Promise.reject(new Error(res.statusText));
+        }
+        return Promise.resolve(res);
+      })
+      .then(fetcher.json)
+      .then(res => ({output: res, test: 'compound', pass: true}))
+      .catch(err => ({output: err, test: 'compound', pass: false}));
+  });
+
+
+  cases.push(() => {
+    const q = JSON.stringify({ qcsRefIds: "QCS-105" });
+    const header = { credentials: 'include'};
+    return fetch(`../screener/platevalue?query=${q}`, header)
+      .then(res => {
+        if (res.status !== 200) {
+          return Promise.reject(new Error(res.statusText));
+        }
+        return Promise.resolve(res);
+      })
+      .then(fetcher.json)
+      .then(res => ({output: res, test: 'platevalue', pass: true}))
+      .catch(err => ({output: err, test: 'platevalue', pass: false}));
+  });
+
+
+  cases.push(() => {
+    const q = JSON.stringify({ qcsRefIds: "QCS-105" });
+    const header = { credentials: 'include' };
+    return fetch(`../screener/platestats?query=${q}`, header)
+      .then(res => {
+        if (res.status !== 200) {
+          return Promise.reject(new Error(res.statusText));
+        }
+        return Promise.resolve(res);
+      })
+      .then(fetcher.json)
+      .then(res => ({output: res, test: 'platestats', pass: true}))
+      .catch(err => ({output: err, test: 'platestats', pass: false}));
+  });
+
+
+  cases.push(() => {
+    const q = JSON.stringify({});
+    const header = { credentials: 'include' };
+    return fetch(`../screener/qcsession?query=${q}`, header)
+      .then(res => {
+        if (res.status !== 200) {
+          return Promise.reject(new Error(res.statusText));
+        }
+        return Promise.resolve(res);
+      })
+      .then(fetcher.json)
+      .then(res => ({output: res, test: 'qcsession', pass: true}))
+      .catch(err => ({output: err, test: 'qcsession', pass: false}));
+  });
+
+
+  cases.push(() => {
+    const plotId = 'Qj1ley0xNk9vWm4b';
+    const q = {
+      width: 300,
+      height: 300,
+      title: 'title',
+      activityRangeMin: -20,
+      activityRangeMax: 110,
+      color: 'green'
+    };
+    const qs = Object.entries(q).map(e => `${e[0]}=${e[1]}`);
+    const qstr = qs.join('&amp;');
+    const header = { credentials: 'include' };
+    return fetch(`${baseURL}drcPlots/${plotId}?${qstr}`, header)
+      .then(res => {
+        if (res.status !== 200) {
+          return Promise.reject(new Error(res.statusText));
+        }
+        return Promise.resolve(res);
+      })
+      .then(fetcher.blob)
+      .then(res => image.binaryToDataURI(res))
+      .then(res => ({output: `&lt;img src=${res}`, test: 'drcplot', pass: true}))
+      .catch(err => ({output: err, test: 'drcplot', pass: false}));
+  });
+
+  return cases;
+});
+
+
+/*
+  KEGG API tests (testAPI.html?type=kegg)
+*/
+
+const keggTestCases = [];
+
+keggTestCases.push(() => {
+  const q = JSON.stringify({query: "C7H10O5", option: "formula"});
+  return fetch(`../kegg/findcompounds?query=${q}`, {})
+    .then(res => {
+      if (res.status !== 200) {
+        return Promise.reject(new Error(res.statusText));
+      }
+      return Promise.resolve(res);
+    })
+    .then(fetcher.json)
+    .then(res => {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          const query = {id: res.workflowID, command: 'abort'};
+          fetcher.get('progress', query)
+            .then(fetcher.json).then(rows => resolve([res, rows]));
+        }, 3000);
+      });
+    }).then(res => ({output: res, test: 'findcompounds', pass: true}))
+      .catch(err => ({output: err, test: 'findcompounds', pass: false}));
+});
+
+
+/*
+  PubChem API tests (testAPI.html?type=pubchem)
+*/
+
+const pubchemTestCases = [];
+
+pubchemTestCases.push(() => {
+  return fetch('../pubchem/exact/smiles/C1CCCCCC1', {})
+    .then(res => {
+      if (res.status !== 200) {
+        return Promise.reject(new Error(res.statusText));
+      }
+      return Promise.resolve(res);
+    })
+    .then(fetcher.json)
+    .then(res => ({output: res, test: 'exactsmiles', pass: true}))
+    .catch(err => ({output: err, test: 'exactsmiles', pass: false}));
+});
+
+pubchemTestCases.push(() => {
+  return fetch('../pubchem/exact/id/DB00186', {})
+    .then(res => {
+      if (res.status !== 200) {
+        return Promise.reject(new Error(res.statusText));
+      }
+      return Promise.resolve(res);
+    })
+    .then(fetcher.json)
+    .then(res => ({output: res, test: 'exactid', pass: true}))
+    .catch(err => ({output: err, test: 'exactid', pass: false}));
+});
+
+
+/*
+  Run
+*/
+const testType = client.URLQuery().type || 'flashflood';
+const tests = {
+  flashflood: () => Promise.resolve(testCases),
+  screener: screenerTestCases,
+  kegg: () => Promise.resolve(keggTestCases),
+  pubchem: () => Promise.resolve(pubchemTestCases)
+}[testType];
+if (!tests) { throw `Invalid test "${testType}"`; }
+
+
 function run() {
   const table = d3.select('#results').append('table');
   const header = table.append('thead').append('tr');
   header.append('th').text('Test');
   header.append('th').text('Result');
   const body = table.append('tbody');
-  testCases.reduce((ps, curr) => {
-    return () => ps()
-      .then(curr)
-      .then(res => {
-        console.info(res.test);
-        console.info(res.output);
-        const pass = res.pass ? 'OK' : '&lt;span class="text-danger">NG&lt;span>';
-        const row = body.append('tr');
-        row.append('td').text(res.test);
-        row.append('td').text(pass);
-      })
-      ;
-  }, () => Promise.resolve())();
+  tests().then(t => {
+    t.reduce((ps, curr) => {
+      return () => ps()
+        .then(curr)
+        .then(res => {
+          console.info(res.test);
+          console.info(res.output);
+          const pass = res.pass ? 'OK' : '&lt;span class="text-danger">NG&lt;span>';
+          const row = body.append('tr');
+          row.append('td').text(res.test);
+          row.append('td').text(pass);
+        });
+    }, () => Promise.resolve())();
+  });
 }
 run();
 </code></pre>
@@ -194,13 +392,13 @@ run();
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_badge.html">component/badge</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_badge.html">component/badge</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_dropdown.html">component/dropdown</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_legend.html">component/legend</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_screener.html">dialog/screener</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_similarity.html">network/similarity</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Aug 14 2018 09:06:32 GMT+0900 (JST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Sep 12 2018 14:02:21 GMT+0900 (日本標準時)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -64,7 +64,7 @@
     
 
     
-    <h4 class="name" id="~appendView"><span class="type-signature">(inner) </span>appendView<span class="signature">(storeID, viewID, viewObj)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="~appendView"><span class="type-signature">(inner) </span>appendView<span class="signature">(id, viewID, viewObj)</span><span class="type-signature"></span></h4>
     
 
     
@@ -108,7 +108,7 @@
 
         <tr>
             
-                <td class="name"><code>storeID</code></td>
+                <td class="name"><code>id</code></td>
             
 
             <td class="type">
@@ -124,7 +124,7 @@
 
             
 
-            <td class="description last">store ID</td>
+            <td class="description last">Package instance ID</td>
         </tr>
 
     
@@ -211,7 +211,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line113">line 113</a>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line179">line 179</a>
     </li></ul></dd>
     
 
@@ -245,7 +245,363 @@
     
 
     
-    <h4 class="name" id="~deleteItem"><span class="type-signature">(inner) </span>deleteItem<span class="signature">(storeID)</span><span class="type-signature"> &rarr; {integer}</span></h4>
+    <h4 class="name" id="~clear"><span class="type-signature">(inner) </span>clear<span class="signature">(dbid)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Clear database
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>dbid</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">database ID</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line43">line 43</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~clearAll"><span class="type-signature">(inner) </span>clearAll<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Delete all data in the local storage
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line58">line 58</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~deleteItem"><span class="type-signature">(inner) </span>deleteItem<span class="signature">(id)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Delete a package
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>id</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Package instance ID</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line149">line 149</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~deleteView"><span class="type-signature">(inner) </span>deleteView<span class="signature">(id)</span><span class="type-signature"> &rarr; {integer}</span></h4>
     
 
     
@@ -289,7 +645,7 @@
 
         <tr>
             
-                <td class="name"><code>storeID</code></td>
+                <td class="name"><code>id</code></td>
             
 
             <td class="type">
@@ -305,7 +661,7 @@
 
             
 
-            <td class="description last">store ID</td>
+            <td class="description last">Package instance ID</td>
         </tr>
 
     
@@ -346,164 +702,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line81">line 81</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    - number of deleted items
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">integer</span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="~deleteView"><span class="type-signature">(inner) </span>deleteView<span class="signature">(storeID)</span><span class="type-signature"> &rarr; {integer}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Delete a data object from the store
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>storeID</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">string</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">store ID</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line144">line 144</a>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line210">line 210</a>
     </li></ul></dd>
     
 
@@ -611,7 +810,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line170">line 170</a>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line236">line 236</a>
     </li></ul></dd>
     
 
@@ -667,7 +866,7 @@
     
 
     
-    <h4 class="name" id="~getAllItems"><span class="type-signature">(inner) </span>getAllItems<span class="signature">()</span><span class="type-signature"> &rarr; {array}</span></h4>
+    <h4 class="name" id="~getAllItems"><span class="type-signature">(inner) </span>getAllItems<span class="signature">()</span><span class="type-signature"> &rarr; {Promise}</span></h4>
     
 
     
@@ -675,7 +874,7 @@
 
 
 <div class="description">
-    Returns all data store items
+    Returns all packages
 </div>
 
 
@@ -719,7 +918,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line35">line 35</a>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line67">line 67</a>
     </li></ul></dd>
     
 
@@ -746,7 +945,164 @@
 
         
 <div class="param-desc">
-    data store objects
+    Promise of list of packages
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Promise</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~getAsset"><span class="type-signature">(inner) </span>getAsset<span class="signature">(key)</span><span class="type-signature"> &rarr; {array}</span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Get asset by a key
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>key</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">key</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line459">line 459</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    asset object (if not found, resolve with undefined)
 </div>
 
 
@@ -775,7 +1131,7 @@
     
 
     
-    <h4 class="name" id="~getCollection"><span class="type-signature">(inner) </span>getCollection<span class="signature">(storeID, collID)</span><span class="type-signature"> &rarr; {array}</span></h4>
+    <h4 class="name" id="~getCollection"><span class="type-signature">(inner) </span>getCollection<span class="signature">(id, collID)</span><span class="type-signature"> &rarr; {array}</span></h4>
     
 
     
@@ -819,7 +1175,7 @@
 
         <tr>
             
-                <td class="name"><code>storeID</code></td>
+                <td class="name"><code>id</code></td>
             
 
             <td class="type">
@@ -835,7 +1191,7 @@
 
             
 
-            <td class="description last">store ID</td>
+            <td class="description last">Package instance ID</td>
         </tr>
 
     
@@ -899,7 +1255,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line189">line 189</a>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line255">line 255</a>
     </li></ul></dd>
     
 
@@ -955,7 +1311,7 @@
     
 
     
-    <h4 class="name" id="~getItem"><span class="type-signature">(inner) </span>getItem<span class="signature">(storeID)</span><span class="type-signature"> &rarr; {array}</span></h4>
+    <h4 class="name" id="~getItem"><span class="type-signature">(inner) </span>getItem<span class="signature">(id)</span><span class="type-signature"> &rarr; {array}</span></h4>
     
 
     
@@ -963,7 +1319,7 @@
 
 
 <div class="description">
-    Get data store items by store ID
+    Get packages by instance ID
 </div>
 
 
@@ -999,7 +1355,7 @@
 
         <tr>
             
-                <td class="name"><code>storeID</code></td>
+                <td class="name"><code>id</code></td>
             
 
             <td class="type">
@@ -1015,7 +1371,7 @@
 
             
 
-            <td class="description last">store ID</td>
+            <td class="description last">Package instance ID</td>
         </tr>
 
     
@@ -1056,7 +1412,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line48">line 48</a>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line92">line 92</a>
     </li></ul></dd>
     
 
@@ -1112,7 +1468,7 @@
     
 
     
-    <h4 class="name" id="~getView"><span class="type-signature">(inner) </span>getView<span class="signature">(storeID, viewID)</span><span class="type-signature"> &rarr; {array}</span></h4>
+    <h4 class="name" id="~getView"><span class="type-signature">(inner) </span>getView<span class="signature">(id, viewID)</span><span class="type-signature"> &rarr; {array}</span></h4>
     
 
     
@@ -1156,7 +1512,7 @@
 
         <tr>
             
-                <td class="name"><code>storeID</code></td>
+                <td class="name"><code>id</code></td>
             
 
             <td class="type">
@@ -1172,7 +1528,7 @@
 
             
 
-            <td class="description last">store ID</td>
+            <td class="description last">Package instance ID</td>
         </tr>
 
     
@@ -1236,7 +1592,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line95">line 95</a>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line167">line 167</a>
     </li></ul></dd>
     
 
@@ -1393,7 +1749,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line224">line 224</a>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line290">line 290</a>
     </li></ul></dd>
     
 
@@ -1420,7 +1776,7 @@
 
         
 <div class="param-desc">
-    - storeID if sucessfully added
+    - id if sucessfully added
 </div>
 
 
@@ -1550,7 +1906,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line240">line 240</a>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line306">line 306</a>
     </li></ul></dd>
     
 
@@ -1606,7 +1962,7 @@
     
 
     
-    <h4 class="name" id="~newNetwork"><span class="type-signature">(inner) </span>newNetwork<span class="signature">(storeID, nodesID, nodesName, response)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="~newNetwork"><span class="type-signature">(inner) </span>newNetwork<span class="signature">(instance, nodesID, nodesName, response)</span><span class="type-signature"></span></h4>
     
 
     
@@ -1650,7 +2006,7 @@
 
         <tr>
             
-                <td class="name"><code>storeID</code></td>
+                <td class="name"><code>instance</code></td>
             
 
             <td class="type">
@@ -1666,7 +2022,7 @@
 
             
 
-            <td class="description last">Store ID</td>
+            <td class="description last">Package instance ID</td>
         </tr>
 
     
@@ -1776,7 +2132,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line284">line 284</a>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line431">line 431</a>
     </li></ul></dd>
     
 
@@ -1810,7 +2166,7 @@
     
 
     
-    <h4 class="name" id="~reset"><span class="type-signature">(inner) </span>reset<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="~putAsset"><span class="type-signature">(inner) </span>putAsset<span class="signature">(key, content)</span><span class="type-signature"></span></h4>
     
 
     
@@ -1818,8 +2174,7 @@
 
 
 <div class="description">
-    Delete all data store
-Try this before dealing with local db issues
+    Put asset object with a key
 </div>
 
 
@@ -1828,6 +2183,78 @@ Try this before dealing with local db issues
 
 
 
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>key</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">key</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>content</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">asset to store</td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -1863,7 +2290,7 @@ Try this before dealing with local db issues
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line23">line 23</a>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line479">line 479</a>
     </li></ul></dd>
     
 
@@ -1897,7 +2324,142 @@ Try this before dealing with local db issues
     
 
     
-    <h4 class="name" id="~updateCollection"><span class="type-signature">(inner) </span>updateCollection<span class="signature">(storeID, collID, collObj)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="~putItem"><span class="type-signature">(inner) </span>putItem<span class="signature">(value)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Put data object in the store
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>value</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">value to store</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line108">line 108</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="~updateCollection"><span class="type-signature">(inner) </span>updateCollection<span class="signature">(id, collID, collObj)</span><span class="type-signature"></span></h4>
     
 
     
@@ -1941,7 +2503,7 @@ Try this before dealing with local db issues
 
         <tr>
             
-                <td class="name"><code>storeID</code></td>
+                <td class="name"><code>id</code></td>
             
 
             <td class="type">
@@ -1957,7 +2519,7 @@ Try this before dealing with local db issues
 
             
 
-            <td class="description last">store ID</td>
+            <td class="description last">Package instance ID</td>
         </tr>
 
     
@@ -2044,7 +2606,7 @@ Try this before dealing with local db issues
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line207">line 207</a>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line273">line 273</a>
     </li></ul></dd>
     
 
@@ -2078,7 +2640,7 @@ Try this before dealing with local db issues
     
 
     
-    <h4 class="name" id="~updateItem"><span class="type-signature">(inner) </span>updateItem<span class="signature">(storeID, updateFunc)</span><span class="type-signature"> &rarr; {integer}</span></h4>
+    <h4 class="name" id="~updateItem"><span class="type-signature">(inner) </span>updateItem<span class="signature">(id, updater)</span><span class="type-signature"></span></h4>
     
 
     
@@ -2086,7 +2648,7 @@ Try this before dealing with local db issues
 
 
 <div class="description">
-    Update data object in the store
+    Update package in the store
 </div>
 
 
@@ -2122,7 +2684,7 @@ Try this before dealing with local db issues
 
         <tr>
             
-                <td class="name"><code>storeID</code></td>
+                <td class="name"><code>id</code></td>
             
 
             <td class="type">
@@ -2138,14 +2700,14 @@ Try this before dealing with local db issues
 
             
 
-            <td class="description last">store ID</td>
+            <td class="description last">Package instance ID</td>
         </tr>
 
     
 
         <tr>
             
-                <td class="name"><code>updateFunc</code></td>
+                <td class="name"><code>updater</code></td>
             
 
             <td class="type">
@@ -2202,7 +2764,7 @@ Try this before dealing with local db issues
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line65">line 65</a>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line126">line 126</a>
     </li></ul></dd>
     
 
@@ -2225,28 +2787,6 @@ Try this before dealing with local db issues
 
 
 
-<h5>Returns:</h5>
-
-        
-<div class="param-desc">
-    - number of updated items
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">integer</span>
-
-
-    </dd>
-</dl>
-
-    
 
 
 
@@ -2258,7 +2798,7 @@ Try this before dealing with local db issues
     
 
     
-    <h4 class="name" id="~updateView"><span class="type-signature">(inner) </span>updateView<span class="signature">(storeID, viewID, viewObj)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="~updateView"><span class="type-signature">(inner) </span>updateView<span class="signature">(id, viewID, viewObj)</span><span class="type-signature"></span></h4>
     
 
     
@@ -2302,7 +2842,7 @@ Try this before dealing with local db issues
 
         <tr>
             
-                <td class="name"><code>storeID</code></td>
+                <td class="name"><code>id</code></td>
             
 
             <td class="type">
@@ -2318,7 +2858,7 @@ Try this before dealing with local db issues
 
             
 
-            <td class="description last">store ID</td>
+            <td class="description last">Package instance ID</td>
         </tr>
 
     
@@ -2405,7 +2945,7 @@ Try this before dealing with local db issues
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line127">line 127</a>
+        <a href="common_idb.js.html">common/idb.js</a>, <a href="common_idb.js.html#line193">line 193</a>
     </li></ul></dd>
     
 
@@ -2449,13 +2989,13 @@ Try this before dealing with local db issues
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_badge.html">component/badge</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_badge.html">component/badge</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_dropdown.html">component/dropdown</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_legend.html">component/legend</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_screener.html">dialog/screener</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_similarity.html">network/similarity</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Aug 14 2018 09:06:32 GMT+0900 (JST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Sep 12 2018 14:02:21 GMT+0900 (日本標準時)
 </footer>
 
 <script> prettyPrint(); </script>

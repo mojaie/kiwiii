@@ -31,6 +31,8 @@
 
 import d3 from 'd3';
 
+import {default as badge} from './badge.js';
+import {default as box} from './formBox.js';
 import {default as shape} from './shape.js';
 
 
@@ -51,10 +53,14 @@ function selectBox(selection, label) {
   selection.append('select')
       .classed('form-control', true)
       .classed('form-control-sm', true)
-      .classed('col-8', true);
+      .classed('col-8', true)
+      .on('input', function () {
+        const valid = box.formValid(selection);
+        selection.call(box.setValidity, valid);
+      });
 }
 
-function selectBoxItems(selection, items) {
+function updateSelectBoxOptions(selection, items) {
   const options = selection.select('select')
     .selectAll('option')
       .data(items, d => d.key);
@@ -65,12 +71,10 @@ function selectBoxItems(selection, items) {
       .text(d => d.name);
 }
 
-function updateSelectBox(selection, value) {
-  selection.select('select').property('value', value);
-}
-
-function selectBoxValue(selection) {
-  return selection.select('select').property('value');
+function selectedRecord(selection) {
+  const value = box.formValue(selection);
+  return selection.selectAll('select option').data()
+      .find(e => e.key === value);
 }
 
 
@@ -84,18 +88,20 @@ function checklistBox(selection, label) {
       .classed('form-group', true)
       .classed('form-row', true)
       .classed('align-items-center', true);
-  selection.append('label')
+  const formLabel = selection.append('label')
       .classed('col-form-label', true)
       .classed('col-form-label-sm', true)
       .classed('col-4', true)
       .text(label);
+  formLabel.append('div')
+      .call(badge.invalidFeedback);
   selection.append('ul')
       .classed('form-control', true)
       .classed('form-control-sm', true)
       .classed('col-8', true);
 }
 
-function checklistBoxItems(selection, items) {
+function updateChecklistItems(selection, items) {
   const listitems = selection.select('ul')
     .selectAll('li')
       .data(items, d => d.key);
@@ -113,20 +119,35 @@ function checklistBoxItems(selection, items) {
       .text(d => d.name);
 }
 
-function updateChecklistBox(selection, values) {
-  if (!values) return;
+function checkRequired(selection) {
+  selection.selectAll('input')
+      .on('change', function () {
+        const valid = anyChecked(selection);
+        selection.call(setChecklistValidity, valid);
+      });
+}
+
+function updateChecklistValues(selection, values) {
   selection.selectAll('input')
     .each(function (d) {
       d3.select(this).property('checked', values.includes(d.key));
     });
+  selection.call(setChecklistValidity, true);  // Clear validity state
 }
 
-function checklistBoxValue(selection) {
+function checklistValues(selection) {
   return selection.selectAll('input:checked').data().map(d => d.key);
 }
 
 function anyChecked(selection) {
-  return checklistBoxValue(selection).length > 0;
+  return checklistValues(selection).length > 0;
+}
+
+function setChecklistValidity(selection, valid) {
+  selection.select('.invalid-feedback')
+      .style('display', valid ? 'none': 'inherit');
+  selection.select('.form-control')
+      .style('background-color', valid ? null : 'LightPink');
 }
 
 
@@ -178,6 +199,8 @@ function colorScaleBoxItems(selection, items) {
     .append('svg')
       .each(function (d) {
         d3.select(this)
+          .attr('viewBox', '0 0 100 10')
+          .attr('preserveAspectRatio', 'none')
           .call(shape.colorBar[d.type], d.colors, d.text)
           .call(shape.setSize, 100, 10);
       });
@@ -188,6 +211,8 @@ function setSelectedColorScale(selection, item) {
   selected.selectAll('svg').remove();
   selected.datum(item);  // Bind selected item record
   selected.append('svg')
+      .attr('viewBox', '0 0 100 10')
+      .attr('preserveAspectRatio', 'none')
       .call(shape.colorBar[item.type], item.colors, item.text)
       .call(shape.setSize, 100, 10);
 }
@@ -209,9 +234,9 @@ function colorScaleBoxItem(selection) {
 
 
 export default {
-  selectBox, selectBoxItems, updateSelectBox, selectBoxValue,
-  checklistBox, checklistBoxItems, updateChecklistBox, checklistBoxValue,
-  anyChecked,
+  selectBox, updateSelectBoxOptions, selectedRecord,
+  checklistBox, updateChecklistItems, checkRequired, updateChecklistValues,
+  checklistValues, anyChecked, setChecklistValidity,
   colorScaleBox, colorScaleBoxItems, updateColorScaleBox,
   colorScaleBoxValue, colorScaleBoxItem
 };
@@ -225,13 +250,13 @@ export default {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_badge.html">component/badge</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_badge.html">component/badge</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_dropdown.html">component/dropdown</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_legend.html">component/legend</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_screener.html">dialog/screener</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_similarity.html">network/similarity</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Aug 14 2018 09:06:32 GMT+0900 (JST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Sep 12 2018 14:02:21 GMT+0900 (日本標準時)
 </footer>
 
 <script> prettyPrint(); </script>

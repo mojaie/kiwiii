@@ -35,10 +35,13 @@ import d3 from 'd3';
 import {default as misc} from '../common/misc.js';
 import {default as cscale} from '../common/scale.js';
 
+import {default as badge} from '../component/badge.js';
 import {default as box} from '../component/formBox.js';
 import {default as cbox} from '../component/controlBox.js';
 import {default as lbox} from '../component/formListBox.js';
 import {default as button} from '../component/button.js';
+
+import {default as force} from './force.js';
 
 
 function mainControlBox(selection, state) {
@@ -59,6 +62,24 @@ function mainControlBox(selection, state) {
       .classed('overlook', true)
       .classed('mb-1', true)
       .call(box.checkBox, 'Enable overlook view');
+
+  // Legend
+  const legendOptions = [
+    {key: 'top-left', name: 'Top-left'},
+    {key: 'top-right', name: 'Top-right'},
+    {key: 'bottom-left', name: 'Bottom-left'},
+    {key: 'bottom-right', name: 'Bottom-right'},
+  ];
+  selection.append('div')
+      .classed('legend', true)
+      .classed('mb-3', true)
+      .call(lbox.selectBox, 'Legend')
+      .call(lbox.updateSelectBoxOptions, legendOptions)
+      .on('change', function () {
+        state.legendOrient = box.formValue(d3.select(this));
+        state.updateLegendNotifier();
+      });
+
   // Network threshold
   const thldGroup = selection.append('div')
       .classed('thld-group', true)
@@ -70,7 +91,12 @@ function mainControlBox(selection, state) {
   thldGroup.append('div')
       .classed('thld', true)
       .classed('mb-1', true)
-      .call(box.numberBox, 'Threshold', state.minConnThld, 1.000, 0.01);
+      .call(box.numberBox, 'Threshold')
+      .call(box.updateNumberRange, state.minConnThld, 1, 0.01)
+      .call(badge.updateInvalidMessage,
+            `Please provide a valid range (${state.minConnThld}-1.00)`)
+    .select('.form-control')
+      .attr('required', 'required');
   thldGroup.append('div')
       .classed('logd', true)
       .classed('mb-1', true)
@@ -79,6 +105,18 @@ function mainControlBox(selection, state) {
   const forceBox = selection.append('div')
       .classed('form-group', true)
       .classed('form-row', true);
+  forceBox.append('div')
+      .classed('col-12', true)
+    .append('div')
+      .classed('forcetype', true)
+      .classed('mb-1', true)
+      .call(lbox.selectBox, 'Force')
+      .call(lbox.updateSelectBoxOptions, force.forceType)
+      .on('change', function () {
+        const value = box.formValue(d3.select(this));
+        state.forceType = value;
+        state.setForceNotifier();
+      });
   forceBox.append('div')
       .classed('col-6', true)
     .append('span')
@@ -113,7 +151,7 @@ function mainControlBox(selection, state) {
 }
 
 
-function updateMainControlBox(selection, state) {
+function updateMainControl(selection, state) {
   // Zoom
   selection.select('.fit')
       .on('click', function () { state.fitNotifier(); });
@@ -139,17 +177,19 @@ function updateMainControlBox(selection, state) {
     .filter(e => misc.sortType(e.format) !== 'none')
     .filter(e => !['source', 'target'].includes(e.key));
   thldGroup.select('.field')
-      .call(lbox.selectBoxItems, thldFields)
-      .call(lbox.updateSelectBox, state.connThldField);
+      .call(lbox.updateSelectBoxOptions, thldFields)
+      .call(box.updateFormValue, state.connThldField);
   thldGroup.select('.thld')
-      .call(box.updateNumberBox, state.currentConnThld);
+      .call(box.updateFormValue, state.currentConnThld);
   thldGroup.selectAll('.field, .thld')
       .on('change', function () {
-        const field = lbox.selectBoxValue(thldGroup.select('.field'));
-        const thld = box.numberBoxFloatValue(thldGroup.select('.thld'));
+        if(!box.formValid(thldGroup.select('.thld'))) return;
+        const field = box.formValue(thldGroup.select('.field'));
+        const thld = box.formValue(thldGroup.select('.thld'));
         state.connThldField = field;
         state.currentConnThld = thld;
         thldGroup.select('.logd').dispatch('update');
+        state.setForceNotifier();
         state.updateComponentNotifier();
       });
   thldGroup.select('.logd')
@@ -161,7 +201,7 @@ function updateMainControlBox(selection, state) {
         const n = state.ns.length;
         const combinations = n * (n - 1) / 2;
         const logD = d3.format('.2f')(Math.log10(numEdges / combinations));
-        d3.select(this).call(box.updateTextBox, logD);
+        d3.select(this).call(box.updateReadonlyValue, logD);
       })
       .dispatch('update');
 
@@ -200,72 +240,80 @@ function updateMainControlBox(selection, state) {
 }
 
 
-function updateNodeColorControlBox(selection, state) {
+function updateNodeColorControl(selection, state) {
   const fieldOptions = state.nodes.fields
     .filter(e => misc.sortType(e.format) !== 'none');
   selection
-    .call(cbox.updateColorControlBox, fieldOptions, state.nodeColor)
-    .on('change', function() {
-      state.nodeColor = cbox.colorControlBoxState(selection);
-      if (state.nodeColor.scale === 'ordinal') {
-        const keys = state.nodes.records().map(e => e[state.nodeColor.field]);
-        state.nodeColor.domain = _.uniq(keys).sort();
-      }
-      state.updateNodeAttrNotifier();
-    });
+      .call(cbox.updateColorControl, fieldOptions, state.nodeColor)
+      .on('change', function() {
+        if (!cbox.colorControlValid(selection)) return;
+        state.nodeColor = cbox.colorControlState(selection);
+        if (state.nodeColor.scale === 'ordinal') {
+          const keys = state.nodes.records().map(e => e[state.nodeColor.field]);
+          state.nodeColor.domain = _.uniq(keys).sort();
+        }
+        state.updateNodeAttrNotifier();
+      });
 }
 
 
-function updateEdgeColorControlBox(selection, state) {
+function updateEdgeColorControl(selection, state) {
   const fieldOptions = state.edges.fields
     .filter(e => misc.sortType(e.format) !== 'none')
     .filter(e => !['source', 'target'].includes(e.key));
   selection
-      .call(cbox.updateColorControlBox, fieldOptions, state.edgeColor)
+      .call(cbox.updateColorControl, fieldOptions, state.edgeColor)
       .on('change', function() {
-        state.edgeColor = cbox.colorControlBoxState(selection);
+        if (!cbox.colorControlValid(selection)) return;
+        state.edgeColor = cbox.colorControlState(selection);
         if (state.edgeColor.scale === 'ordinal') {
           const keys = state.edges.records().map(e => e[state.edgeColor.field]);
           state.edgeColor.domain = _.uniq(keys).sort();
         }
         state.updateEdgeAttrNotifier();
       });
+
+  // TODO: not implemented yet
+  selection.select('.legend input').property('disabled', true);
 }
 
 
-function updateNodeSizeControlBox(selection, state) {
+function updateNodeSizeControl(selection, state) {
   const fieldOptions = state.nodes.fields
     .filter(e => misc.sortType(e.format) !== 'none');
   selection
-      .call(cbox.updateSizeControlBox, fieldOptions, state.nodeSize)
+      .call(cbox.updateSizeControl, fieldOptions, state.nodeSize)
       .on('change', function() {
-        state.nodeSize = cbox.sizeControlBoxState(selection);
+        if (!cbox.sizeControlValid(selection)) return;
+        state.nodeSize = cbox.sizeControlState(selection);
         state.updateNodeAttrNotifier();
       });
 }
 
 
-function updateEdgeWidthControlBox(selection, state) {
+function updateEdgeWidthControl(selection, state) {
   const fieldOptions = state.edges.fields
     .filter(e => misc.sortType(e.format) !== 'none')
     .filter(e => !['source', 'target'].includes(e.key));
   selection
-      .call(cbox.updateSizeControlBox, fieldOptions, state.edgeWidth)
+      .call(cbox.updateSizeControl, fieldOptions, state.edgeWidth)
       .on('change', function() {
-        state.edgeWidth = cbox.sizeControlBoxState(selection);
+        if (!cbox.sizeControlValid(selection)) return;
+        state.edgeWidth = cbox.sizeControlState(selection);
         state.updateEdgeAttrNotifier();
       });
 }
 
 
-function updateNodeLabelControlBox(selection, state) {
+function updateNodeLabelControl(selection, state) {
   const fieldOptions = state.nodes.fields
     .filter(e => misc.sortType(e.format) !== 'none');
   selection
-      .call(cbox.updateLabelControlBox, fieldOptions,
+      .call(cbox.updateLabelControl, fieldOptions,
             state.nodeLabel, state.nodeLabelColor)
       .on('change', function() {
-        const values = cbox.labelControlBoxState(selection);
+        if (!cbox.labelControlValid(selection)) return;
+        const values = cbox.labelControlState(selection);
         state.nodeLabel = values.label;
         state.nodeLabelColor = values.labelColor;
         if (state.nodeLabelColor.scale === 'ordinal') {
@@ -278,15 +326,16 @@ function updateNodeLabelControlBox(selection, state) {
 }
 
 
-function updateEdgeLabelControlBox(selection, state) {
+function updateEdgeLabelControl(selection, state) {
   const fieldOptions = state.edges.fields
     .filter(e => misc.sortType(e.format) !== 'none')
     .filter(e => !['source', 'target'].includes(e.key));
   selection
-      .call(cbox.updateLabelControlBox, fieldOptions,
+      .call(cbox.updateLabelControl, fieldOptions,
             state.edgeLabel, state.edgeLabelColor)
       .on('change', function() {
-        const values = cbox.labelControlBoxState(selection);
+        if (!cbox.labelControlValid(selection)) return;
+        const values = cbox.labelControlState(selection);
         state.edgeLabel = values.label;
         state.edgeLabelColor = values.labelColor;
         if (state.edgeLabelColor.scale === 'ordinal') {
@@ -377,19 +426,19 @@ function controlBox(selection, state) {
 
 function updateControlBox(selection, state) {
   selection.select('.control-main')
-      .call(updateMainControlBox, state);
+      .call(updateMainControl, state);
   selection.select('.control-color')
-      .call(updateNodeColorControlBox, state);
+      .call(updateNodeColorControl, state);
   selection.select('.control-size')
-      .call(updateNodeSizeControlBox, state);
+      .call(updateNodeSizeControl, state);
   selection.select('.control-label')
-      .call(updateNodeLabelControlBox, state);
+      .call(updateNodeLabelControl, state);
   selection.select('.control-edgecolor')
-      .call(updateEdgeColorControlBox, state);
+      .call(updateEdgeColorControl, state);
   selection.select('.control-edgewidth')
-      .call(updateEdgeWidthControlBox, state);
+      .call(updateEdgeWidthControl, state);
   selection.select('.control-edgelabel')
-      .call(updateEdgeLabelControlBox, state);
+      .call(updateEdgeLabelControl, state);
 }
 
 
@@ -406,13 +455,13 @@ export default {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_badge.html">component/badge</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_badge.html">component/badge</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_dropdown.html">component/dropdown</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_legend.html">component/legend</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_screener.html">dialog/screener</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_similarity.html">network/similarity</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Aug 14 2018 09:06:32 GMT+0900 (JST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Sep 12 2018 14:02:21 GMT+0900 (日本標準時)
 </footer>
 
 <script> prettyPrint(); </script>

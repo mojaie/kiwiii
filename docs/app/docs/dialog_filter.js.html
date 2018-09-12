@@ -33,7 +33,9 @@ import _ from 'lodash';
 import d3 from 'd3';
 
 import {default as fetcher} from '../common/fetcher.js';
+import {default as misc} from '../common/misc.js';
 
+import {default as badge} from '../component/badge.js';
 import {default as button} from '../component/button.js';
 import {default as box} from '../component/formBox.js';
 import {default as lbox} from '../component/formListBox.js';
@@ -50,14 +52,32 @@ function menuLink(selection) {
 
 
 function body(selection) {
-  const dialog = selection.call(modal.submitDialog, id, title);
-  dialog.select('.modal-body').append('div')
+  const mbody = selection.call(modal.submitDialog, id, title)
+    .select('.modal-body');
+  mbody.append('div')
+      .classed('text-muted', true)
+      .classed('small', true)
+      .classed('text-right', true)
+      .text('Ctrl+F to fill the form with demo queries');
+
+  // Key
+  mbody.append('div')
       .classed('key', true)
-      .call(lbox.selectBox, 'Field');
-  dialog.select('.modal-body').append('div')
+      .call(lbox.selectBox, 'Field')
+      .on('change', function () {
+        const field = lbox.selectedRecord(d3.select(this));
+        const fmt = misc.sortType(field.format || 'd3_format');
+        selection.select('.textvalue')
+            .property('hidden', fmt !== 'text');
+        selection.select('.numvalue')
+            .property('hidden', fmt !== 'numeric');
+      });
+
+  // Operator
+  mbody.append('div')
       .classed('operator', true)
       .call(lbox.selectBox, 'Operator')
-      .call(lbox.selectBoxItems, [
+      .call(lbox.updateSelectBoxOptions, [
               {key: 'eq', name: '='},
               {key: 'gt', name: '>'},
               {key: 'lt', name: '&lt;'},
@@ -65,13 +85,43 @@ function body(selection) {
               {key: 'le', name: '>='},
               {key: 'lk', name: 'LIKE'}
             ]);
-  dialog.select('.modal-body').append('div')
-      .classed('value', true)
-      .call(box.textBox, 'Value');
-  // Targets
-  dialog.select('.modal-body').append('div')
+
+  // Text value
+  const textValueBox = mbody.append('div')
+      .classed('textvalue', true)
+      .call(box.textBox, 'Value')
+      .on('input', function() {
+        const valid = dialogFormValid(selection);
+        selection.select('.submit').property('disabled', !valid);
+      });
+  textValueBox.select('.form-control')
+      .attr('required', 'required');
+  textValueBox.select('.invalid-feedback')
+      .call(badge.updateInvalidMessage, 'Please provide a valid text');
+
+  // Numeric value
+  const numValueBox = mbody.append('div')
+      .classed('numvalue', true)
+      .call(box.numberBox, 'Value')
+      .on('input', function() {
+        const valid = dialogFormValid(selection);
+        selection.select('.submit').property('disabled', !valid);
+      });
+  numValueBox.select('.form-control')
+      .attr('required', 'required');
+  numValueBox.select('.invalid-feedback')
+      .call(badge.updateInvalidMessage, 'Please provide a valid number');
+
+  // Target databases
+  mbody.append('div')
       .classed('target', true)
-      .call(lbox.checklistBox, 'Target databases');
+      .call(lbox.checklistBox, 'Target databases')
+      .on('change', function() {
+        const valid = dialogFormValid(selection);
+        selection.select('.submit').property('disabled', !valid);
+      })
+    .select('.invalid-feedback')
+      .call(badge.updateInvalidMessage, 'Please choose at least one items');
 }
 
 
@@ -83,50 +133,60 @@ function updateBody(selection, resources) {
     .filter(e => e.hasOwnProperty('d3_format')
                  || ['compound_id', 'numeric', 'text'].includes(e.format));
   selection.select('.key')
-      .call(lbox.selectBoxItems, fields)
-      .call(lbox.updateSelectBox, fields[0]);
-  selection.select('.operator')
-      .call(lbox.updateSelectBox, 'eq');
-  selection.select('.value')
-      .call(box.updateTextBox, '')
-      .on('input', function () {
-        d3.select(this).dispatch('validate');
-      });
+      .call(lbox.updateSelectBoxOptions, fields)
+      .call(box.updateFormValue, fields[0].key)
+      .dispatch('change');
+  selection.select('.operator').call(box.updateFormValue, 'eq');
+  selection.select('.textvalue').call(box.updateFormValue, null);
+  selection.select('.numvalue').call(box.updateFormValue, null);
   const res = resources.map(d => ({key: d.id, name: d.name}));
   selection.select('.target')
-      .call(lbox.checklistBoxItems, res)
-      .call(lbox.updateChecklistBox, null)
-      .on('change', function () {
-        d3.select(this).dispatch('validate');
-      });
-  // Input validation
-  selection.selectAll('.value,.target')
-      .on('validate', function () {
-        const textValid = box.textBoxValue(selection.select('.value')) !== '';
-        const targetChecked = lbox.anyChecked(selection.select('.target'));
-        selection.select('.submit')
-          .property('disabled', !(textValid &amp;&amp; targetChecked));
-      })
-      .dispatch('validate');
+      .call(lbox.updateChecklistItems, res)
+      .call(lbox.checkRequired)
+      .call(lbox.updateChecklistValues, []);
+  selection.select('.submit').property('disabled', true);
 }
 
 
+function dialogFormValid(selection) {
+  const fmt = lbox.selectedRecord(selection.select('.key')).format;
+  const type = misc.sortType(fmt);
+  const textValid = box.formValid(selection.select('.textvalue'));
+  const numValid = box.formValid(selection.select('.numvalue'));
+  const targetChecked = lbox.anyChecked(selection.select('.target'));
+  return (type === 'text' ? textValid : numValid) &amp;&amp; targetChecked;
+}
+
 
 function execute(selection) {
+  const fmt = lbox.selectedRecord(selection.select('.key')).format;
+  const type = misc.sortType(fmt);
+  const value = box.formValue(
+    selection.select(type === 'text' ? '.textvalue' : '.numvalue'));
   const query = {
     workflow: 'filter',
-    targets: lbox.checklistBoxValue(selection.select('.target')),
-    key: lbox.selectBoxValue(selection.select('.key')),
-    value: box.textBoxValue(selection.select('.value')),
-    operator: lbox.selectBoxValue(selection.select('.operator'))
+    targets: lbox.checklistValues(selection.select('.target')),
+    key: box.formValue(selection.select('.key')),
+    value: value,
+    operator: box.formValue(selection.select('.operator'))
   };
   return fetcher.get(query.workflow, query)
     .then(fetcher.json);
 }
 
 
+function fill(selection) {
+  selection.select('.key').call(box.updateFormValue, '_mw')
+      .dispatch('change');
+  selection.select('.operator').call(box.updateFormValue, 'gt');
+  selection.select('.numvalue').call(box.updateFormValue, 1500);
+  selection.select('.target').call(lbox.updateChecklistValues, ['drugbankfda'])
+      .dispatch('change');
+}
+
+
 export default {
-  menuLink, body, updateBody, execute
+  menuLink, body, updateBody, execute, fill
 };
 </code></pre>
         </article>
@@ -138,13 +198,13 @@ export default {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_badge.html">component/badge</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_badge.html">component/badge</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_dropdown.html">component/dropdown</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_legend.html">component/legend</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_screener.html">dialog/screener</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_similarity.html">network/similarity</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Aug 14 2018 09:06:32 GMT+0900 (JST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Sep 12 2018 14:02:21 GMT+0900 (日本標準時)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -2,6 +2,15 @@
 Kiwiii
 ================
 
+[<img src="assets/screenshots/network-view.png" width="260" height="160" alt="Network view" style="margin: 5px"/>](assets/screenshots/network-view.png)
+[<img src="assets/screenshots/network-potency.png" width="260" height="160" alt="Network potency" style="margin: 5px"/>](assets/screenshots/network-potency.png)
+[<img src="assets/screenshots/tile-heatmap.png" width="260" height="160" alt="Tile view" style="margin: 5px"/>](assets/screenshots/tile-heatmap.png)
+[<img src="assets/screenshots/table-view.png" width="260" height="160" alt="Table view" style="margin: 5px"/>](assets/screenshots/table-view.png)
+[<img src="assets/screenshots/spr-plot-example.png" width="260" height="160" alt="Plot example" style="margin: 5px"/>](assets/screenshots/spr-plot-example.png)
+[<img src="assets/screenshots/dashboard.png" width="260" height="160" alt="Dashboard" style="margin: 5px"/>](assets/screenshots/dashboard.png)
+[<img src="assets/screenshots/profile-view.png" width="260" height="160" alt="Profile view" style="margin: 5px"/>](assets/screenshots/profile-view.png)
+
+
 Kiwiii is a web application package for chemical data analysis and visualization.
 
 Datagrid module, which is mainly designed for drug candidate data profiling, has sortable smooth scroll table with chemical structure SVG data and plot columns. [Flashflood](https://github.com/mojaie/flashflood)  web server will help continuous data integration by offering workflow pipeline and parallel computation job scheduling via HTTP.
@@ -32,7 +41,7 @@ Features and demo applications
 
 ### Dashboard
 
-[<img src="assets/screenshots/control-panel.png" width="260" height="160" alt="Dashboard" style="margin: 5px"/>](assets/screenshots/control-panel.png)
+[<img src="assets/screenshots/dashboard.png" width="260" height="160" alt="Dashboard" style="margin: 5px"/>](assets/screenshots/dashboard.png)
 
 [[Open dashboard app]](https://mojaie.github.io/kiwiii/app/dashboard.html)
 
@@ -67,6 +76,7 @@ Features and demo applications
 ### Network view
 
 [<img src="assets/screenshots/network-view.png" width="260" height="160" alt="Network view" style="margin: 5px"/>](assets/screenshots/network-view.png)
+[<img src="assets/screenshots/network-potency.png" width="260" height="160" alt="Network potency" style="margin: 5px"/>](assets/screenshots/network-potency.png)
 
 
 ### Features

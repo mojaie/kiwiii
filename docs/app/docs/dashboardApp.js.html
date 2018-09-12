@@ -46,34 +46,52 @@ import {default as tree} from './component/tree.js';
 import {default as searchDialog} from './dialog/search.js';
 import {default as structDialog} from './dialog/struct.js';
 import {default as filterDialog} from './dialog/filter.js';
+import {default as screenerDialog} from './dialog/screener.js';
 import {default as sdfDialog} from './dialog/sdf.js';
 import {default as renameDialog} from './dialog/rename.js';
 
 import {default as table} from './datagrid/table.js';
 
 
-function nodeFactory(selection, record) {
+function viewNode(selection, record) {
+  const instance = record.instance || record.parent;
+  selection.append('span').classed('arrow', true);
+  const node = record.viewID
+    ? selection.append('a')
+      .attr(
+        'href',
+        `${record.viewType}.html?instance=${instance}&amp;view=${record.viewID}`
+      )
+      .attr('target', '_blank')
+    : selection;
+  node.append('img')
+      .classed('icon', true)
+      .classed('mr-1', true)
+      .style('width', '2rem')
+      .style('height', '2rem');
+  node.append('span')
+      .classed('title', true)
+      .classed('mr-1', true);
+  selection.append('span')
+      .classed('status', true)
+      .classed('mr-1', true);
+  selection.append('span')
+      .classed('action', true)
+      .classed('p-1', true)
+      .style('border', '1px solid #999999')
+      .style('border-radius', '5px');
+}
+
+
+function updateViewNode(selection, record) {
   const iconv = {
     'datagrid': 'table-darkorange', 'network': 'network-turquoise',
     'tile': 'tiles-yellowgreen'
   };
   const icon = record.viewID ? iconv[record.viewType] : 'file-seagreen';
-  const storeID = record.storeID || record.parent;
-  const node = record.viewID
-    ? selection.append('a')
-      .attr(
-        'href',
-        `${record.viewType}.html?store=${storeID}&amp;view=${record.viewID}`
-      )
-      .attr('target', '_blank')
-    : selection;
-  node.append('img')
-      .attr('src', icon ? `${button.iconBaseURL}${icon}.svg` : null)
-      .classed('mr-1', true)
-      .style('width', '2rem')
-      .style('height', '2rem');
-  node.append('span')
-      .classed('mr-1', true)
+  selection.select('.icon')
+      .attr('src', icon ? `${button.iconBaseURL}${icon}.svg` : null);
+  selection.select('.title')
       .text(record.name);
   const colors = {
     done: 'green', running: 'darkorange',
@@ -90,29 +108,31 @@ function nodeFactory(selection, record) {
     rows: 'table-gray', items: 'tiles-gray',
     nodes: 'nodes-gray', edges: 'edges-gray'
   };
-    if (record.viewID) {
+
+  // View status
+  const status = selection.select('.status');
+  status.selectAll('*').remove();
+  if (record.viewID) {
     record.stats.forEach(stat => {
-      selection.append('img')
+      status.append('img')
           .attr('src', `${button.iconBaseURL}${icons[stat[0]]}.svg`)
           .style('width', '1rem')
           .style('height', '1rem');
-      selection.append('span')
-          .classed('pr-1', true)
+      status.append('span')
           .style('font-size', '0.8rem')
           .style('color', colors[stat[0]])
           .text(stat[1]);
     });
   } else {
-    selection.append('span')
-        .classed('pr-1', true)
+    status.append('span')
         .style('font-size', '0.7rem')
         .style('color', '#999999')
         .text(record.sessionStarted);
   }
-  const action = selection.append('span')
-      .classed('p-1', true)
-      .style('border', '1px solid #999999')
-      .style('border-radius', '5px');
+
+  // Actions
+  const action = selection.select('.action');
+  action.selectAll('*').remove();
   const actionIcon = (sel, icon) => sel.append('img')
       .attr('src', `${button.iconBaseURL}${icon}.svg`)
       .classed('mx-1', true)
@@ -122,7 +142,7 @@ function nodeFactory(selection, record) {
     action.append('a').call(actionIcon, 'menu-export')
         .on('click', () => {
           const data = JSON.parse(JSON.stringify(record));
-          delete data.storeID;
+          delete data.instance;
           delete data.sessionStarted;
           hfile.downloadJSON(data, data.name);
         });
@@ -142,7 +162,7 @@ function nodeFactory(selection, record) {
                 view.name = renameDialog.value(d3.select(this));
               }).then(updateApp);
             } else {
-              idb.updateItem(record.storeID, item => {
+              idb.updateItem(record.instance, item => {
                 item.name = renameDialog.value(d3.select(this));
               }).then(updateApp);
             }
@@ -169,7 +189,7 @@ function nodeFactory(selection, record) {
                 idb.deleteView(record.parent, record.viewID)
                   .then(updateApp);
               } else {
-                idb.deleteItem(record.storeID || record.parent)
+                idb.deleteItem(record.id || record.parent)
                   .then(updateApp);
               }
             });
@@ -200,6 +220,8 @@ function app() {
   startMenu.append('a').classed('online-command', true)
       .call(filterDialog.menuLink);
   startMenu.append('a').classed('online-command', true)
+      .call(screenerDialog.menuLink);
+  startMenu.append('a').classed('online-command', true)
       .call(sdfDialog.menuLink);
   startMenu.append('a')
       .call(button.dropdownMenuFile, 'Open file',
@@ -223,6 +245,7 @@ function app() {
       });
   // Delete all
   menubar.append('a')
+      .classed('reset', true)
       .call(button.menuModalLink, 'reset-dialog',
             'Reset local datastore', 'warning', 'delete-gray');
   // Status
@@ -239,9 +262,7 @@ function app() {
   contents.append('h5').classed('mt-5', true).text('Packages on local storage');
   contents.append('div').classed('mb-5', true)
       .classed('stored', true)
-      .style('border', '1px solid #333333')
-      .call(tree.tree)
-      .call(tree.setHeight, 300);
+      .style('border', '1px solid #333333');
 
   // Server calc jobs
   // TODO: only for admin
@@ -277,6 +298,9 @@ function app() {
       .classed('filterd', true)
       .call(filterDialog.body);
   dialogs.append('div')
+      .classed('screenerd', true)
+      .call(screenerDialog.body);
+  dialogs.append('div')
       .classed('sdfd', true)
       .call(sdfDialog.body);
   dialogs.append('div')
@@ -288,7 +312,7 @@ function app() {
             'Are you sure you want to delete all local tables and reset the datastore ?')
       .on('submit', () => {
         d3.select('#menubar .loading-circle').style('display', 'inline-block');
-        return idb.reset().then(updateApp);
+        return idb.clearAll().then(updateApp);
       });
   dialogs.append('div')
       .call(modal.confirmDialog, 'delete-dialog');
@@ -309,21 +333,25 @@ function updateApp() {
       .call(table.updateRecords, response.server.calc.records);
     const serverRecords = Object.entries(response.server)
       .filter(e => e[0] !== 'calc')
-      .map(e => ({key: e[0], value: e[1]}));
+      .map(e => {
+        const v = e[0] === 'externalModules'
+          ? JSON.stringify(e[1].map(e => e.name)) : e[1];
+        return {key: e[0], value: v};
+      });
     d3.select('#contents').select('.server')
       .call(table.updateRecords, serverRecords);
 
     // Dialogs
     const chemrsrc = response.schema.resources.filter(e => e.domain === 'chemical');
     dialogs.select('.searchd')
-        .call(searchDialog.updateBody, chemrsrc, response.schema.compoundIDPlaceholder)
+        .call(searchDialog.updateBody, chemrsrc)
         .on('submit', function () {
           return searchDialog.execute(d3.select(this), chemrsrc)
             .then(idb.newDatagrid)
             .then(r => {
               onLoading.style('display', 'none');
               window.open(
-                `datagrid.html?store=${r.storeID}&amp;view=${r.viewID}`, '_blank');
+                `datagrid.html?instance=${r.instance}&amp;view=${r.viewID}`, '_blank');
             });
         });
     dialogs.select('.structd')
@@ -334,7 +362,7 @@ function updateApp() {
             .then(r => {
               onLoading.style('display', 'none');
               window.open(
-                `datagrid.html?store=${r.storeID}&amp;view=${r.viewID}`, '_blank');
+                `datagrid.html?instance=${r.instance}&amp;view=${r.viewID}`, '_blank');
             });
         });
     dialogs.select('.filterd')
@@ -345,9 +373,25 @@ function updateApp() {
             .then(r => {
               onLoading.style('display', 'none');
               window.open(
-                `datagrid.html?store=${r.storeID}&amp;view=${r.viewID}`, '_blank');
+                `datagrid.html?instance=${r.instance}&amp;view=${r.viewID}`, '_blank');
             });
         });
+
+    // screener extention
+    const mod = response.server.externalModules
+      .find(e => e.module === 'contrib.screenerapi');
+    if (mod) {
+      dialogs.select('.screenerd')
+          .call(screenerDialog.updateBody, mod.base_url)
+          .on('submit', function () {
+            screenerDialog.execute(d3.select(this))
+              .then(() => {
+                onLoading.style('display', 'none');
+                return updateApp();
+              });
+          });
+    }
+
     dialogs.select('.sdfd')
         .call(sdfDialog.updateBody, chemrsrc)
         .on('submit', function () {
@@ -356,9 +400,20 @@ function updateApp() {
             .then(r => {
               onLoading.style('display', 'none');
               window.open(
-                `datagrid.html?store=${r.storeID}&amp;view=${r.viewID}`, '_blank');
+                `datagrid.html?instance=${r.instance}&amp;view=${r.viewID}`, '_blank');
             });
         });
+
+    // Form auto-fill for debug (Ctrl+F)
+    client.registerCtrlCommand('f', () => {
+      const activeID = dialogs.select('.show').attr('id');
+      const modals = {
+        'search-dialog': searchDialog,
+        'struct-dialog': structDialog,
+        'filter-dialog': filterDialog
+      };
+      dialogs.select(`#${activeID}`).call(modals[activeID].fill);
+    });
 
     // Fetch all ongoing tasks
     return idb.getAllCollections()
@@ -381,13 +436,15 @@ function updateApp() {
   .finally(() => {
     // update stored package tree
     return idb.getAllItems().then(items => {
-      const treeNodes = [{storeID: 'root'}];
+      const treeNodes = [{id: 'root'}];
+      const ogs = [];
       items.forEach(pkg => {
         pkg.parent = 'root';
         pkg.ongoing = specs.isRunning(pkg);
+        ogs.push(pkg.ongoing);
         treeNodes.push(pkg);
         pkg.views.forEach(view => {
-          view.parent = pkg.storeID;
+          view.parent = pkg.id;
           view.ongoing = pkg.ongoing;
           view.alone = pkg.views.length &lt;= 1;
           view.parentName = pkg.name;
@@ -407,8 +464,14 @@ function updateApp() {
           treeNodes.push(view);
         });
       });
-      d3.select('#contents').select('.stored')
-        .call(tree.treeItems, treeNodes, d => d.storeID, nodeFactory);
+      d3.select('.reset')
+          .classed('disabled', ogs.some(e => e));
+      d3.select('.stored')
+          .call(tree.tree()
+            .bodyHeight(300)
+            .nodeEnterFactory(viewNode)
+            .nodeMergeFactory(updateViewNode), treeNodes
+          );
       onLoading.style('display', 'none');
     });
   });
@@ -427,6 +490,7 @@ function run() {
   // TODO: offline mode flags
   const localFile = document.location.protocol !== "file:";  // TODO
   const offLine = 'onLine' in navigator &amp;&amp; !navigator.onLine;  // TODO
+  console.info(`Kiwiii version ${kwVersion}`)
   client.registerServiceWorker();
   app();
 }
@@ -445,13 +509,13 @@ export default {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_badge.html">component/badge</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-common_client.html">common/client</a></li><li><a href="module-common_collection.html">common/collection</a></li><li><a href="module-common_fetcher.html">common/fetcher</a></li><li><a href="module-common_file.html">common/file</a></li><li><a href="module-common_idb.html">common/idb</a></li><li><a href="module-common_image.html">common/image</a></li><li><a href="module-common_legacySchema.html">common/legacySchema</a></li><li><a href="module-common_mapper.html">common/mapper</a></li><li><a href="module-common_misc.html">common/misc</a></li><li><a href="module-common_scale.html">common/scale</a></li><li><a href="module-common_specs.html">common/specs</a></li><li><a href="module-common_transform.html">common/transform</a></li><li><a href="module-component_badge.html">component/badge</a></li><li><a href="module-component_button.html">component/button</a></li><li><a href="module-component_controlBox.html">component/controlBox</a></li><li><a href="module-component_dropdown.html">component/dropdown</a></li><li><a href="module-component_formBox.html">component/formBox</a></li><li><a href="module-component_formBoxGroup.html">component/formBoxGroup</a></li><li><a href="module-component_formListBox.html">component/formListBox</a></li><li><a href="module-component_formRangeBox.html">component/formRangeBox</a></li><li><a href="module-component_legend.html">component/legend</a></li><li><a href="module-component_modal.html">component/modal</a></li><li><a href="module-component_shape.html">component/shape</a></li><li><a href="module-component_transform.html">component/transform</a></li><li><a href="module-component_tree.html">component/tree</a></li><li><a href="module-dashboardApp.html">dashboardApp</a></li><li><a href="module-datagrid.html">datagrid</a></li><li><a href="module-datagrid_component.html">datagrid/component</a></li><li><a href="module-datagrid_rowFactory.html">datagrid/rowFactory</a></li><li><a href="module-datagrid_rowFilter.html">datagrid/rowFilter</a></li><li><a href="module-datagrid_sort.html">datagrid/sort</a></li><li><a href="module-datagrid_state.html">datagrid/state</a></li><li><a href="module-datagrid_table.html">datagrid/table</a></li><li><a href="module-datagridApp.html">datagridApp</a></li><li><a href="module-dialog_community.html">dialog/community</a></li><li><a href="module-dialog_fieldConfig.html">dialog/fieldConfig</a></li><li><a href="module-dialog_fieldFetch.html">dialog/fieldFetch</a></li><li><a href="module-dialog_fieldFile.html">dialog/fieldFile</a></li><li><a href="module-dialog_fieldInput.html">dialog/fieldInput</a></li><li><a href="module-dialog_filter.html">dialog/filter</a></li><li><a href="module-dialog_formGroup.html">dialog/formGroup</a></li><li><a href="module-dialog_networkgen.html">dialog/networkgen</a></li><li><a href="module-dialog_rename.html">dialog/rename</a></li><li><a href="module-dialog_screener.html">dialog/screener</a></li><li><a href="module-dialog_sdf.html">dialog/sdf</a></li><li><a href="module-dialog_search.html">dialog/search</a></li><li><a href="module-dialog_struct.html">dialog/struct</a></li><li><a href="module-network.html">network</a></li><li><a href="module-network_communityDetection.html">network/communityDetection</a></li><li><a href="module-network_component.html">network/component</a></li><li><a href="module-network_controlBox.html">network/controlBox</a></li><li><a href="module-network_force.html">network/force</a></li><li><a href="module-network_interaction.html">network/interaction</a></li><li><a href="module-network_similarity.html">network/similarity</a></li><li><a href="module-network_state.html">network/state</a></li><li><a href="module-networkApp.html">networkApp</a></li><li><a href="module-profile.html">profile</a></li><li><a href="module-testAPI.html">testAPI</a></li><li><a href="module-tile.html">tile</a></li><li><a href="module-tile_component.html">tile/component</a></li><li><a href="module-tile_controlBox.html">tile/controlBox</a></li><li><a href="module-tile_interaction.html">tile/interaction</a></li><li><a href="module-tile_state.html">tile/state</a></li><li><a href="module-tileApp.html">tileApp</a></li></ul><h3>Classes</h3><ul><li><a href="module-common_collection.html">common/collection</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Aug 14 2018 09:06:32 GMT+0900 (JST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Sep 12 2018 14:02:21 GMT+0900 (日本標準時)
 </footer>
 
 <script> prettyPrint(); </script>
