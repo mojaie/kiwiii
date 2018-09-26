@@ -134,7 +134,7 @@ function updateViewNode(selection, record) {
                 view.name = renameDialog.value(d3.select(this));
               }).then(updateApp);
             } else {
-              idb.updateItem(record.instance, item => {
+              idb.updateItem(record.id, item => {
                 item.name = renameDialog.value(d3.select(this));
               }).then(updateApp);
             }

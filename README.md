@@ -27,7 +27,7 @@ Supported browsers
 
 
 
-Try interactive data view examples (Observable)
+Try instant data view examples (Observable)
 ------------------------------------------------
 
 [<img src="https://static.observableusercontent.com/thumbnail/b4859341f456ac329799b35f0394e976ed1f0198fc334b134853537be7ff8d53.jpg" width="260" height="160" alt="Table view" style="margin: 5px"/>](https://beta.observablehq.com/@mojaie/drug-dataset-table-demo)
@@ -35,51 +35,51 @@ Try interactive data view examples (Observable)
 
 
 
-Features and demo applications
+Try demo applications
 ---------------------------------
 
+### 1. Launch the demo application
 
-### Dashboard
+[https://mojaie.github.io/kiwiii/app/dashboard.html](https://mojaie.github.io/kiwiii/app/dashboard.html)
 
 [<img src="assets/screenshots/dashboard.png" width="260" height="160" alt="Dashboard" style="margin: 5px"/>](assets/screenshots/dashboard.png)
 
-[[Open dashboard app]](https://mojaie.github.io/kiwiii/app/dashboard.html)
 
-- Entry point of the application bundle
-- Show list of stored local data, server jobs and status
-- Open or delete stored datagrids and networks (You can save your data view into Indexed DB local storage by clicking "Save" on their menubar. Click "Reset local datastore" button to clean up it. Be careful not to leave confidential data on public access PC.)
+### 2. Open test data files (Start Menu -> Open file)
 
-
-### Test data files
-
-- [DrugBank 5.0.5 FDA Approved](https://mojaie.github.io/kiwiii/assets/resources/DrugBank5.0.5_FDA_Approved_GLS08.gfc)
+- [Structure-activity map of EGFR Tyrosine kinase Inhibitors (PubChem AID 578)](https://mojaie.github.io/kiwiii/assets/resources/AID578_EGFRTyr.apc)
+- [Drug clustering by structure similarity (DrugBank 5.0.5 FDA Approved)](https://mojaie.github.io/kiwiii/assets/resources/DrugBank5.0.5_FDA_Approved_GLS08.gfc)
 - [SPR sensorgram plot table](https://mojaie.github.io/kiwiii/assets/resources/SPR_results_demo.ndc)
 
+Opened file will be automatically stored into local web storage (IndexedDB). Click "Reset local datastore" button to clean up it. Be careful not to leave confidential data on a public access PC.)
 
-### Datagrid view
+
+### 3. Select a view
+
+
+#### Datagrid view
 
 [<img src="assets/screenshots/table-view.png" width="260" height="160" alt="Table view" style="margin: 5px"/>](assets/screenshots/table-view.png)
 [<img src="assets/screenshots/spr-plot-example.png" width="260" height="160" alt="Plot example" style="margin: 5px"/>](assets/screenshots/spr-plot-example.png)
 
 
-### Features
+##### Features
+
 - [SlickGrid](https://github.com/mleibman/SlickGrid)-like smooth scroll datatable
 - Sortable
-- Row filter
+- Row filter by keyword
 - User input column (checkbox and comment)
 - PNG, SVG image column (ex. chemical structure column)
 - Plot column ([Vega version 3](https://vega.github.io/vega/) plot data)
-- Chemical structure similarity network generation (requires [Flashflood](https://github.com/mojaie/flashflood) server)
-- Export to SDFile and Excel (requires [Flashflood](https://github.com/mojaie/flashflood) server)
 
 
-### Network view
+#### Network view
 
 [<img src="assets/screenshots/network-view.png" width="260" height="160" alt="Network view" style="margin: 5px"/>](assets/screenshots/network-view.png)
 [<img src="assets/screenshots/network-potency.png" width="260" height="160" alt="Network potency" style="margin: 5px"/>](assets/screenshots/network-potency.png)
 
 
-### Features
+##### Features
 
 - Visualized network of chemical structure nodes connected with structure similarity relationship (known as [Chemical Space Network](https://doi.org/10.1007/s10822-014-9760-0))
 - Force-directed layout implemented with d3-force
@@ -87,12 +87,38 @@ Features and demo applications
 - Community detection ([jLouvain](https://github.com/upphiminn/jLouvain))
 
 
+#### Tile view (Experimental)
+
+[<img src="assets/screenshots/tile-heatmap.png" width="260" height="160" alt="Tile view" style="margin: 5px"/>](assets/screenshots/tile-heatmap.png)
+
+
+##### Features
+
+- Heatmap
+- Microplate assay data interpretation
+
+
+
+Client-server environment
+------------------------------------
+
+- Kiwiii and [Flashflood](https://github.com/mojaie/flashflood) forms client-server environment for chemical data analysis
+
+### Flashflood APIs
+
+- Database search
+- Chemical structure search
+- [Genedata Screener](https://www.genedata.com/products/screener/) access via REST API
+- Chemical structure similarity network generation
+- Export datagrid to SDFile and Excel
+
+
 ### Profile view
 
 [<img src="assets/screenshots/profile-view.png" width="260" height="160" alt="Profile view" style="margin: 5px"/>](assets/screenshots/profile-view.png)
 
 - An overview of the chemical data entry (chemical structure, properties, aliases and related assay results)
-- requires [Flashflood](https://github.com/mojaie/flashflood) server
+
 
 
 API Documentation (WIP)
