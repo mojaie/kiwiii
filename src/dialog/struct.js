@@ -125,9 +125,11 @@ function updateBody(selection, resources, rdk) {
       .call(box.updateFormValue, 'exact')
       .dispatch('change');
   selection.select('.measure')
-      .call(box.updateFormValue, 'sim');
+      .call(box.updateFormValue, 'sim')
+      .dispatch('change');
   selection.select('.thld')
-      .call(box.updateFormValue, 0.5);
+      .call(box.updateFormValue, 0.5)
+      .dispatch('change');
   selection.select('.option')
       .call(group.updateSimOptionValues,
             {ignoreHs: true, timeout: 2, diameter: 8});

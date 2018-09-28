@@ -77,6 +77,21 @@ function app(view, coll) {
       });
   menu.append('a')
       .classed('online-command', true)
+      .call(button.dropdownMenuItem, 'Download SDFile', 'menu-exportsdf')
+      .on('click', () => {
+        d3.select('#menubar .loading-circle').style('display', 'inline-block');
+        const coll = state.rows.export();
+        const formData = new FormData();
+        formData.append('contents', new Blob([JSON.stringify(coll)]));
+        return fetcher.post('sdfout', formData)
+          .then(fetcher.text)
+          .then(text => {
+            d3.select('#menubar .loading-circle').style('display', 'none');
+            hfile.downloadDataFile(text, `${state.name}.sdf`);
+          });
+      });
+  menu.append('a')
+      .classed('online-command', true)
       .call(button.dropdownMenuItem, 'Download Excel', 'menu-exportexcel')
       .on('click', () => {
         d3.select('#menubar .loading-circle').style('display', 'inline-block');
@@ -90,6 +105,7 @@ function app(view, coll) {
             hfile.downloadDataFile(blob, `${state.name}.xlsx`);
           });
       });
+
 
   // Dashboard link
   menubar.append('a')

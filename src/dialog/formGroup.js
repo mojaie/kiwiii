@@ -113,7 +113,7 @@ function queryMolValues(selection) {
   const format = box.formValue(selection.select('.format'));
   const source = box.formValue(selection.select('.source'));
   const textquery = box.formValue(selection.select('.textquery'));
-  const areaquery = box.textareaBoxLines(selection.select('.areaquery'));
+  const areaquery = box.formValue(selection.select('.areaquery'));
   return {
     format: format,
     source: format === 'dbid' ? source : null,

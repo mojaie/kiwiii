@@ -185,6 +185,7 @@ export default class Collection {
    * Export collection object as JSON
    * @return {object} collection JSON
    */
+  // TODO: new method that exports only visible fields
   export() {
     return {
       $schema: "https://mojaie.github.io/kiwiii/specs/collection_v1.0.json",
