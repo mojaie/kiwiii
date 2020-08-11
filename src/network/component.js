@@ -82,7 +82,9 @@ function updateNodeAttrs(selection, state) {
     fo.attr('x', -htwidth / 2)
       .attr('y', d => state.focusedView ? svgWidth / 2 - 10
         : parseFloat(sizeConv(d[state.nodeSize.field])))
-      .attr('width', htwidth);
+      .attr('width', htwidth)
+      .attr('height', 1)
+      .attr('overflow', 'visible');
     fo.select('div')
       .style('font-size', `${state.nodeLabel.size}px`)
       .style('color', d => labelColorConv(d[state.nodeLabelColor.field]))
